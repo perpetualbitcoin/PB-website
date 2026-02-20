@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Presale Dapp - Perpetual Bitcoin</title>
+    <link rel="icon" href="Pic/favicon.ico" type="image/x-icon" />
+    <link rel="stylesheet" href="styles.css" />
+    <script src="config.js"></script>
+</head>
+<body class="presale-dapp-bg">
+    <nav class="navbar">
+        <div id="nav-price" style="position: absolute; left: 20px; top: 50%; transform: translateY(-50%); font-size: 1.15rem; font-weight: 600; color: #4CAF50; white-space: nowrap; font-family: monospace;">$—</div>
+        <div class="nav-container">
+            <div class="logo"><img src="Pic/PB1.png" alt="Perpetual Bitcoin PB logo"></div>
+            <ul class="nav-menu">
+                <li><a href="index.html#home" class="nav-link">Home</a></li>
+                <li><a href="faq.html" class="nav-link">FAQ</a></li>
+                <li><a href="whitepaperLite.html" class="nav-link">Whitepaper Lite</a></li>
+                <li><a href="PBManifesto.html" class="nav-link">PB Manifesto</a></li>
+                <li><a href="presale-dapp.html" class="nav-link">Presale 🎉</a></li>
+                <li><a href="testDapp.html" class="nav-link" style="color: #F39004; font-weight:600;">✨ Full testDapp</a></li>
+            </ul>
+            <div style="margin-left:12px;display:flex;align-items:center;gap:12px;flex-direction:row;">
+                <button class="btn btn-primary" id="nav-connect-btn" style="padding: 6px 12px; font-size: 0.85rem; white-space: nowrap;">Connect</button>
+                <label style="font-size:0.7rem;color:#999;font-family:monospace;white-space:nowrap">Network: <span id="nav-network-id">—</span></label>
+                <div style="display: flex; align-items: center; gap: 6px; margin-left: 12px; padding-left: 12px; border-left: 1px solid #555;">
+                    <select id="toggle-network" style="padding: 4px 8px; font-size: 0.7rem; background: #1a1a1a; color: #F39004; border: 1px solid #F39004; border-radius: 4px; cursor: pointer;">
+                        <option value="0x171" selected>🔴 Mainnet 369</option>
+                        <option value="0x3AF">🧪 Testnet 943</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <section class="page-hero">
+        <h1>Presale LIVE 🎉</h1>
+        <p>Follow us on X<a href="https://x.com/PerpetualB67383" target="_blank" style="color: var(--primary-color); text-decoration: none;">@PerpetualB67383</a> and Telegram<a href="https://t.me/Perpetual_Bitcoin" target="_blank" style="color: var(--primary-color); text-decoration: none;"> t.me/Perpetual_Bitcoin</a>.<br>Connect your <a href="https://www.okx.com/en-us/download?pageSource=nav" target="_blank" style="color: var(--primary-color); text-decoration: underline; cursor: pointer;">wallet</a> to ENTER and participate in the presale, preview your presale entries and entry-price curve.<br><span style="font-weight: 700; font-size: 1.1rem; color: #ddd;">TIP: CREATE A VIRGIN <a href="https://www.okx.com/en-us/download?pageSource=nav" target="_blank" style="color: #ddd; text-decoration: underline; cursor: pointer;">WALLET</a>, and SEED that <a href="https://www.okx.com/en-us/download?pageSource=nav" target="_blank" style="color: #ddd; text-decoration: underline; cursor: pointer;">wallet</a> to interact with the presale.</span></p>
+    </section>
+
+    <div class="page-container">
+        <section class="presale-section">
+            <h2>Connect Wallet</h2>
+            <div class="wallet-panel" style="margin:0 auto;max-width:880px;width:85%;">
+                <div class="wallet-info-row" style="display:flex;align-items:center;gap:12px;width:100%">
+                    <p id="wallet-status" class="wallet-value" style="margin:0">Not connected</p>
+                    <p id="network-id" class="wallet-value" style="margin:0;opacity:0.95">—</p>
+                    <div id="your-entries" style="margin-left:auto;color:#fff;font-weight:700;background:rgba(0,0,0,0.18);padding:6px 10px;border-radius:6px;">YOUR entries: 0 / 5</div>
+                </div>
+                <button class="btn btn-primary" id="connect-wallet">Connect Wallet</button>
+                <p class="wallet-note" id="network-note" style="display:none"></p>
+
+                <div class="buy-panel" style="position:relative;padding:18px 18px 12px 18px;">
+                        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px">
+                            <label class="wallet-label" for="presale-address" style="margin:0;flex:0 0 auto;white-space:nowrap">Presale Contract Address: </label>
+                            <input id="presale-address" type="text" placeholder="0x..." style="flex:0 0 420px;max-width:60%;min-width:180px;font-size:0.95rem;padding:0.45rem 0.6rem;text-align:left" />
+                        </div>
+                        <script>document.getElementById('presale-address').value = ADDRESSES.PRESALE_IOU;</script>
+
+                        <div style="display:flex;align-items:center;gap:12px;margin-top:6px">
+                            <div style="flex:0 0 auto;display:flex;align-items:center;gap:8px">
+                                <button id="buy-btn" class="btn btn-primary" style="min-width:140px;padding:0.6rem 0.8rem">Lock in Block</button>
+                            </div>
+
+                            <div style="flex:1"></div>
+
+                            <div style="flex:0 0 auto">
+                                <button id="remaining-public-btn" class="btn btn-primary" disabled style="cursor:default;white-space:nowrap;min-width:160px;padding:0.6rem 0.8rem;pointer-events:none;opacity:0.95">Remaining public: —</button>
+                            </div>
+                        </div>
+
+                        <div id="right-block-info" style="width:100%;margin-top:12px;color:#ddd;font-size:0.95rem">
+                            <div style="display:flex;justify-content:space-between;gap:12px">
+                                <div>Price per block: <span id="price-per-block">—</span></div>
+                                <div style="text-align:right">Users Locked IN: <span id="stat-assigned">—</span></div>
+                            </div>
+
+                            <div style="display:flex;justify-content:space-between;gap:12px;margin-top:6px">
+                                <div>Total to pay: <span id="payment-amount">—</span></div>
+                                <div style="text-align:right">Blocks Available: <span id="stat-unassigned">—</span></div>
+                            </div>
+
+                            <div style="display:flex;justify-content:space-between;gap:12px;margin-top:6px">
+                                <div></div>
+                                <div style="text-align:right">Leftover blockNum count: <span id="stat-zero-blocknum">—</span></div>
+                            </div>
+
+                            <div id="tx-status" style="margin-top:8px;text-align:left;color:#ffd"> </div>
+                        </div>
+                </div>
+            </div>
+        </section>
+
+    <section class="presale-section">
+            <h2>Entry Curve Table</h2>
+            <p><strong>
+                Entry prices are linear from block #1 to #555. Purchase price stays fixed at 555.5 USDL per block.
+                Entry prices only set unlock thresholds (Lock IN price point). 102 Founder/Ops/Advertising/Dev blocks at prime positions (1,2,3,5,...,547).
+            </strong></p>
+            <div class="example-table curve-table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Block #</th>
+                            <th>Price</th>
+                            <th># PB</th>
+                            <th>Allocation</th>
+                        </tr>
+                    </thead>
+                    <tbody id="entry-curve-body"></tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <p>&copy; 2026 Perpetual Bitcoin. Built on PulseChain. One Price. One Pool. One Truth.</p>
+            <div class="footer-links">
+                <a href="https://twitter.com/PerpetualB67383">@PerpetualB67383</a>
+                <a href="https://t.me/Perpetual_Bitcoin">t.me/Perpetual_Bitcoin</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Load ethers via CDN fallback if not already present
+    </script>
+    <script src="lib/ethers-5.7.2.umd.min.js"></script>
+    <script src="config.js"></script>
+    <script>
+        const TOTAL_BLOCKS = 555;
+        const START_PRICE = 0.0369;
+        const END_PRICE = 0.05352;
+        const FREE_BLOCKS = 102;
+
+        const founderBlocks = new Set([1,2,3,5,7,11,13,17,19,23,29,31,37,41,43,47,53,59,61,67,71,73,79,83,89,97,101,103,107,109,113,127,131,137,139,149,151,157,163,167,173,179,181,191,193,197,199,211,223,227,229,233,239,241,251,257,263,269,271,277,281,283,293,307,311,313,317,331,337,347,349,353,359,367,373,379,383,389,397,401,409,419,421,431,433,439,443,449,457,461,463,467,479,487,491,499,503,509,521,523,541,547]);
+
+        const entryBody = document.getElementById('entry-curve-body');
+
+        // Helper: check if block is a founder block (prime positions)
+        const isFounderBlock = (blockNum) => founderBlocks.has(blockNum);
+
+        for (let block = 1; block <= TOTAL_BLOCKS; block += 1) {
+            const t = (block - 1) / (TOTAL_BLOCKS - 1);
+            const entryPrice = START_PRICE + (END_PRICE - START_PRICE) * t;
+            const pbPerBlock = 555.5 / entryPrice;
+            const row = document.createElement('tr');
+            row.id = `row-block-${block}`;
+
+            if (isFounderBlock(block)) {
+                row.classList.add('entry-row-founder');
+            }
+
+            row.innerHTML = `
+                <td>#${block}</td>
+                <td>${entryPrice.toFixed(5)}</td>
+                <td>${pbPerBlock.toFixed(2)}</td>
+                <td>
+                    <span id="alloc-${block}">${isFounderBlock(block) ? 'FOAD' : 'Public'}</span>
+                </td>
+            `;
+
+            entryBody.appendChild(row);
+        }
+
+        const connectButton = document.getElementById('nav-connect-btn') || document.getElementById('connect-wallet');
+        const statusLabel = document.getElementById('wallet-status');
+        // Prefer PulseChain Mainnet (369) first, then testnet (943)
+        const ACCEPTED_CHAIN_IDS = ['0x171', '0x3AF'];
+
+        const chainNames = {
+            '0x3AF': 'PulseChain Testnet (943)',
+            '0x171': 'PulseChain (mainnet, 369)'
+        };
+
+        const setStatus = (message, isError = false) => {
+            if (!statusLabel) {
+                return;
+            }
+            statusLabel.textContent = message;
+            statusLabel.classList.toggle('wallet-status-error', isError);
+        };
+
+        const ensurePulseChain = async () => {
+            if (!window.ethereum) return false;
+            try {
+                const currentChainId = await window.ethereum.request({ method: 'eth_chainId' });
+                if (ACCEPTED_CHAIN_IDS.includes(currentChainId)) return true;
+            } catch (_) {}
+
+            // Try to request switching to accepted chains in order
+            for (const target of ACCEPTED_CHAIN_IDS) {
+                try {
+                    await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: target }] });
+                    return true;
+                } catch (err) {
+                    // ignore and try next
+                }
+            }
+
+            const accepted = ACCEPTED_CHAIN_IDS.map(id => chainNames[id] || id).join(' or ');
+            setStatus(`Please switch your wallet to ${accepted}`, true);
+            return false;
+        };
+
+        const networkIdEl = document.getElementById('network-id');
+
+        // ensure network UI updates when provider becomes available
+        const ensureNetworkAfterConnect = async () => {
+            try {
+                if (!provider && window.ethereum) provider = new ethers.providers.Web3Provider(window.ethereum);
+                await updateNetworkUI();
+            } catch (_) {}
+        };
+
+        const setConnectedUI = (account) => {
+            // Update both nav and card connect buttons
+            const navBtn = document.getElementById('nav-connect-btn');
+            const cardBtn = document.getElementById('connect-wallet');
+            const display = account ? 'Connected' : 'Connect Wallet';
+            
+            [navBtn, cardBtn].forEach(btn => {
+                if (!btn) return;
+                btn.textContent = account ? (btn === navBtn ? 'Connected' : display) : (btn === navBtn ? 'Connect' : 'Connect Wallet');
+                btn.disabled = !!account;
+                btn.style.opacity = account ? '0.85' : '1';
+                btn.classList.toggle('btn-primary', !account);
+            });
+
+            // Show truncated address in wallet-status; network-id is handled separately by updateNetworkUI()
+            try {
+                const wl = document.getElementById('wallet-status');
+                if (wl) wl.textContent = account ? `${account.slice(0,6)}...${account.slice(-4)}` : 'Not connected';
+            } catch (_) {}
+        };
+
+        const updateNetworkUI = async () => {
+            if (!networkIdEl) return;
+            try {
+                // Try window.ethereum.chainId first
+                if (window.ethereum && window.ethereum.chainId) {
+                    try {
+                        const raw = window.ethereum.chainId;
+                        const cid = (typeof raw === 'string' && raw.startsWith('0x')) ? parseInt(raw, 16) : Number(raw);
+                        networkIdEl.textContent = String(cid);
+                        console.log('[presale-dapp] network from window.ethereum.chainId', raw, '->', cid);
+                        // set toggle state to reflect testnet/mainnet
+                        try { const tog = document.getElementById('toggle-network'); if (tog) tog.value = (cid === 943) ? '0x3AF' : '0x171'; } catch(_) {}
+                        return;
+                    } catch (e) {
+                        console.warn('chainId parse failed', e);
+                    }
+                }
+
+                // Then try eth_chainId RPC
+                if (window.ethereum && typeof window.ethereum.request === 'function') {
+                    try {
+                        const raw = await window.ethereum.request({ method: 'eth_chainId' });
+                        const cid = (typeof raw === 'string' && raw.startsWith('0x')) ? parseInt(raw, 16) : Number(raw);
+                        networkIdEl.textContent = String(cid);
+                        try { const tog = document.getElementById('toggle-network'); if (tog) tog.value = (cid === 943) ? '0x3AF' : '0x171'; } catch(_) {}
+                        console.log('[presale-dapp] network from eth_chainId', raw, '->', cid);
+                        return;
+                    } catch (e) {
+                        console.warn('eth_chainId request failed', e);
+                    }
+                }
+
+                // Fallback to provider.getNetwork()
+                const prov = provider || (window.ethereum ? new ethers.providers.Web3Provider(window.ethereum) : null);
+                if (!prov) {
+                    // Default to mainnet 369 when provider not available
+                    networkIdEl.textContent = '369 (default mainnet)';
+                    console.log('[presale-dapp] no provider; defaulting network display to 369 (mainnet)');
+                    return;
+                }
+                const net = await prov.getNetwork();
+                networkIdEl.textContent = String(net.chainId);
+                console.log('[presale-dapp] network from provider.getNetwork', net);
+            } catch (e) {
+                networkIdEl.textContent = 'unknown';
+            }
+        };
+
+        // Initial network display (if wallet already injected)
+        (async ()=>{
+            try {
+                if (window.ethereum) {
+                    provider = new ethers.providers.Web3Provider(window.ethereum);
+                    await updateNetworkUI();
+                    try { await refreshPresaleOwners(); } catch(_) {}
+                    try { await updatePriceDisplay(); } catch(_) {}
+                }
+            } catch (_) {}
+        })();
+
+        // Helper: Get remaining public blocks count
+        async function getRemainingBlocksCount() {
+            try {
+                const presaleAddr = presaleInput.value.trim();
+                console.log('[getRemainingBlocksCount] presaleAddr:', presaleAddr);
+                if (!presaleAddr) return null;
+                
+                // Use window.ethereum directly if provider not initialized, or fallback to RPC
+                let tempProvider;
+                if (provider) {
+                    tempProvider = provider;
+                    console.log('[getRemainingBlocksCount] using existing provider');
+                } else if (window.ethereum) {
+                    tempProvider = new ethers.providers.Web3Provider(window.ethereum);
+                    console.log('[getRemainingBlocksCount] using window.ethereum provider');
+                } else {
+                    tempProvider = new ethers.providers.JsonRpcProvider('https://rpc.pulsechain.com', 369);
+                    console.log('[getRemainingBlocksCount] using fallback RPC provider');
+                }
+                
+                const code = await tempProvider.getCode(presaleAddr);
+                console.log('[getRemainingBlocksCount] contract exists:', code !== '0x');
+                if (!code || code === '0x') return null;
+                
+                const presaleRead = new ethers.Contract(presaleAddr, presaleAbi, tempProvider);
+                let entries;
+                try { entries = await presaleRead.getPresaleData(); } catch (e) { 
+                    console.log('[getRemainingBlocksCount] error getting entries:', e.message);
+                    return null; 
+                }
+
+                const zero = '0x0000000000000000000000000000000000000000';
+                let assignedPublicCount = 0;
+
+                for (const item of entries) {
+                    const buyer = (item.buyer || item[0]) && (item.buyer || item[0]).toString ? (item.buyer || item[0]).toString() : zero;
+                    let blockNum = item.blockNum || item[1];
+                    if (blockNum && typeof blockNum.toNumber === 'function') {
+                        blockNum = blockNum.toNumber();
+                    } else {
+                        blockNum = Number(blockNum);
+                    }
+
+                    // Count assigned public blocks (non-founder with valid blockNum and buyer)
+                    if (blockNum && !isFounderBlock(blockNum) && (buyer && buyer !== zero)) {
+                        assignedPublicCount++;
+                    }
+                }
+
+                const totalPublic = TOTAL_BLOCKS - FREE_BLOCKS;
+                const remaining = totalPublic - assignedPublicCount;
+                console.log('[getRemainingBlocksCount] totalPublic:', totalPublic, 'assigned:', assignedPublicCount, 'remaining:', remaining);
+                return remaining;
+            } catch (e) {
+                console.log('[getRemainingBlocksCount] error:', e.message);
+                return null;
+            }
+        }
+
+        // Update Connect Wallet button based on sold-out status
+        async function updateConnectButtonStatus() {
+            const remaining = await getRemainingBlocksCount();
+            console.log('[updateConnectButtonStatus] remaining blocks:', remaining);
+            
+            // Update both buttons (navbar and main section)
+            const navBtn = document.getElementById('nav-connect-btn');
+            const mainBtn = document.getElementById('connect-wallet');
+            
+            if (remaining !== null && remaining <= 0) {
+                console.log('[updateConnectButtonStatus] Setting buttons to SOLD OUT');
+                if (navBtn) {
+                    navBtn.textContent = 'SOLD OUT';
+                    navBtn.disabled = true;
+                    navBtn.style.cursor = 'default';
+                    navBtn.style.opacity = '0.6';
+                }
+                if (mainBtn) {
+                    mainBtn.textContent = 'SOLD OUT';
+                    mainBtn.disabled = true;
+                    mainBtn.classList.remove('btn-primary');
+                    mainBtn.style.cursor = 'default';
+                    mainBtn.style.opacity = '0.6';
+                    mainBtn.style.backgroundColor = '#999';
+                }
+            } else if (remaining !== null) {
+                console.log('[updateConnectButtonStatus] Setting buttons to Connect Wallet');
+                if (navBtn) {
+                    navBtn.textContent = 'Connect';
+                    navBtn.disabled = false;
+                    navBtn.style.cursor = 'pointer';
+                    navBtn.style.opacity = '1';
+                }
+                if (mainBtn) {
+                    mainBtn.textContent = 'Connect Wallet';
+                    mainBtn.disabled = false;
+                    mainBtn.classList.add('btn-primary');
+                    mainBtn.style.cursor = 'pointer';
+                    mainBtn.style.opacity = '1';
+                    mainBtn.style.backgroundColor = '';
+                }
+            }
+        }
+
+        const connectWallet = async () => {
+            if (!window.ethereum) {
+                setStatus('No wallet detected, install OKX Wallet or MetaMask or InternetMoney Wallet', true);
+                return;
+            }
+
+            // Check if all blocks are sold
+            const remaining = await getRemainingBlocksCount();
+            if (remaining !== null && remaining <= 0) {
+                setStatus('Sorry, ALL SOLD, come back when launch (SOON)', true);
+                return;
+            }
+
+            const onPulseChain = await ensurePulseChain();
+            if (!onPulseChain) {
+                return;
+            }
+
+            try {
+                const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                const account = accounts && accounts[0];
+
+                if (account) {
+                    try { await updateNetworkUI(); } catch(_) {}
+                    setStatus(`Connected: ${account.slice(0, 6)}...${account.slice(-4)}`);
+                    setConnectedUI(account);
+                    try { await refreshPresaleOwners(); } catch(_) {}
+                    try { await updatePriceDisplay(); } catch(_) {}
+                    try { await updateRemainingPublicBlocks(); } catch(_) {}
+                }
+            } catch (error) {
+                setStatus('Connection rejected', true);
+            }
+        };
+
+        // Attach connectWallet to BOTH buttons (nav + card)
+        const navConnectBtn = document.getElementById('nav-connect-btn');
+        const cardConnectBtn = document.getElementById('connect-wallet');
+        if (navConnectBtn) navConnectBtn.addEventListener('click', connectWallet);
+        if (cardConnectBtn) cardConnectBtn.addEventListener('click', connectWallet);
+
+        // Network toggle in the navbar (select dropdown)
+        const toggleNetwork = document.getElementById('toggle-network');
+        if (toggleNetwork) {
+            toggleNetwork.addEventListener('change', async (ev) => {
+                if (!window.ethereum) { 
+                    setStatus('No wallet detected to switch', true); 
+                    return; 
+                }
+                const target = ev.target.value; // '0x3AF' for testnet, '0x171' for mainnet
+                try {
+                    await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: target }] });
+                    await updateNetworkUI();
+                    const chainName = target === '0x3AF' ? 'PulseChain Testnet (943)' : 'PulseChain Mainnet (369)';
+                    setStatus(`Switched to ${chainName}`);
+                } catch (err) {
+                    // if chain not added, try to add it
+                    if (err && err.code === 4902) {
+                        try {
+                            const chainConfig = target === '0x3AF' ? {
+                                chainId: '0x3AF',
+                                chainName: 'PulseChain Testnet V4',
+                                rpcUrls: ['https://rpc.v4.testnet.pulsechain.com'],
+                                nativeCurrency: { name: 'tPLS', symbol: 'tPLS', decimals: 18 },
+                                blockExplorerUrls: ['https://scan.v4.testnet.pulsechain.com']
+                            } : {
+                                chainId: '0x171',
+                                chainName: 'PulseChain Mainnet',
+                                rpcUrls: ['https://rpc.pulsechain.com'],
+                                nativeCurrency: { name: 'PLS', symbol: 'PLS', decimals: 18 },
+                                blockExplorerUrls: ['https://scan.pulsechain.com']
+                            };
+                            
+                            await window.ethereum.request({
+                                method: 'wallet_addEthereumChain',
+                                params: [chainConfig]
+                            });
+                            await updateNetworkUI();
+                            const chainName = target === '0x3AF' ? 'PulseChain Testnet (943)' : 'PulseChain Mainnet (369)';
+                            setStatus(`Added and switched to ${chainName}`);
+                        } catch (e) {
+                            setStatus('Failed to add network: ' + (e && e.message ? e.message : e), true);
+                        }
+                    } else {
+                        setStatus('Switch failed: ' + (err && err.message ? err.message : err), true);
+                    }
+                }
+            });
+        }
+
+        if (window.ethereum) {
+            window.ethereum.on('chainChanged', async (chainId) => {
+                if (!ACCEPTED_CHAIN_IDS.includes(chainId)) {
+                    const accepted = ACCEPTED_CHAIN_IDS.map(id => chainNames[id] || id).join(' or ');
+                    setStatus(`Please switch wallet to ${accepted}`, true);
+                } else {
+                    setStatus(`Connected network: ${chainNames[chainId] || chainId}`);
+                }
+                await updateNetworkUI();
+                try {
+                    const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+                    // update connected UI after network refresh so network id is shown inline
+                    setConnectedUI(accounts && accounts[0]);
+                } catch (_) {}
+            });
+
+            window.ethereum.on('accountsChanged', async (accounts) => {
+                const account = accounts && accounts[0];
+                if (account) {
+                    try { await updateNetworkUI(); } catch(_) {}
+                    setStatus(`Connected: ${account.slice(0, 6)}...${account.slice(-4)}`);
+                    setConnectedUI(account);
+                } else {
+                    setStatus('Not connected');
+                    setConnectedUI(null);
+                    if (networkIdEl) networkIdEl.textContent = '—';
+                }
+            });
+        }
+
+        // --- Presale interaction logic (USDL ERC20 on testnet) ---
+        const presaleAbi = [
+            'function buyBlock(uint256 numBlocks) external',
+            'function nextAvailableBlock() view returns (uint256)',
+            'function USDL_PER_BLOCK() view returns (uint256)',
+            'function getPresaleData() view returns (tuple(address buyer,uint256 blockNum,uint256 priceAtPurchase,bool convertedAtLaunch)[])',
+            'function saleClosed() view returns (bool)'
+        ];
+
+        const erc20Abi = [
+            'function approve(address spender, uint256 amount) external returns (bool)',
+            'function allowance(address owner, address spender) view returns (uint256)',
+            'function balanceOf(address account) view returns (uint256)'
+        ];
+
+        let provider, signer;
+
+        const presaleInput = document.getElementById('presale-address');
+        const buyBtn = document.getElementById('buy-btn');
+        const txStatus = document.getElementById('tx-status');
+
+
+        const detectProvider = () => {
+            if (window.ethereum) return window.ethereum;
+            if (window.okxwallet) return window.okxwallet;
+            if (window.web3 && window.web3.currentProvider) return window.web3.currentProvider;
+            return null;
+        };
+
+        const ensureConnected = async () => {
+            const detected = detectProvider();
+            if (!detected) {
+                setStatus('No wallet detected — install MetaMask or OKX Wallet', true);
+                throw new Error('No wallet');
+            }
+
+            provider = new ethers.providers.Web3Provider(detected);
+            signer = provider.getSigner();
+
+            // request accounts if needed
+            const accounts = await provider.listAccounts();
+            if (!accounts || accounts.length === 0) {
+                try {
+                    if (typeof detected.request === 'function') {
+                        await detected.request({ method: 'eth_requestAccounts' });
+                    } else if (provider.send) {
+                        await provider.send('eth_requestAccounts', []);
+                    }
+                } catch (err) {
+                    setStatus('Connection rejected', true);
+                    throw err;
+                }
+            }
+
+            return signer;
+        };
+
+        // Fetch presale on-chain data and update per-block owner labels
+        async function refreshPresaleOwners() {
+            try {
+                const presaleAddr = presaleInput.value.trim();
+                if (!presaleAddr) return;
+
+                const tempProvider = provider || (window.ethereum ? new ethers.providers.Web3Provider(window.ethereum) : null);
+                if (!tempProvider) return;
+
+                const code = await tempProvider.getCode(presaleAddr);
+                if (!code || code === '0x') return;
+                // Enable the remaining-public button when contract is present
+                if (remainingPublicBtn) {
+                    remainingPublicBtn.disabled = false;
+                    remainingPublicBtn.style.cursor = 'pointer';
+                }
+
+                const presaleRead = new ethers.Contract(presaleAddr, presaleAbi, tempProvider);
+
+                let entries;
+                try {
+                    entries = await presaleRead.getPresaleData();
+                } catch (e) {
+                    return;
+                }
+
+                // clear previous labels and restore allocation text/display
+                for (let b = 1; b <= TOTAL_BLOCKS; b++) {
+                    const alloc = document.getElementById('alloc-' + b);
+                    if (alloc) {
+                        alloc.textContent = isFounderBlock(b) ? 'FOAD' : 'Public';
+                        alloc.style.display = '';
+                    }
+                }
+
+                // get connected account (if any)
+                let accounts = [];
+                try { accounts = await tempProvider.listAccounts(); } catch(_) { accounts = []; }
+                const myAddr = (accounts && accounts[0]) ? accounts[0].toLowerCase() : null;
+
+                // Count user's owned entries to display in wallet panel
+                let userEntriesCount = 0;
+
+                for (const item of entries) {
+                    try {
+                        const buyer = (item.buyer || item[0]) && (item.buyer || item[0]).toString ? (item.buyer || item[0]).toString() : null;
+                        let blockNum = item.blockNum || item[1];
+                        if (blockNum && typeof blockNum.toNumber === 'function') {
+                            blockNum = blockNum.toNumber();
+                        } else {
+                            blockNum = Number(blockNum);
+                        }
+                        if (!blockNum || blockNum < 1 || blockNum > TOTAL_BLOCKS) continue;
+
+                        const allocEl = document.getElementById('alloc-' + blockNum);
+                        const zero = '0x0000000000000000000000000000000000000000';
+                        const hasBuyer = buyer && buyer !== zero;
+
+                        // For non-founder blocks: update status based on ownership
+                        if (!isFounderBlock(blockNum)) {
+                            if (hasBuyer) {
+                                if (myAddr && buyer.toLowerCase() === myAddr) {
+                                    allocEl.textContent = 'Your entry';
+                                } else {
+                                    allocEl.textContent = 'sold';
+                                }
+                            } else {
+                                allocEl.textContent = 'Available';
+                            }
+                        }
+
+                        if (myAddr && buyer && buyer.toLowerCase() === myAddr) {
+                            // increment user's entries
+                            try { userEntriesCount++; } catch (_) {}
+                        }
+                    } catch (_) { /* per-entry non-fatal */ }
+                }
+
+                // Update top-right YOUR entries display (max 5 per address)
+                try {
+                    const yourEl = document.getElementById('your-entries');
+                    if (yourEl) yourEl.textContent = `YOUR entries: ${userEntriesCount} / 5`;
+                } catch (_) {}
+
+                // Update Connect Wallet button status
+                try { await updateConnectButtonStatus(); } catch (_) {}
+            } catch (e) {
+                // non-fatal
+            }
+        }
+
+        const readBig = (bn) => (bn && bn.toString) ? bn : ethers.BigNumber.from(bn);
+
+        const pricePerBlockEl = document.getElementById('price-per-block');
+        const paymentAmountEl = document.getElementById('payment-amount');
+        const remainingPublicBtn = document.getElementById('remaining-public-btn');
+
+        async function updatePriceDisplay() {
+            try {
+                const presaleAddr = presaleInput.value.trim();
+                if (!presaleAddr) return;
+                const tempProvider = provider || (window.ethereum ? new ethers.providers.Web3Provider(window.ethereum) : null);
+                if (!tempProvider) return;
+                const code = await tempProvider.getCode(presaleAddr);
+                if (!code || code === '0x') return;
+                const presaleRead = new ethers.Contract(presaleAddr, presaleAbi, tempProvider);
+                let usdPerBlock;
+                try { usdPerBlock = await presaleRead.USDL_PER_BLOCK(); } catch (_) { return; }
+                const per = ethers.utils.formatEther(usdPerBlock);
+                if (pricePerBlockEl) pricePerBlockEl.innerHTML = `${per} <span style="display:inline-flex;align-items:center;gap:4px;">USDL <span id="add-usdl-mm" style="cursor:pointer;opacity:0.9;font-size:14px;color:#F39004;" title="Add USDL to MetaMask">🦊</span></span>`;
+                const numBlocks = 1;
+                try {
+                    const total = ethers.BigNumber.from(usdPerBlock).mul(numBlocks);
+                    if (paymentAmountEl) paymentAmountEl.innerHTML = `${ethers.utils.formatEther(total)} <span style="display:inline-flex;align-items:center;gap:4px;">USDL <span id="add-usdl-mm-2" style="cursor:pointer;opacity:0.9;font-size:14px;color:#F39004;" title="Add USDL to MetaMask">🦊</span></span>`;
+                } catch (_) {}
+
+                // Attach event listeners to the newly created fox icons
+                setTimeout(() => {
+                    const addUSDLIcon1 = document.getElementById('add-usdl-mm');
+                    const addUSDLIcon2 = document.getElementById('add-usdl-mm-2');
+
+                    if (addUSDLIcon1) {
+                        addUSDLIcon1.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            addUSDLToMM();
+                        });
+                    }
+                    if (addUSDLIcon2) {
+                        addUSDLIcon2.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            addUSDLToMM();
+                        });
+                    }
+                }, 10);
+            } catch (_) {}
+        }
+
+        async function updateRemainingPublicBlocks() {
+            try {
+                const presaleAddr = presaleInput.value.trim();
+                if (!presaleAddr) return;
+                const tempProvider = provider || (window.ethereum ? new ethers.providers.Web3Provider(window.ethereum) : null);
+                if (!tempProvider) return;
+                const code = await tempProvider.getCode(presaleAddr);
+                if (!code || code === '0x') return;
+                const presaleRead = new ethers.Contract(presaleAddr, presaleAbi, tempProvider);
+                let entries;
+                try { entries = await presaleRead.getPresaleData(); } catch (_) { return; }
+
+                const zero = '0x0000000000000000000000000000000000000000';
+                let remaining = 0;
+                let assignedCount = 0;
+                let assignedPublicCount = 0;
+                let unassignedCount = 0;
+                let zeroBlockNumCount = 0;
+
+                for (const item of entries) {
+                    const buyer = (item.buyer || item[0]) && (item.buyer || item[0]).toString ? (item.buyer || item[0]).toString() : zero;
+                    let blockNum = item.blockNum || item[1];
+                    if (blockNum && typeof blockNum.toNumber === 'function') {
+                        blockNum = blockNum.toNumber();
+                    } else {
+                        blockNum = Number(blockNum);
+                    }
+
+                    // Count zero/assigned/unassigned across all entries (matches node diagnostics)
+                    if (!buyer || buyer === zero) {
+                        unassignedCount++;
+                    } else {
+                        assignedCount++;
+                    }
+
+                    if (!blockNum) {
+                        zeroBlockNumCount++;
+                    }
+
+                    // Count assigned public blocks (non-founder with valid blockNum and buyer)
+                    if (blockNum && !isFounderBlock(blockNum) && (buyer && buyer !== zero)) {
+                        assignedPublicCount++;
+                    }
+                }
+
+                const totalPublic = TOTAL_BLOCKS - FREE_BLOCKS;
+                // Remaining public = totalPublic - assignedPublicCount
+                remaining = totalPublic - assignedPublicCount;
+                if (remainingPublicBtn) {
+                    if (remaining <= 0) {
+                        remainingPublicBtn.textContent = `Public sold out`;
+                    } else {
+                        remainingPublicBtn.textContent = `Blocks Remaining: ${remaining} / ${totalPublic}`;
+                    }
+                }
+
+                // Update visible diagnostic stats
+                try {
+                    const statAssigned = document.getElementById('stat-assigned');
+                    const statUnassigned = document.getElementById('stat-unassigned');
+                    const statZero = document.getElementById('stat-zero-blocknum');
+                    if (statAssigned) statAssigned.textContent = String(assignedCount);
+                    if (statUnassigned) statUnassigned.textContent = String(unassignedCount);
+                    if (statZero) statZero.textContent = String(zeroBlockNumCount);
+                } catch (_) {}
+
+                // Update buy button state when sold out
+                try {
+                    if (typeof remaining !== 'number') return;
+                    if (remaining <= 0) {
+                        if (buyBtn) {
+                            buyBtn.textContent = 'SOLD OUT';
+                            buyBtn.disabled = true;
+                            buyBtn.classList.remove('btn-primary');
+                        }
+                    } else {
+                        if (buyBtn) {
+                            buyBtn.textContent = 'Lock in Block';
+                            buyBtn.disabled = false;
+                            buyBtn.classList.add('btn-primary');
+                        }
+                    }
+                } catch (_) {}
+
+                // Update Connect Wallet button status
+                try { await updateConnectButtonStatus(); } catch (_) {}
+            } catch (_) {}
+        }
+
+        // call once to populate when possible
+        try { updatePriceDisplay(); } catch(_) {}
+        try { updateRemainingPublicBlocks(); } catch(_) {}
+        
+        // Delay initial button status update to ensure presale address is loaded
+        setTimeout(() => {
+            try { 
+                console.log('[presale] updateConnectButtonStatus() - presale address:', presaleInput.value);
+                updateConnectButtonStatus(); 
+            } catch(_) {}
+        }, 500);
+
+
+
+        // periodic refresh in background
+        try { setInterval(() => { try { updateRemainingPublicBlocks(); } catch(_) {} try { updateConnectButtonStatus(); } catch(_) {} }, 30000); } catch(_) {}
+
+        buyBtn.addEventListener('click', async () => {
+            try {
+                txStatus.textContent = '';
+                await ensureConnected();
+
+                const presaleAddr = presaleInput.value.trim();
+                if (!presaleAddr) throw new Error('Presale contract address required');
+
+                // USDL address from config
+                const usdlAddr = ADDRESSES.USDL;
+
+                const presale = new ethers.Contract(presaleAddr, presaleAbi, signer);
+                const usdl = new ethers.Contract(usdlAddr, erc20Abi, signer);
+
+                // Verify contracts exist
+                const presaleCode = await provider.getCode(presaleAddr);
+                if (!presaleCode || presaleCode === '0x') {
+                    const net = await provider.getNetwork();
+                    txStatus.textContent = `No presale contract found at ${presaleAddr} on chain ${net.chainId}.`;
+                    return;
+                }
+                const usdlCode = await provider.getCode(usdlAddr);
+                if (!usdlCode || usdlCode === '0x') {
+                    const net = await provider.getNetwork();
+                    txStatus.textContent = `No USDL contract found at ${usdlAddr} on chain ${net.chainId}.`;
+                    return;
+                }
+
+                let usdPerBlock;
+                try {
+                    usdPerBlock = await presale.USDL_PER_BLOCK();
+                } catch (callErr) {
+                    const net = await provider.getNetwork();
+                    txStatus.textContent = `Read error calling contract on chain ${net.chainId}: ${callErr && callErr.message ? callErr.message : callErr}. Ensure you are on the correct network.`;
+                    return;
+                }
+                const num = 1;
+                const total = readBig(usdPerBlock).mul(num);
+
+                // Check USDL balance
+                const balance = await usdl.balanceOf(await signer.getAddress());
+                if (balance.lt(total)) {
+                    txStatus.textContent = `Insufficient USDL balance. Have: ${ethers.utils.formatEther(balance)} USDL, Need: ${ethers.utils.formatEther(total)} USDL`;
+                    return;
+                }
+
+                // Check and approve allowance (approve large amount to avoid repeated approvals)
+                const currentAllowance = await usdl.allowance(await signer.getAddress(), presaleAddr);
+                const maxApproval = ethers.utils.parseEther('11000'); // Approve 11,000 USDL upfront
+                if (currentAllowance.lt(total)) {
+                    txStatus.textContent = 'Approving USDL spend...';
+                    const approveTx = await usdl.approve(presaleAddr, maxApproval);
+                    await approveTx.wait();
+                    txStatus.textContent = 'USDL approved. Sending buy transaction...';
+                } else {
+                    txStatus.textContent = 'Sending USDL buy transaction...';
+                }
+                const tx = await presale.buyBlock(num);
+                txStatus.textContent = `Buy TX sent: ${tx.hash}`;
+                await tx.wait();
+                txStatus.textContent = `Buy confirmed: ${tx.hash}`;
+
+                // Optionally fetch next available block and show minted token ID
+                try {
+                    const next = await presale.nextAvailableBlock();
+                    const firstMintedId = Number(next) - num; // first assigned
+                    const lastMintedId = Number(next) - 1; // last assigned
+                    if (num === 1) {
+                        txStatus.textContent += ` IOU ID #: ${firstMintedId}`;
+                    } else {
+                        txStatus.textContent += ` IOU IDs: ${firstMintedId}-${lastMintedId}`;
+                    }
+                } catch (e) {
+                    // non-fatal
+                }
+                try { await refreshPresaleOwners(); } catch(_) {}
+                try { await updatePriceDisplay(); } catch(_) {}
+                try { await updateRemainingPublicBlocks(); } catch(_) {}
+            } catch (err) {
+                try {
+                    // Prefer explicit revert reason when present
+                    const rawMsg = err && (err.message || (err.error && err.error.message) || '');
+                    const msg = String(rawMsg || err || '');
+                    if (msg.includes('Max blocks per address') || msg.includes('Max blocks per address')) {
+                        txStatus.textContent = 'Buy error: max per-address entries reached — you already have 5 entries.';
+                    } else {
+                        txStatus.textContent = 'Buy error: ' + (err && err.message ? err.message : String(err));
+                    }
+                } catch (e) {
+                    txStatus.textContent = 'Buy error: ' + (err && err.message ? err.message : String(err));
+                }
+            }
+        });
+
+        // Wire the remaining-public button to run the same update logic on demand
+        if (remainingPublicBtn) {
+            remainingPublicBtn.addEventListener('click', async () => {
+                try {
+                    remainingPublicBtn.textContent = 'Refreshing...';
+                    await updateRemainingPublicBlocks();
+                    try { await refreshPresaleOwners(); } catch (_) {}
+                } catch (e) {
+                    remainingPublicBtn.textContent = 'Refresh failed';
+                    setTimeout(() => { try { updateRemainingPublicBlocks(); } catch (_) {} }, 2000);
+                }
+            });
+        }
+
+        // Add USDL to MetaMask functionality
+        const addUSDLToMM = async () => {
+            if (!window.ethereum) {
+                alert('MetaMask not detected. Please install MetaMask to add tokens.');
+                return;
+            }
+
+            try {
+                const wasAdded = await window.ethereum.request({
+                    method: 'wallet_watchAsset',
+                    params: {
+                        type: 'ERC20',
+                        options: {
+                            address: ADDRESSES.USDL,
+                            symbol: 'USDL',
+                            decimals: 18,
+                            image: 'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/images/usd-coin-logo.svg' // Using USDC logo as placeholder
+                        }
+                    }
+                });
+
+                if (wasAdded) {
+                    console.log('USDL token added to MetaMask');
+                    alert('USDL token added to MetaMask successfully!');
+                } else {
+                    console.log('USDL token not added to MetaMask');
+                    alert('USDL token was not added to MetaMask.');
+                }
+            } catch (error) {
+                console.error('Error adding USDL to MetaMask:', error);
+                alert('Failed to add USDL to MetaMask. Please try again.');
+            }
+        };
+
+        // Check if presale sale is closed on-chain
+        (async () => {
+            try {
+                const presaleAddr = ADDRESSES.PRESALE_IOU;
+                if (!presaleAddr) return;
+                const tempProv = window.ethereum ? new ethers.providers.Web3Provider(window.ethereum) : null;
+                if (!tempProv) return;
+                const code = await tempProv.getCode(presaleAddr);
+                if (!code || code === '0x') return;
+                const presaleCheck = new ethers.Contract(presaleAddr, presaleAbi, tempProv);
+                const closed = await presaleCheck.saleClosed();
+                if (!closed) {
+                    console.log('⏸️ Presale still open');
+                    return;
+                }
+                console.log('✅ Presale sale is CLOSED on-chain');
+                const walletPanel = document.querySelector('.wallet-panel');
+                if (walletPanel) {
+                    walletPanel.innerHTML = `
+                        <div style="text-align: center; padding: 40px 20px; background: rgba(0,0,0,0.3); border-radius: 8px;">
+                            <h3 style="color: #F39004; margin-bottom: 15px; font-size: 1.3rem;">🎉 Presale Complete!</h3>
+                            <p style="color: #ddd; margin: 10px 0; font-size: 1.1rem; line-height: 1.6;">
+                                <strong>SALE CLOSED</strong><br>
+                                Come back when launch <strong>(SOON)</strong> 🚀
+                            </p>
+                            <p style="color: #999; margin-top: 20px; font-size: 0.9rem;">
+                                Blocks are being converted to Phase A.<br>
+                                Check the Full Dapp for trading, VLock, and LP rewards.
+                            </p>
+                        </div>
+                    `;
+                }
+            } catch (e) {
+                console.log('saleClosed check failed:', e.message);
+            }
+        })();
+
+    </script>
+    <script src="price-ticker.js"></script>
+</body>
+</html>

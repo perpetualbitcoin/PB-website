@@ -1,0 +1,1333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Perpetual Bitcoin - PB Protocol Simulator</title>
+<link rel="icon" href="Pic/favicon.ico" type="image/x-icon" />
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #0a0a0a; color: #ddd; font-family: 'Segoe UI', monospace; font-size: 13px; padding: 10px; }
+h1 { color: #f7931a; font-size: 1.4em; margin-bottom: 6px; }
+h2 { color: #f7931a; font-size: 1.1em; margin: 8px 0 4px; border-bottom: 1px solid #333; padding-bottom: 2px; }
+h3 { color: #ccc; font-size: 0.95em; margin: 6px 0 3px; }
+
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+.grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+.panel { background: #141414; border: 1px solid #2a2a2a; border-radius: 6px; padding: 10px; }
+.panel-highlight { background: #1a1a0a; border-color: #444420; }
+
+label { display: block; font-size: 11px; color: #888; margin: 3px 0 1px; }
+input[type="number"], input[type="text"] { 
+    background: #1e1e1e; border: 1px solid #444; color: #eee; padding: 4px 6px; border-radius: 3px; width: 100%; font-size: 12px; 
+}
+input:focus { border-color: #f7931a; outline: none; }
+button { 
+    background: #f7931a; color: #000; border: none; padding: 6px 14px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px; margin: 3px 2px;
+}
+button:hover { background: #ffaa33; }
+button.red { background: #d32f2f; color: #fff; }
+button.red:hover { background: #f44336; }
+button.green { background: #2e7d32; color: #fff; }
+button.green:hover { background: #4caf50; }
+button.blue { background: #1565c0; color: #fff; }
+button.blue:hover { background: #1e88e5; }
+button.grey { background: #555; color: #ddd; }
+
+.stat { display: inline-block; margin: 2px 10px 2px 0; }
+.stat-label { color: #888; font-size: 11px; }
+.stat-value { color: #f7931a; font-weight: bold; font-size: 13px; }
+.stat-value.green { color: #4caf50; }
+.stat-value.red { color: #ef5350; }
+
+table { width: 100%; border-collapse: collapse; font-size: 11px; }
+th { background: #1a1a1a; color: #f7931a; text-align: left; padding: 3px 5px; position: sticky; top: 0; z-index: 1; }
+td { padding: 2px 5px; border-bottom: 1px solid #1a1a1a; }
+tr:hover { background: #1a1a1a; }
+tr.net-sell { background: rgba(211, 47, 47, 0.1); }
+tr.net-buy { background: rgba(46, 125, 50, 0.08); }
+tr.sell-row { background: rgba(211, 47, 47, 0.15); }
+
+.scroll-table { max-height: 350px; overflow-y: auto; }
+.scroll-table-lg { max-height: 600px; overflow-y: auto; }
+.mini { font-size: 10px; color: #777; }
+
+#status-bar { 
+    background: #1a1a1a; border: 1px solid #333; border-radius: 4px; padding: 5px 10px; margin: 6px 0; 
+    font-size: 12px; color: #4caf50; min-height: 24px;
+}
+
+.flex-row { display: flex; gap: 8px; align-items: flex-end; flex-wrap: wrap; }
+.flex-row > div { flex: 1; min-width: 80px; }
+
+.badge { display: inline-block; padding: 1px 5px; border-radius: 3px; font-size: 10px; font-weight: bold; }
+.badge-buy { background: #1b5e20; color: #a5d6a7; }
+.badge-sell { background: #b71c1c; color: #ef9a9a; }
+.badge-netsell { background: #4a148c; color: #ce93d8; }
+
+.warning { color: #ff9800; font-size: 11px; }
+.info { color: #64b5f6; font-size: 11px; }
+</style>
+</head>
+<body>
+
+<h1><a href="index.html" style="color:#f7931a;text-decoration:none;">Perpetual Bitcoin</a> (PB) Protocol Simulator</h1>
+<p class="mini">Simulates the full PB Vault: AMM (UniV2 constant-product), convergent netting, LP contributions, unlocks, phase transitions. All 555 presale positions + new buys.</p>
+
+<div id="status-bar">Ready. Configure initial LP and click "Initialize".</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- ROW 1: INIT + STATS -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="grid">
+    <div class="panel panel-highlight">
+        <h2>Initialize Protocol</h2>
+        <div class="flex-row">
+            <div>
+                <label>Initial USDL in LP</label>
+                <input type="number" id="init-usdl" value="90000" step="1000">
+            </div>
+            <div>
+                <label>Start Price (USDL/PB)</label>
+                <input type="number" id="init-price" value="0.05555" step="0.001" readonly>
+            </div>
+            <div style="flex:0 0 auto;">
+                <label>&nbsp;</label>
+                <button onclick="initProtocol()">Initialize</button>
+                <button class="grey" onclick="resetAll()">Reset</button>
+            </div>
+        </div>
+        <div style="margin-top:6px;">
+            <span class="stat"><span class="stat-label">PB in LP: </span><span class="stat-value" id="s-lp-pb">-</span></span>
+            <span class="stat"><span class="stat-label">USDL in LP: </span><span class="stat-value" id="s-lp-usdl">-</span></span>
+            <span class="stat"><span class="stat-label">k: </span><span class="stat-value" id="s-k">-</span></span>
+        </div>
+    </div>
+    <div class="panel">
+        <h2>Protocol State</h2>
+        <div>
+            <span class="stat"><span class="stat-label">Price: </span><span class="stat-value" id="s-price" style="font-size:1.6em">-</span></span>
+            <span class="stat"><span class="stat-label">Total USDL Distributed: $</span><span class="stat-value green" id="s-usdl-dist" style="font-size:1.6em">-</span></span>
+        </div>
+        <div>
+            <span class="stat"><span class="stat-label">Phase: </span><span class="stat-value" id="s-phase">-</span></span>
+            <span class="stat"><span class="stat-label">Buy Count: </span><span class="stat-value" id="s-buys">-</span></span>
+            <span class="stat"><span class="stat-label">Heap Size: </span><span class="stat-value" id="s-heap">-</span></span>
+        </div>
+        <div>
+            <span class="stat"><span class="stat-label">Vault PB: </span><span class="stat-value" id="s-vault-pb">-</span></span>
+            <span class="stat"><span class="stat-label">Vault PBc: </span><span class="stat-value" id="s-vault-pbc">-</span></span>
+            <span class="stat"><span class="stat-label">Outstanding PBc: </span><span class="stat-value" id="s-out-pbc">-</span></span>
+        </div>
+        <div>
+            <span class="stat"><span class="stat-label">LP Value Locked: </span><span class="stat-value green" id="s-lp-value" style="font-size:1.3em">-</span></span>
+            <span class="stat"><span class="stat-label">Market Cap: </span><span class="stat-value" id="s-mcap" style="font-size:1.3em">-</span></span>
+            <span class="stat"><span class="stat-label">LP Stops Adding PB at: </span><span class="stat-value red" id="s-lp-stop">-</span></span>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- ROW 2: ACTIONS -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="grid3">
+    <div class="panel">
+        <h2>Single Buy</h2>
+        <div class="flex-row">
+            <div>
+                <label>USDL Amount</label>
+                <input type="number" id="buy-usdl" value="100" step="10">
+            </div>
+            <div style="flex:0 0 auto;">
+                <label>&nbsp;</label>
+                <button class="green" onclick="executeSingleBuy()">Buy PB</button>
+            </div>
+        </div>
+    </div>
+    <div class="panel">
+        <h2>Bulk Buy Simulator</h2>
+        <div class="flex-row">
+            <div>
+                <label>Min USDL per buy</label>
+                <input type="number" id="bulk-min" value="369" step="10">
+            </div>
+            <div>
+                <label>Max USDL per buy</label>
+                <input type="number" id="bulk-max" value="5555" step="10">
+            </div>
+            <div>
+                <label># of buys</label>
+                <input type="number" id="bulk-count" value="1000" step="1">
+            </div>
+            <div style="flex:0 0 auto;">
+                <label>&nbsp;</label>
+                <button class="blue" onclick="executeBulkBuy()">Run Bulk</button>
+            </div>
+        </div>
+    </div>
+    <div class="panel">
+        <h2>Sell Actions</h2>
+        <div style="margin: 4px 0;">
+            <button class="red" onclick="executeRandomSell()">Random Sell (1 holder)</button>
+            <button class="red" onclick="executeMassSell()">Sell 1/5 of ALL liquid PB</button>
+            <button class="red" onclick="executePanicSell()" style="background:#8b0000;font-size:13px;padding:8px 16px;">🚨 PANIC 🚨 Everybody Sells ALL Liquid PB</button>
+        </div>
+        <p class="mini" style="margin-top:4px;">Random sell: picks a random holder with liquid PB and sells all of it. Mass sell: every holder sells 1/5 of their liquid PB. Panic: ALL holders dump ALL liquid PB.</p>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- ROW 3: EVENT LOG -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="panel">
+    <h2>Event Log <button class="grey" onclick="clearLog()" style="font-size:10px;padding:2px 8px;">Clear</button></h2>
+    <div class="scroll-table-lg" id="log-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Type</th>
+                    <th>USDL In</th>
+                    <th>Price Before</th>
+                    <th>Price After</th>
+                    <th>&#916; Price</th>
+                    <th>PB to Buyer</th>
+                    <th>Liquid PB</th>
+                    <th>Locked PBc</th>
+                    <th>LP USDL</th>
+                    <th>LP PB</th>
+                    <th>AMM PB</th>
+                    <th>Netted K</th>
+                    <th>PBc Sold (netting)</th>
+                    <th>USDL Paid (netting)</th>
+                    <th>Fallback #</th>
+                    <th>Fallback PBc Sold</th>
+                    <th>Fallback USDL Paid</th>
+                    <th>Net Direction</th>
+                    <th>Vault PB</th>
+                    <th>Phase</th>
+                </tr>
+            </thead>
+            <tbody id="log-body">
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- ROW 4: POSITIONS TABLE -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="grid">
+    <div class="panel">
+        <h2>All Positions (Heap-ordered by Trigger Price) <span class="mini" id="pos-count"></span></h2>
+        <div style="margin-bottom:4px;">
+            <button class="grey" onclick="renderPositions('trigger')" style="font-size:10px;padding:2px 6px;">Sort: Trigger</button>
+            <button class="grey" onclick="renderPositions('id')" style="font-size:10px;padding:2px 6px;">Sort: ID</button>
+            <button class="grey" onclick="renderPositions('buyPrice')" style="font-size:10px;padding:2px 6px;">Sort: Buy Price</button>
+        </div>
+        <div class="scroll-table-lg" id="positions-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>PBt#</th>
+                        <th>Source</th>
+                        <th>Buy Price</th>
+                        <th>PB Amount</th>
+                        <th>PBc Locked</th>
+                        <th>Next T#</th>
+                        <th>Trigger Price</th>
+                        <th>Eligible?</th>
+                        <th>Holder</th>
+                    </tr>
+                </thead>
+                <tbody id="positions-body">
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="panel">
+        <h2>Holder Balances</h2>
+        <div class="scroll-table-lg" id="holders-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Holder</th>
+                        <th>Liquid PB</th>
+                        <th>Locked PBc</th>
+                        <th>Total Value (USDL)</th>
+                        <th>USDL Received (unlocks)</th>
+                        <th># Positions</th>
+                    </tr>
+                </thead>
+                <tbody id="holders-body">
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════════════════════════
+// PB PROTOCOL SIMULATOR ENGINE
+// Matches Vault.sol logic: AMM (UniV2), convergent netting, LP, unlocks
+// ════════════════════════════════════════════════════════════════
+
+// ── Constants (match Vault.sol) ──
+const PB_TOTAL_SUPPLY = 21_000_000;
+const PBC_TOTAL_SUPPLY = 21_000_000;
+const UNLOCK_MULTIPLIER = 15555;
+const UNLOCK_DIVISOR = 10000;
+const TRANCHE_FRACTION = 3;
+const DUST_THRESHOLD = 15e-18;  // 15 wei
+const DUST_CHECK_THRESHOLD = 10e-18;
+const LP_CONTRIBUTION_BPS = 5555;
+const AMM_BUY_BPS = 4445;
+const MAX_UNLOCK_PER_BUY = 100;
+const TOTAL_BLOCKS = 555;
+
+// ── Presale pricing (matches PresaleIOU.sol) ──
+function getEntryPriceAtBlock(blockNum) {
+    const minPrice = 0.0369;
+    const maxPrice = 0.05352;
+    return minPrice + ((blockNum - 1) * (maxPrice - minPrice)) / 554;
+}
+
+function getPBPerBlock(blockNum) {
+    const entryPrice = getEntryPriceAtBlock(blockNum);
+    return 555.5 / entryPrice;  // USDL_PER_BLOCK / entryPrice
+}
+
+// ── Trigger price calculation (matches Vault.computeNextTriggerPrice) ──
+// Uses integer-style: (price / 10000) * 15555 repeatedly
+function computeNextTriggerPrice(buyPrice, unlockIndex) {
+    let price = buyPrice;
+    for (let i = 0; i <= unlockIndex; i++) {
+        // Match Solidity: price = (price / UNLOCK_DIVISOR) * UNLOCK_MULTIPLIER
+        // In Solidity this truncates. We simulate with truncation-like behavior
+        price = Math.floor(price * 1e18 / UNLOCK_DIVISOR) * UNLOCK_MULTIPLIER / 1e18;
+    }
+    return price;
+}
+
+// More precise version for display (float is fine since we're simulating)
+function computeTriggerPriceFloat(buyPrice, unlockIndex) {
+    let p = buyPrice;
+    for (let i = 0; i <= unlockIndex; i++) {
+        p = p * 1.5555;
+    }
+    return p;
+}
+
+// ── Split calculation (matches Vault._computeSplit) ──
+function computeSplit(pbAmount) {
+    const liquidPB = pbAmount * 369 / 10000;
+    const lockedPBc = pbAmount - liquidPB;
+    return { liquidPB, lockedPBc };
+}
+
+// ── AMM helpers (UniswapV2 constant product) ──
+function getAmountOut(amountIn, reserveIn, reserveOut) {
+    // UniV2: amountOut = (reserveOut * amountIn * 997) / (reserveIn * 1000 + amountIn * 997)
+    const numerator = reserveOut * amountIn * 997;
+    const denominator = reserveIn * 1000 + amountIn * 997;
+    return numerator / denominator;
+}
+
+function getAmountIn(amountOut, reserveIn, reserveOut) {
+    // UniV2: amountIn = (reserveIn * amountOut * 1000) / ((reserveOut - amountOut) * 997) + epsilon
+    if (amountOut >= reserveOut) return Infinity;
+    const numerator = reserveIn * amountOut * 1000;
+    const denominator = (reserveOut - amountOut) * 997;
+    return numerator / denominator + 0.000001;
+}
+
+function getPrice(reservePB, reserveUSDL) {
+    return reserveUSDL / reservePB;
+}
+
+// ════════════════════════════════════════════════════════════════
+// PROTOCOL STATE
+// ════════════════════════════════════════════════════════════════
+
+let S = null; // State object, initialized by initProtocol()
+
+function freshState() {
+    return {
+        reservePB: 0,
+        reserveUSDL: 0,
+        vaultPBBalance: PB_TOTAL_SUPPLY,
+        vaultPBcBalance: PBC_TOTAL_SUPPLY,
+        vaultLPTokenBalance: 0,
+        totalUSDLDistributed: 0,
+        buyCount: 0,
+        isDistributionPhase: true,
+        phaseTransitionExecuted: false,
+        pbtIdCounter: 0,
+        // positions: Map<pbtId, PBtData>
+        positions: new Map(),
+        // heap: min-heap sorted by nextTriggerPrice
+        heap: [],  // array of pbtId, heap[0] = lowest trigger
+        // holders: Map<address, { liquidPB, lockedPBc, usdlReceived, positionIds }>
+        holders: new Map(),
+        // Event log
+        log: [],
+        logCounter: 0,
+    };
+}
+
+// ── Holder management ──
+function getHolder(addr) {
+    if (!S.holders.has(addr)) {
+        S.holders.set(addr, { liquidPB: 0, lockedPBc: 0, usdlReceived: 0, positionIds: [] });
+    }
+    return S.holders.get(addr);
+}
+
+// ── Min-heap operations (sorted by nextTriggerPrice) ──
+function heapPush(pbtId) {
+    S.heap.push(pbtId);
+    heapSiftUp(S.heap.length - 1);
+}
+
+function heapPop() {
+    if (S.heap.length === 0) return null;
+    const top = S.heap[0];
+    const last = S.heap.pop();
+    if (S.heap.length > 0) {
+        S.heap[0] = last;
+        heapSiftDown(0);
+    }
+    return top;
+}
+
+function heapRemove(pbtId) {
+    const idx = S.heap.indexOf(pbtId);
+    if (idx === -1) return;
+    const last = S.heap.pop();
+    if (idx < S.heap.length) {
+        S.heap[idx] = last;
+        heapSiftUp(idx);
+        heapSiftDown(idx);
+    }
+}
+
+function heapUpdate(pbtId) {
+    const idx = S.heap.indexOf(pbtId);
+    if (idx === -1) return;
+    heapSiftUp(idx);
+    heapSiftDown(idx);
+}
+
+function heapSiftUp(idx) {
+    while (idx > 0) {
+        const parent = Math.floor((idx - 1) / 2);
+        if (getTrigger(S.heap[idx]) < getTrigger(S.heap[parent])) {
+            [S.heap[idx], S.heap[parent]] = [S.heap[parent], S.heap[idx]];
+            idx = parent;
+        } else break;
+    }
+}
+
+function heapSiftDown(idx) {
+    const len = S.heap.length;
+    while (true) {
+        let smallest = idx;
+        const left = 2 * idx + 1;
+        const right = 2 * idx + 2;
+        if (left < len && getTrigger(S.heap[left]) < getTrigger(S.heap[smallest])) smallest = left;
+        if (right < len && getTrigger(S.heap[right]) < getTrigger(S.heap[smallest])) smallest = right;
+        if (smallest === idx) break;
+        [S.heap[idx], S.heap[smallest]] = [S.heap[smallest], S.heap[idx]];
+        idx = smallest;
+    }
+}
+
+function getTrigger(pbtId) {
+    const pos = S.positions.get(pbtId);
+    return pos ? pos.nextTriggerPrice : Infinity;
+}
+
+// ── vault balance helpers ──
+function totalOutstandingPBc() {
+    return PBC_TOTAL_SUPPLY - S.vaultPBcBalance;
+}
+
+function checkPhaseTransition() {
+    if (S.isDistributionPhase && !S.phaseTransitionExecuted) {
+        if (S.vaultPBBalance <= totalOutstandingPBc()) {
+            S.isDistributionPhase = false;
+            S.phaseTransitionExecuted = true;
+        }
+    }
+}
+
+// ════════════════════════════════════════════════════════════════
+// CORE: ALLOCATE PRESALE
+// ════════════════════════════════════════════════════════════════
+
+function allocatePresaleUser(holderAddr, pbAmount, entryPrice) {
+    const { liquidPB, lockedPBc } = computeSplit(pbAmount);
+
+    // Transfer PB from vault
+    S.vaultPBBalance -= liquidPB;
+    S.vaultPBcBalance -= lockedPBc;
+
+    const holder = getHolder(holderAddr);
+    holder.liquidPB += liquidPB;
+    holder.lockedPBc += lockedPBc;
+
+    // Mint PBt
+    const pbtId = ++S.pbtIdCounter;
+    const pos = {
+        pbtId,
+        buyPrice: entryPrice,
+        pbAmount,
+        pbcLocked: lockedPBc,
+        nextUnlockIndex: 0,
+        nextTriggerPrice: computeTriggerPriceFloat(entryPrice, 0),
+        holder: holderAddr,
+        payoutAddress: holderAddr,
+        source: 'presale',
+    };
+    S.positions.set(pbtId, pos);
+    holder.positionIds.push(pbtId);
+    heapPush(pbtId);
+
+    checkPhaseTransition();
+}
+
+// ════════════════════════════════════════════════════════════════
+// CORE: BUY PB DIRECT (matches Vault.buyPBDirect exactly)
+// ════════════════════════════════════════════════════════════════
+
+function buyPBDirect(buyerAddr, usdlAmount) {
+    if (!S || S.reservePB === 0) { setStatus('Protocol not initialized'); return null; }
+
+    const priceBefore = getPrice(S.reservePB, S.reserveUSDL);
+    S.buyCount++;
+
+    // Step 3: Read reserves
+    let reservePB = S.reservePB;
+    let reserveUSDL = S.reserveUSDL;
+
+    // Step 4: Convergent netting scan
+    const { scanResults, convergentK, totalUnlockUSDL, isNetSell } = convergentNettingScan(usdlAmount, reservePB, reserveUSDL);
+
+    // Step 5+6+7
+    let nettedPBc = 0;
+    let nettedUSDLSettled = 0;
+    let compensationPB = 0;
+    let lpUSDLUsed = 0;
+    let ammPB = 0;
+    let lpPBUsed = 0;
+
+    const lpActive = S.isDistributionPhase && S.vaultPBBalance > totalOutstandingPBc();
+
+    if (!isNetSell) {
+        // NET BUY
+        let usdlSettled = 0;
+        if (convergentK > 0) {
+            const settled = settleNettedUnlocks(scanResults, convergentK, usdlAmount);
+            usdlSettled = settled.usdlUsed;
+            nettedPBc = settled.pbcSettled;
+            nettedUSDLSettled = settled.usdlUsed;
+        }
+
+        let netUSDL = usdlAmount - usdlSettled;
+
+        // Step 6a: LP contribution
+        if (lpActive && netUSDL > 0) {
+            const usdlForLP = netUSDL * LP_CONTRIBUTION_BPS / 10000;
+            if (usdlForLP > 0) {
+                const lp = directLPContribution(usdlForLP);
+                compensationPB = lp.pbCompensation;
+                lpUSDLUsed = lp.usdlUsed;
+                lpPBUsed = lp.pbUsed;
+            }
+        }
+
+        // Step 7a: AMM buy
+        let remainingUSDL = netUSDL - lpUSDLUsed;
+        if (remainingUSDL > 0) {
+            ammPB = ammBuy(remainingUSDL);
+            S.vaultPBBalance += ammPB;
+        }
+    } else {
+        // NET SELL
+        let totalUnlockUSDLNeeded = 0;
+        for (let i = 0; i < convergentK; i++) {
+            totalUnlockUSDLNeeded += scanResults[i].usdlValue;
+        }
+        const shortfallUSDL = totalUnlockUSDLNeeded - usdlAmount;
+
+        // Sell vault PB on AMM
+        const pbToSell = getAmountIn(shortfallUSDL, S.reservePB, S.reserveUSDL);
+        const usdlFromSell = ammSellPB(pbToSell);
+        S.vaultPBBalance -= pbToSell;
+
+        // Settle all K
+        const settled = settleNettedUnlocks(scanResults, convergentK, usdlAmount + usdlFromSell);
+        nettedPBc = settled.pbcSettled;
+        nettedUSDLSettled = settled.usdlUsed;
+    }
+
+    // Step 7.5: Fallback unlocks — track PBc sold and USDL paid
+    let fallbackCount = 0;
+    let fallbackPBcSold = 0;
+    let fallbackUSDLPaid = 0;
+    {
+        const fallbackBudget = convergentK < MAX_UNLOCK_PER_BUY ? MAX_UNLOCK_PER_BUY - convergentK : 0;
+        for (let i = 0; i < fallbackBudget && S.heap.length > 0; i++) {
+            const topId = S.heap[0];
+            const topPbt = S.positions.get(topId);
+            if (!topPbt || topPbt.holder === null) {
+                heapRemove(topId);
+                continue;
+            }
+            const freshPrice = getPrice(S.reservePB, S.reserveUSDL);
+            if (freshPrice < topPbt.nextTriggerPrice) break;
+            const result = executeUnlock(topId);
+            fallbackCount++;
+            fallbackPBcSold += result.pbcSold;
+            fallbackUSDLPaid += result.usdlPaid;
+        }
+    }
+
+    // Step 8: Total buyer PB
+    const totalBuyerPB = nettedPBc + compensationPB + ammPB;
+
+    // Step 9: Split
+    const { liquidPB, lockedPBc } = computeSplit(totalBuyerPB);
+
+    // Transfer from vault
+    S.vaultPBBalance -= liquidPB;
+    S.vaultPBcBalance -= lockedPBc;
+
+    const holder = getHolder(buyerAddr);
+    holder.liquidPB += liquidPB;
+    holder.lockedPBc += lockedPBc;
+
+    // Mint PBt
+    const currentPrice = getPrice(S.reservePB, S.reserveUSDL);
+    const pbtId = ++S.pbtIdCounter;
+    const pos = {
+        pbtId,
+        buyPrice: currentPrice,
+        pbAmount: totalBuyerPB,
+        pbcLocked: lockedPBc,
+        nextUnlockIndex: 0,
+        nextTriggerPrice: computeTriggerPriceFloat(currentPrice, 0),
+        holder: buyerAddr,
+        payoutAddress: buyerAddr,
+        source: 'buy',
+    };
+    S.positions.set(pbtId, pos);
+    holder.positionIds.push(pbtId);
+    heapPush(pbtId);
+
+    checkPhaseTransition();
+
+    const priceAfter = getPrice(S.reservePB, S.reserveUSDL);
+    const pctChange = ((priceAfter - priceBefore) / priceBefore * 100);
+
+    // Determine actual net direction from price movement
+    // convergent netting isNetSell only covers the scan — fallback unlocks
+    // (Step 7.5) sell PB on AMM and can flip net direction
+    const actualNetDirection = priceAfter < priceBefore ? 'NET SELL' : 'NET BUY';
+
+    // Total PBc sold = convergent netted + fallback sold
+    const totalPBcSold = nettedPBc + fallbackPBcSold;
+
+    // Log entry
+    const entry = {
+        num: ++S.logCounter,
+        type: 'BUY',
+        usdlIn: usdlAmount,
+        priceBefore,
+        priceAfter,
+        pctChange,
+        totalPB: totalBuyerPB,
+        liquidPB,
+        lockedPBc,
+        lpUSDL: lpUSDLUsed,
+        lpPB: lpPBUsed,
+        ammPB,
+        convergentK,
+        nettedPBc,
+        nettedUSDLPaid: nettedUSDLSettled,
+        fallbackUnlocks: fallbackCount,
+        fallbackPBcSold,
+        fallbackUSDLPaid,
+        totalPBcSold,
+        netDirection: actualNetDirection,
+        vaultPB: S.vaultPBBalance,
+        phase: S.isDistributionPhase ? 'Distribution' : 'Final',
+    };
+    S.log.push(entry);
+
+    return entry;
+}
+
+// ════════════════════════════════════════════════════════════════
+// CORE: AMM Operations
+// ════════════════════════════════════════════════════════════════
+
+function ammBuy(usdlAmount) {
+    // Buy PB with USDL on AMM
+    const pbOut = getAmountOut(usdlAmount, S.reserveUSDL, S.reservePB);
+    S.reserveUSDL += usdlAmount;
+    S.reservePB -= pbOut;
+    return pbOut;
+}
+
+function ammSellPB(pbAmount) {
+    // Sell PB for USDL on AMM
+    const usdlOut = getAmountOut(pbAmount, S.reservePB, S.reserveUSDL);
+    S.reservePB += pbAmount;
+    S.reserveUSDL -= usdlOut;
+    return usdlOut;
+}
+
+function ammSellPBFromUser(userAddr, pbAmount) {
+    // User sells liquid PB on AMM
+    const holder = getHolder(userAddr);
+    if (holder.liquidPB < pbAmount) pbAmount = holder.liquidPB;
+    if (pbAmount <= 0) return 0;
+
+    const usdlReceived = getAmountOut(pbAmount, S.reservePB, S.reserveUSDL);
+    S.reservePB += pbAmount;
+    S.reserveUSDL -= usdlReceived;
+    holder.liquidPB -= pbAmount;
+    // User gets USDL (we don't track their USDL balance, just record it)
+    return usdlReceived;
+}
+
+// ════════════════════════════════════════════════════════════════
+// CORE: LP Contribution (matches _directLPContribution)
+// ════════════════════════════════════════════════════════════════
+
+function directLPContribution(usdlForLP) {
+    if (!S.isDistributionPhase) return { pbCompensation: 0, usdlUsed: 0, pbUsed: 0 };
+
+    const outPBc = totalOutstandingPBc();
+    if (S.vaultPBBalance <= outPBc) return { pbCompensation: 0, usdlUsed: 0, pbUsed: 0 };
+
+    const availablePB = S.vaultPBBalance - outPBc;
+
+    // PB needed at current pool ratio
+    let pbForLP = (usdlForLP * S.reservePB) / S.reserveUSDL;
+    let totalPBNeeded = pbForLP * 2; // LP + compensation
+
+    if (totalPBNeeded > availablePB) {
+        totalPBNeeded = availablePB;
+        pbForLP = totalPBNeeded / 2;
+        usdlForLP = (pbForLP * S.reserveUSDL) / S.reservePB;
+    }
+
+    if (pbForLP < 0.000001 || usdlForLP < 0.000001) return { pbCompensation: 0, usdlUsed: 0, pbUsed: 0 };
+
+    // Add liquidity (simplified: no slippage in sim, exact amounts)
+    S.reservePB += pbForLP;
+    S.reserveUSDL += usdlForLP;
+    S.vaultPBBalance -= pbForLP; // PB goes to LP
+    // compensation PB stays in vault accounting (deducted during buyer transfer)
+
+    return { pbCompensation: pbForLP, usdlUsed: usdlForLP, pbUsed: pbForLP };
+}
+
+// ════════════════════════════════════════════════════════════════
+// CORE: Convergent Netting Scan (matches _convergentNettingScan)
+// ════════════════════════════════════════════════════════════════
+
+function convergentNettingScan(buyerUSDL, reservePB, reserveUSDL) {
+    // Step 1: Max post-price (full buy, no netting)
+    const maxPBOut = getAmountOut(buyerUSDL, reserveUSDL, reservePB);
+    const maxPostPrice = reservePB > maxPBOut
+        ? (reserveUSDL + buyerUSDL) / (reservePB - maxPBOut)
+        : Infinity;
+
+    // Step 2: Scan eligible unlocks
+    const scanResults = scanEligibleUnlocks(maxPostPrice, MAX_UNLOCK_PER_BUY);
+    const count = scanResults.length;
+
+    if (count === 0) {
+        return { scanResults: [], convergentK: 0, totalUnlockUSDL: 0, isNetSell: false };
+    }
+
+    // Step 3: Prefix sums
+    const prefixUSDL = [];
+    prefixUSDL[0] = scanResults[0].usdlValue;
+    for (let i = 1; i < count; i++) {
+        prefixUSDL[i] = prefixUSDL[i - 1] + scanResults[i].usdlValue;
+    }
+
+    // Step 4: LP active check
+    const lpActive = S.isDistributionPhase && S.vaultPBBalance > totalOutstandingPBc();
+
+    // Step 5: Binary search for largest convergent K
+    let lo = 0, hi = count;
+
+    while (lo < hi) {
+        const mid = Math.floor((lo + hi + 1) / 2);
+        const unlockUSDLForMid = prefixUSDL[mid - 1];
+        let postPrice;
+
+        if (unlockUSDLForMid <= buyerUSDL) {
+            // NET BUY
+            const netUSDLForMid = buyerUSDL - unlockUSDLForMid;
+            const ammUSDLForMid = lpActive ? (netUSDLForMid * AMM_BUY_BPS / 10000) : netUSDLForMid;
+
+            if (ammUSDLForMid > 0) {
+                const pbOut = getAmountOut(ammUSDLForMid, reserveUSDL, reservePB);
+                postPrice = reservePB > pbOut
+                    ? (reserveUSDL + ammUSDLForMid) / (reservePB - pbOut)
+                    : Infinity;
+            } else {
+                postPrice = reserveUSDL / reservePB;
+            }
+        } else {
+            // NET SELL
+            const shortfallUSDL = unlockUSDLForMid - buyerUSDL;
+            if (shortfallUSDL >= reserveUSDL) { hi = mid - 1; continue; }
+            const sellPB = getAmountIn(shortfallUSDL, reservePB, reserveUSDL);
+            postPrice = (reserveUSDL - shortfallUSDL) / (reservePB + sellPB);
+        }
+
+        if (postPrice >= scanResults[mid - 1].triggerPrice) {
+            lo = mid;
+        } else {
+            hi = mid - 1;
+        }
+    }
+
+    let convergentK = lo;
+    if (convergentK === 0) {
+        return { scanResults, convergentK: 0, totalUnlockUSDL: 0, isNetSell: false };
+    }
+
+    let totalUnlockUSDL = prefixUSDL[convergentK - 1];
+    let isNetSell = totalUnlockUSDL > buyerUSDL;
+
+    // Reduce K to 1 for NET SELL (matches contract: while isNetSell && K>1, K--)
+    while (isNetSell && convergentK > 1) {
+        convergentK--;
+        totalUnlockUSDL = prefixUSDL[convergentK - 1];
+        isNetSell = totalUnlockUSDL > buyerUSDL;
+    }
+
+    return { scanResults, convergentK, totalUnlockUSDL, isNetSell };
+}
+
+// ── Scan eligible unlocks from heap ──
+function scanEligibleUnlocks(atPrice, maxResults) {
+    const results = [];
+    const popped = [];
+
+    // Pop from heap while eligible
+    while (results.length < maxResults && S.heap.length > 0) {
+        const topId = S.heap[0];
+        const pbt = S.positions.get(topId);
+
+        if (!pbt || pbt.holder === null || pbt.pbcLocked <= 0) {
+            heapPop();
+            continue;
+        }
+
+        if (pbt.nextTriggerPrice > atPrice) break;
+
+        heapPop();
+        popped.push(topId);
+
+        const isDust = pbt.pbcLocked < DUST_THRESHOLD;
+        const unlockPBc = isDust ? pbt.pbcLocked : pbt.pbcLocked / TRANCHE_FRACTION;
+        const usdlValue = unlockPBc * pbt.nextTriggerPrice;
+
+        results.push({
+            pbtId: topId,
+            unlockPBc,
+            triggerPrice: pbt.nextTriggerPrice,
+            usdlValue,
+            payoutAddress: pbt.payoutAddress,
+            isDust,
+        });
+    }
+
+    // Re-push all popped
+    for (const id of popped) heapPush(id);
+
+    return results;
+}
+
+// ── Settle netted unlocks ──
+function settleNettedUnlocks(unlocks, count, availableUSDL) {
+    let usdlUsed = 0;
+    let pbcSettled = 0;
+
+    for (let i = 0; i < count; i++) {
+        const u = unlocks[i];
+        if (usdlUsed + u.usdlValue > availableUSDL) break;
+
+        const pbt = S.positions.get(u.pbtId);
+        const holder = getHolder(pbt.holder);
+
+        // PBc: user -> vault
+        holder.lockedPBc -= u.unlockPBc;
+        S.vaultPBcBalance += u.unlockPBc;
+
+        // USDL: vault -> holder
+        holder.usdlReceived += u.usdlValue;
+        S.totalUSDLDistributed += u.usdlValue;
+
+        // Update position
+        pbt.pbcLocked -= u.unlockPBc;
+        usdlUsed += u.usdlValue;
+        pbcSettled += u.unlockPBc;
+
+        if (!u.isDust) {
+            pbt.nextUnlockIndex++;
+            pbt.nextTriggerPrice = computeTriggerPriceFloat(pbt.buyPrice, pbt.nextUnlockIndex);
+        }
+
+        // Burn or update heap
+        if (u.isDust || pbt.pbcLocked < DUST_CHECK_THRESHOLD) {
+            heapRemove(u.pbtId);
+            pbt.holder = null; // burned
+        } else {
+            heapUpdate(u.pbtId);
+        }
+    }
+
+    return { usdlUsed, pbcSettled };
+}
+
+// ── Execute a single unlock (Step 7.5 fallback / permissionless) ──
+// Returns { pbcSold, usdlPaid } so caller can track totals
+function executeUnlock(pbtId) {
+    const pbt = S.positions.get(pbtId);
+    if (!pbt || pbt.holder === null) return { pbcSold: 0, usdlPaid: 0 };
+
+    const currentPrice = getPrice(S.reservePB, S.reserveUSDL);
+    if (currentPrice < pbt.nextTriggerPrice) return { pbcSold: 0, usdlPaid: 0 };
+
+    const isDust = pbt.pbcLocked < DUST_THRESHOLD;
+    const unlockedPBc = isDust ? pbt.pbcLocked : pbt.pbcLocked / TRANCHE_FRACTION;
+
+    const holder = getHolder(pbt.holder);
+
+    // PBc: user -> vault
+    holder.lockedPBc -= unlockedPBc;
+    S.vaultPBcBalance += unlockedPBc;
+
+    // Sell PB on AMM
+    const usdlProceeds = ammSellPB(unlockedPBc);
+    S.vaultPBBalance -= unlockedPBc;
+
+    // Pay holder
+    holder.usdlReceived += usdlProceeds;
+    S.totalUSDLDistributed += usdlProceeds;
+
+    // Update position
+    pbt.pbcLocked -= unlockedPBc;
+
+    if (!isDust) {
+        pbt.nextUnlockIndex++;
+        pbt.nextTriggerPrice = computeTriggerPriceFloat(pbt.buyPrice, pbt.nextUnlockIndex);
+    }
+
+    if (isDust || pbt.pbcLocked < DUST_CHECK_THRESHOLD) {
+        heapRemove(pbtId);
+        pbt.holder = null;
+    } else {
+        heapUpdate(pbtId);
+    }
+
+    checkPhaseTransition();
+    return { pbcSold: unlockedPBc, usdlPaid: usdlProceeds };
+}
+
+// ════════════════════════════════════════════════════════════════
+// SELL PB (User sells liquid PB on AMM)
+// ════════════════════════════════════════════════════════════════
+
+function sellPBFromUser(userAddr, pbAmount) {
+    if (!S || S.reservePB === 0) return null;
+
+    const priceBefore = getPrice(S.reservePB, S.reserveUSDL);
+    const holder = getHolder(userAddr);
+    const actualSell = Math.min(pbAmount, holder.liquidPB);
+    if (actualSell <= 0) return null;
+
+    const usdlReceived = ammSellPBFromUser(userAddr, actualSell);
+    const priceAfter = getPrice(S.reservePB, S.reserveUSDL);
+    const pctChange = ((priceAfter - priceBefore) / priceBefore * 100);
+
+    const entry = {
+        num: ++S.logCounter,
+        type: 'SELL',
+        usdlIn: actualSell, // PB sold
+        priceBefore,
+        priceAfter,
+        pctChange,
+        totalPB: -actualSell,
+        liquidPB: -actualSell,
+        lockedPBc: 0,
+        lpUSDL: 0,
+        lpPB: 0,
+        ammPB: 0,
+        convergentK: 0,
+        nettedPBc: 0,
+        nettedUSDLPaid: 0,
+        fallbackUnlocks: 0,
+        fallbackPBcSold: 0,
+        fallbackUSDLPaid: 0,
+        netDirection: 'SELL',
+        vaultPB: S.vaultPBBalance,
+        phase: S.isDistributionPhase ? 'Distribution' : 'Final',
+    };
+    S.log.push(entry);
+    return entry;
+}
+
+// ════════════════════════════════════════════════════════════════
+// INITIALIZATION
+// ════════════════════════════════════════════════════════════════
+
+function initProtocol() {
+    const initUSDL = parseFloat(document.getElementById('init-usdl').value) || 90000;
+    const initPrice = 0.05555;
+    const initPB = initUSDL / initPrice;
+
+    S = freshState();
+
+    // Seed LP
+    S.reservePB = initPB;
+    S.reserveUSDL = initUSDL;
+    S.vaultPBBalance -= initPB;
+
+    // Generate all 555 presale positions with pseudo-random holders
+    const presaleHolders = [];
+    for (let i = 0; i < 40; i++) {
+        presaleHolders.push('Holder_' + (i + 1).toString().padStart(2, '0'));
+    }
+
+    for (let blockNum = 1; blockNum <= TOTAL_BLOCKS; blockNum++) {
+        const entryPrice = getEntryPriceAtBlock(blockNum);
+        const pbAmount = getPBPerBlock(blockNum);
+        // Assign to holders round-robin (like real testnet distribution)
+        const holderAddr = presaleHolders[blockNum % presaleHolders.length];
+        allocatePresaleUser(holderAddr, pbAmount, entryPrice);
+    }
+
+    setStatus(`Initialized: ${initUSDL.toFixed(0)} USDL + ${initPB.toFixed(0)} PB in LP @ $${initPrice}. ${TOTAL_BLOCKS} presale positions created. Price: $${getPrice(S.reservePB, S.reserveUSDL).toFixed(8)}`);
+
+    // Calculate LP-stop price
+    calculateLPStopPrice();
+
+    updateAllUI();
+}
+
+function calculateLPStopPrice() {
+    // LP stops when vaultPBBalance <= totalOutstandingPBc
+    // Each buy with LP contribution takes 2*pbForLP from vault (1 to LP, 1 as compensation)
+    // This is approximate — just show the current state
+    const excess = S.vaultPBBalance - totalOutstandingPBc();
+    if (excess <= 0) {
+        document.getElementById('s-lp-stop').innerText = 'ALREADY STOPPED';
+    } else {
+        // The price at which LP will stop depends on how much PB flows out.
+        // We can't predict exactly, but show the condition.
+        document.getElementById('s-lp-stop').innerText = `Excess PB: ${fmt(excess, 0)} (LP active while > 0)`;
+    }
+}
+
+function resetAll() {
+    S = null;
+    document.getElementById('log-body').innerHTML = '';
+    document.getElementById('positions-body').innerHTML = '';
+    document.getElementById('holders-body').innerHTML = '';
+    updateStats();
+    setStatus('Reset. Click Initialize to start.');
+}
+
+// ════════════════════════════════════════════════════════════════
+// USER ACTIONS
+// ════════════════════════════════════════════════════════════════
+
+let buyerCounter = 100;
+
+function executeSingleBuy() {
+    if (!S) { setStatus('Initialize first!'); return; }
+    const usdl = parseFloat(document.getElementById('buy-usdl').value) || 100;
+    const buyer = 'Buyer_' + (++buyerCounter);
+    const entry = buyPBDirect(buyer, usdl);
+    if (entry) {
+        let statusMsg = `Buy #${entry.num}: ${buyer} spent ${usdl.toFixed(2)} USDL → ${fmt(entry.totalPB, 2)} PB (${entry.netDirection}, K=${entry.convergentK}`;
+        if (entry.fallbackUnlocks > 0) statusMsg += `, fallback=${entry.fallbackUnlocks} sold ${fmt(entry.fallbackPBcSold, 2)} PBc for ${fmt(entry.fallbackUSDLPaid, 2)} USDL`;
+        if (entry.nettedPBc > 0) statusMsg += `, netted=${fmt(entry.nettedPBc, 2)} PBc`;
+        statusMsg += `). Price: $${entry.priceBefore.toFixed(8)} → $${entry.priceAfter.toFixed(8)} (${entry.pctChange >= 0 ? '+' : ''}${entry.pctChange.toFixed(4)}%)`;
+        setStatus(statusMsg);
+    }
+    calculateLPStopPrice();
+    updateAllUI();
+}
+
+function executeBulkBuy() {
+    if (!S) { setStatus('Initialize first!'); return; }
+    const minUsdl = parseFloat(document.getElementById('bulk-min').value) || 50;
+    const maxUsdl = parseFloat(document.getElementById('bulk-max').value) || 500;
+    const count = parseInt(document.getElementById('bulk-count').value) || 10;
+
+    const priceBefore = getPrice(S.reservePB, S.reserveUSDL);
+
+    for (let i = 0; i < count; i++) {
+        const usdl = minUsdl + Math.random() * (maxUsdl - minUsdl);
+        const buyer = 'Buyer_' + (++buyerCounter);
+        buyPBDirect(buyer, usdl);
+    }
+
+    const priceAfter = getPrice(S.reservePB, S.reserveUSDL);
+    setStatus(`Bulk: ${count} buys ($${minUsdl}-$${maxUsdl} range). Price: $${priceBefore.toFixed(8)} → $${priceAfter.toFixed(8)}`);
+    calculateLPStopPrice();
+    updateAllUI();
+}
+
+function executeRandomSell() {
+    if (!S) { setStatus('Initialize first!'); return; }
+
+    // Find holders with liquid PB
+    const candidates = [];
+    for (const [addr, h] of S.holders) {
+        if (h.liquidPB > 0.01) candidates.push(addr);
+    }
+    if (candidates.length === 0) { setStatus('No holders with liquid PB'); return; }
+
+    const chosen = candidates[Math.floor(Math.random() * candidates.length)];
+    const holder = getHolder(chosen);
+    const entry = sellPBFromUser(chosen, holder.liquidPB);
+    if (entry) {
+        setStatus(`Random sell: ${chosen} sold ${fmt(-entry.totalPB, 2)} PB for ${fmt(entry.usdlPaid, 2)} USDL. Price: $${entry.priceBefore.toFixed(8)} → $${entry.priceAfter.toFixed(8)} (${entry.pctChange.toFixed(4)}%)`);
+    }
+    updateAllUI();
+}
+
+function executeMassSell() {
+    if (!S) { setStatus('Initialize first!'); return; }
+
+    const priceBefore = getPrice(S.reservePB, S.reserveUSDL);
+    let totalSold = 0;
+    let sellCount = 0;
+
+    for (const [addr, h] of S.holders) {
+        const sellAmount = h.liquidPB / 5;
+        if (sellAmount > 0.01) {
+            sellPBFromUser(addr, sellAmount);
+            totalSold += sellAmount;
+            sellCount++;
+        }
+    }
+
+    const priceAfter = getPrice(S.reservePB, S.reserveUSDL);
+    setStatus(`Mass sell: ${sellCount} holders sold 1/5 of liquid PB (${fmt(totalSold, 0)} PB total). Price: $${priceBefore.toFixed(8)} → $${priceAfter.toFixed(8)}`);
+    updateAllUI();
+}
+
+function executePanicSell() {
+    if (!S) { setStatus('Initialize first!'); return; }
+
+    const priceBefore = getPrice(S.reservePB, S.reserveUSDL);
+    let totalSold = 0;
+    let sellCount = 0;
+
+    for (const [addr, h] of S.holders) {
+        if (h.liquidPB > 0.01) {
+            const amount = h.liquidPB;
+            sellPBFromUser(addr, amount);
+            totalSold += amount;
+            sellCount++;
+        }
+    }
+
+    const priceAfter = getPrice(S.reservePB, S.reserveUSDL);
+    setStatus(`🚨 PANIC SELL: ${sellCount} holders dumped ALL liquid PB (${fmt(totalSold, 0)} PB total). Price: $${priceBefore.toFixed(8)} → $${priceAfter.toFixed(8)}`);
+    updateAllUI();
+}
+
+function clearLog() {
+    if (S) { S.log = []; S.logCounter = 0; }
+    document.getElementById('log-body').innerHTML = '';
+}
+
+// ════════════════════════════════════════════════════════════════
+// UI RENDERING
+// ════════════════════════════════════════════════════════════════
+
+function fmt(n, dec) {
+    if (n === undefined || n === null || isNaN(n)) return '-';
+    if (Math.abs(n) > 1e12) return n.toExponential(2);
+    return n.toLocaleString('en-US', { minimumFractionDigits: dec, maximumFractionDigits: dec });
+}
+
+function fmtPrice(n) {
+    if (!n || isNaN(n)) return '-';
+    return '$' + n.toFixed(8);
+}
+
+function setStatus(msg) {
+    document.getElementById('status-bar').innerText = msg;
+}
+
+function updateStats() {
+    if (!S) {
+        ['s-lp-pb','s-lp-usdl','s-k','s-price','s-phase','s-heap','s-vault-pb','s-vault-pbc','s-out-pbc','s-usdl-dist','s-buys','s-lp-value','s-mcap','s-lp-stop'].forEach(id => {
+            document.getElementById(id).innerText = '-';
+        });
+        return;
+    }
+    document.getElementById('s-lp-pb').innerText = fmt(S.reservePB, 0);
+    document.getElementById('s-lp-usdl').innerText = fmt(S.reserveUSDL, 2);
+    document.getElementById('s-k').innerText = fmt(S.reservePB * S.reserveUSDL, 0);
+    document.getElementById('s-price').innerText = fmtPrice(getPrice(S.reservePB, S.reserveUSDL));
+    document.getElementById('s-phase').innerText = S.isDistributionPhase ? 'Distribution' : 'Final';
+    document.getElementById('s-heap').innerText = S.heap.length;
+    document.getElementById('s-vault-pb').innerText = fmt(S.vaultPBBalance, 0);
+    document.getElementById('s-vault-pbc').innerText = fmt(S.vaultPBcBalance, 0);
+    document.getElementById('s-out-pbc').innerText = fmt(totalOutstandingPBc(), 0);
+    document.getElementById('s-usdl-dist').innerText = fmt(S.totalUSDLDistributed, 2);
+    document.getElementById('s-buys').innerText = S.buyCount;
+    const lpValue = S.reserveUSDL * 2;
+    document.getElementById('s-lp-value').innerText = '$' + fmt(lpValue, 2);
+    const mcap = getPrice(S.reservePB, S.reserveUSDL) * PB_TOTAL_SUPPLY;
+    document.getElementById('s-mcap').innerText = '$' + fmt(mcap, 0);
+}
+
+function updateLogTable() {
+    const tbody = document.getElementById('log-body');
+    tbody.innerHTML = '';
+    for (let i = S.log.length - 1; i >= 0; i--) {
+        const e = S.log[i];
+        const tr = document.createElement('tr');
+        tr.className = e.type === 'SELL' ? 'sell-row' : (e.netDirection === 'NET SELL' ? 'net-sell' : 'net-buy');
+        tr.innerHTML = `
+            <td>${e.num}</td>
+            <td><span class="badge ${e.type === 'SELL' ? 'badge-sell' : 'badge-buy'}">${e.type}</span></td>
+            <td>${e.type === 'SELL' ? fmt(e.usdlIn, 2) + ' PB' : '$' + fmt(e.usdlIn, 2)}</td>
+            <td>${fmtPrice(e.priceBefore)}</td>
+            <td style="color:${e.pctChange >= 0 ? '#4caf50' : '#ef5350'}">${fmtPrice(e.priceAfter)}</td>
+            <td style="color:${e.pctChange >= 0 ? '#4caf50' : '#ef5350'}">${e.pctChange >= 0 ? '+' : ''}${e.pctChange.toFixed(4)}%</td>
+            <td>${fmt(e.totalPB, 2)}</td>
+            <td>${fmt(e.liquidPB, 2)}</td>
+            <td>${fmt(e.lockedPBc, 2)}</td>
+            <td>${fmt(e.lpUSDL, 2)}</td>
+            <td>${fmt(e.lpPB, 2)}</td>
+            <td>${fmt(e.ammPB, 2)}</td>
+            <td>${e.convergentK}</td>
+            <td style="color:${e.nettedPBc > 0 ? '#ff9800' : '#888'}">${fmt(e.nettedPBc, 2)}</td>
+            <td style="color:${(e.nettedUSDLPaid || 0) > 0 ? '#ff9800' : '#888'}">${fmt(e.nettedUSDLPaid || 0, 2)}</td>
+            <td style="color:${e.fallbackUnlocks > 0 ? '#f44336' : '#888'}">${e.fallbackUnlocks}</td>
+            <td style="color:${(e.fallbackPBcSold || 0) > 0 ? '#f44336' : '#888'}">${fmt(e.fallbackPBcSold || 0, 2)}</td>
+            <td style="color:${(e.fallbackUSDLPaid || 0) > 0 ? '#f44336' : '#888'}">${fmt(e.fallbackUSDLPaid || 0, 2)}</td>
+            <td><span class="badge ${e.netDirection === 'NET SELL' ? 'badge-netsell' : (e.type === 'SELL' ? 'badge-sell' : 'badge-buy')}">${e.netDirection}</span></td>
+            <td>${fmt(e.vaultPB, 0)}</td>
+            <td>${e.phase}</td>
+        `;
+        tbody.appendChild(tr);
+    }
+}
+
+let currentPositionSort = 'trigger';
+
+function renderPositions(sortBy) {
+    if (!S) return;
+    currentPositionSort = sortBy || currentPositionSort;
+
+    const tbody = document.getElementById('positions-body');
+    const price = getPrice(S.reservePB, S.reserveUSDL);
+
+    // Collect active positions
+    let positions = [];
+    for (const [id, p] of S.positions) {
+        if (p.holder !== null) positions.push(p);
+    }
+
+    // Sort
+    if (currentPositionSort === 'trigger') {
+        positions.sort((a, b) => a.nextTriggerPrice - b.nextTriggerPrice);
+    } else if (currentPositionSort === 'id') {
+        positions.sort((a, b) => a.pbtId - b.pbtId);
+    } else if (currentPositionSort === 'buyPrice') {
+        positions.sort((a, b) => a.buyPrice - b.buyPrice);
+    }
+
+    document.getElementById('pos-count').innerText = `(${positions.length} active)`;
+
+    // Only render first 200 for performance
+    const show = positions.slice(0, 200);
+    let html = '';
+    for (const p of show) {
+        const eligible = price >= p.nextTriggerPrice;
+        const pct = Math.min((price / p.nextTriggerPrice) * 100, 100);
+        html += `<tr style="${eligible ? 'background:rgba(76,175,80,0.15)' : ''}">
+            <td>${p.pbtId}</td>
+            <td class="mini">${p.source}</td>
+            <td>${fmtPrice(p.buyPrice)}</td>
+            <td>${fmt(p.pbAmount, 2)}</td>
+            <td>${fmt(p.pbcLocked, 2)}</td>
+            <td>T${p.nextUnlockIndex + 1}</td>
+            <td>${fmtPrice(p.nextTriggerPrice)}</td>
+            <td>${eligible ? '<span style="color:#4caf50">READY</span>' : '<span style="color:#888">' + pct.toFixed(0) + '%</span>'}</td>
+            <td class="mini">${p.holder}</td>
+        </tr>`;
+    }
+    if (positions.length > 200) {
+        html += `<tr><td colspan="9" class="mini" style="text-align:center">...and ${positions.length - 200} more</td></tr>`;
+    }
+    tbody.innerHTML = html;
+}
+
+function renderHolders() {
+    if (!S) return;
+    const tbody = document.getElementById('holders-body');
+    const price = getPrice(S.reservePB, S.reserveUSDL);
+
+    const holders = [];
+    for (const [addr, h] of S.holders) {
+        const activePositions = h.positionIds.filter(id => {
+            const p = S.positions.get(id);
+            return p && p.holder !== null;
+        }).length;
+        holders.push({ addr, ...h, activePositions });
+    }
+
+    // Sort by total value
+    holders.sort((a, b) => (b.liquidPB + b.lockedPBc) - (a.liquidPB + a.lockedPBc));
+
+    // Show top 50
+    const show = holders.slice(0, 50);
+    let html = '';
+    for (const h of show) {
+        const totalVal = (h.liquidPB + h.lockedPBc) * price;
+        html += `<tr>
+            <td class="mini">${h.addr}</td>
+            <td>${fmt(h.liquidPB, 2)}</td>
+            <td>${fmt(h.lockedPBc, 2)}</td>
+            <td>${fmt(totalVal, 2)}</td>
+            <td>${fmt(h.usdlReceived, 2)}</td>
+            <td>${h.activePositions}</td>
+        </tr>`;
+    }
+    if (holders.length > 50) {
+        html += `<tr><td colspan="6" class="mini" style="text-align:center">...and ${holders.length - 50} more</td></tr>`;
+    }
+    tbody.innerHTML = html;
+}
+
+function updateAllUI() {
+    updateStats();
+    updateLogTable();
+    renderPositions();
+    renderHolders();
+}
+</script>
+
+</body>
+</html>
