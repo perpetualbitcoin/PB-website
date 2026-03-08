@@ -4,7 +4,7 @@
 // ============================================
 
 // ── Set active network here ─────────────────
-const NETWORK = "mainnet"; // "mainnet" or "testnet"
+const NETWORK = "testnet"; // "mainnet" or "testnet"
 
 const NETWORKS = {
     mainnet: {
@@ -16,8 +16,8 @@ const NETWORKS = {
     testnet: {
         chainId: 943,
         name: "PulseChain Testnet v4",
-        rpc: "https://rpc.testnet.pulsechain.com",
-        explorer: "https://scan.testnet.pulsechain.com",
+        rpc: "https://rpc.v4.testnet.pulsechain.com",
+        explorer: "https://scan.v4.testnet.pulsechain.com",
     },
 };
 
@@ -38,19 +38,19 @@ const ADDRESSES_MAINNET = {
 };
 
 const ADDRESSES_TESTNET = {
-    "PRESALE_IOU": "0xa2fCF3B771d4dA59910b42f0ce3f757EAC9a1F55",
+    "PRESALE_IOU": "0x221d7886F115e474e828db221C6d196F4e127BA4",
     "USDL": "0x9259dF449e5a3c1abb405cd1B7A1015C606E3DFA",
     "PULSEX_FACTORY": "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f",
     "PULSEX_ROUTER": "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D",
-    "PB": "0x4021c4dDfBDE05bddbC34Eb2A3C804BAeDfCd51B",
-    "PBc": "0xBa0Bb89002f2B2FCb8C1534e952c1f3d1607e297",
-    "PBt": "0xf9702df2f44D537A15D8ad48ca592cC0cafe87B9",
-    "PBr": "0x82719C0CcF9b1B8f8f23077C36D06bD6Cc3D7976",
-    "PBi": "0x05c0BFB87d29bA98c8e6B3664f5c928c60Cf3cce",
-    "PB_USDL_PAIR": "0x8e8C8BAa9fd9523FDb128659373E2890527C9aA6",
-    "PulseXInterface": "0xc6BB0831f646B34585e416984D74A91AEe3bF6A2",
-    "Vault": "0x80CE66Fb3F294f492843E5aB21a7865dcFAE49C6",
-    "LaunchConverter": "0xd3077CB0A69f0688F3A318bC2Fa698811C587Ca7"
+    "PB": "0x3009727Dea4EBa7495Ecb651712B5D77a5279003",
+    "PBc": "0x8FD92E50BfB4c36eF353DA03424168C54ae7DB62",
+    "PBt": "0x3fF81EDB25D8D26294343F43dD215871657F96e0",
+    "PBr": "0x8cCE92d4A3CF8762Fdd9b2Dbc303391B59c248Bd",
+    "PBi": "0xEAed847163a9F7d1d78910e0087a891b95837ad1",
+    "PB_USDL_PAIR": "0x67A9136bc95B40d1558D241e8f7e4CF17f01601d",
+    "PulseXInterface": "0x7B47A7D63f4e2d255F804d277e4Ce46bc7C5164C",
+    "Vault": "0xB17fcbca2F87b1a837d05BfBCc191e167dB097ac",
+    "LaunchConverter": "0x7A634F4169B5408612417365243aeF38FEaC9069"
 };
 
 // ── Active addresses (used by all pages) ────

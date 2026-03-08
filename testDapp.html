@@ -9,12 +9,22 @@
     <script src="lib/lightweight-charts-4.1.1.js"></script>
     <script src="lib/ethers-6.umd.js"></script>
     <script src="config.js"></script>
+    <script defer src="ticker.js"></script>
+
+        <!-- Google tag (gtag.js) -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-LK69CE9C9C"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-LK69CE9C9C');
+        </script>
 </head>
 <body class="presale-dapp-bg">
-    <nav class="navbar">
-        <div id="nav-price" style="position: absolute; left: 20px; top: 50%; transform: translateY(-50%); font-size: 1.15rem; font-weight: 600; color: #4CAF50; white-space: nowrap; font-family: monospace;">$—</div>
-        <div class="nav-container">
-            <div class="logo"><img src="Pic/PB1.png" alt="Perpetual Bitcoin PB logo"></div>
+    <nav class="navbar" style="padding: 0.4rem 0;">
+        <div class="nav-container" style="padding: 0 2rem;">
+            <div class="logo"><img src="Pic/PB1.png" alt="Perpetual Bitcoin PB logo" style="width:40px;height:40px;"></div>
+            <div class="gtranslate_wrapper"></div>
             <button class="hamburger" id="hamburger-btn" aria-label="Toggle menu">
                 <span></span><span></span><span></span>
             </button>
@@ -26,22 +36,19 @@
                 <li><a href="presale-dapp.html" class="nav-link">Presale 🎉</a></li>
                 <li><a href="testDapp.html" class="nav-link" style="color: #F39004; font-weight:600;">✨ Full testDapp</a></li>
             </ul>
-        </div>
-        <div style="position:absolute;top:10px;right:10px;display:flex;align-items:center;gap:12px;z-index:1001;">
-            <button class="btn btn-primary" id="nav-connect-btn" style="padding: 6px 12px; font-size: 0.85rem; white-space: nowrap;">Connect</button>
-            <label style="font-size:0.7rem;color:#999;font-family:monospace;white-space:nowrap">Vault: <span id="nav-vault-addr">—</span></label>
-            <div style="display: flex; align-items: center; gap: 6px; margin-left: 12px; padding-left: 12px; border-left: 1px solid #555;">
-                <label style="font-size:0.7rem;color:#999;white-space:nowrap;">Network:</label>
-                <select id="network-toggle" style="padding: 4px 8px; font-size: 0.7rem; background: #1a1a1a; color: #F39004; border: 1px solid #F39004; border-radius: 4px; cursor: pointer;">
+            <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">
+                <select id="network-toggle" style="padding: 3px 6px; font-size: 0.7rem; background: #1a1a1a; color: #F39004; border: 1px solid #F39004; border-radius: 4px; cursor: pointer;">
                     <option value="943">🧪 Testnet 943</option>
                     <option value="369">🔴 Mainnet 369</option>
                 </select>
+                <button class="btn btn-primary" id="nav-connect-btn" style="padding: 4px 10px; font-size: 0.8rem; white-space: nowrap;">Connect</button>
+                <label style="font-size:0.65rem;color:#999;font-family:monospace;white-space:nowrap">Vault: <span id="nav-vault-addr">—</span></label>
             </div>
         </div>
     </nav>
 
     <div class="dapp-hero">
-        <h1>⚡ Phase A Dapp - Full Control</h1>
+        <h1><br>⚡ Phase A TESTNET Dapp </h1>
         <p>Trade, manage positions, perpetual unlocks, and earn LP rewards. ONE PROTOCOL. FOREVER.<br><span style="font-weight: 700; font-size: 1.1rem; color: #ddd;">TIP: CREATE A VIRGIN <a href="https://www.okx.com/en-us/download?pageSource=nav" target="_blank" style="color: #ddd; text-decoration: underline; cursor: pointer;">WALLET</a>, and SEED that <a href="https://www.okx.com/en-us/download?pageSource=nav" target="_blank" style="color: #ddd; text-decoration: underline; cursor: pointer;">wallet</a> to interact with the presale.</span></p>
         <p style="color: #F39004; font-weight: 600; margin-top: 10px;">🧪 TESTNET ONLY - USE tPLS faucet to get gas - use USDL faucet to interact</p>
     </div>
@@ -144,11 +151,15 @@
                         </div>
                     </div>
                 </div>
-                <div style="margin-top: 12px; padding: 8px; background: rgba(33, 150, 243, 0.05); border-radius: 4px;">
-                    <label style="font-size: 0.85rem; display: flex; align-items: center; gap: 8px; cursor: pointer; color: #64B5F6;">
-                        <input type="checkbox" id="auto-chunk-checkbox" checked style="cursor: pointer; width: 16px; height: 16px;" />
-                        <span>Smart auto-chunk (splits if >100 unlocks triggered)</span>
+
+                <div style="margin-top: 12px; padding: 8px; background: rgba(156, 39, 176, 0.05); border-radius: 4px; border: 1px solid rgba(156, 39, 176, 0.15);">
+                    <label style="font-size: 0.85rem; display: flex; align-items: center; gap: 8px; cursor: pointer; color: #CE93D8;">
+                        <input type="checkbox" id="gift-buy-checkbox" style="cursor: pointer; width: 16px; height: 16px;" />
+                        <span>Gift buy? Send PB to a different wallet!</span>
                     </label>
+                    <div id="gift-buy-field" style="display: none; margin-top: 8px;">
+                        <input type="text" id="gift-recipient" class="input-field" placeholder="0x... recipient address" style="width: 100%; font-size: 0.85rem;" />
+                    </div>
                 </div>
                 <button class="btn btn-primary" id="btn-buy" style="width: 100%; margin-top: 20px; padding: 12px;">Execute Buy (vault.buyPBDirect)</button>
                 <div id="buy-status" style="margin-top: 12px; font-size: 0.9rem;"></div>
@@ -263,6 +274,12 @@
                 <div class="form-group">
                     <label for="vlock-amount">PB Amount to Lock</label>
                     <input type="number" id="vlock-amount" class="input-field" placeholder="Enter PB amount (e.g., 5000)" />
+                    <div style="margin-top:8px;">
+                        <button type="button" class="btn btn-grey vlock-small-btn" id="vlock-25">25%</button>
+                        <button type="button" class="btn btn-grey vlock-small-btn" id="vlock-50">50%</button>
+                        <button type="button" class="btn btn-grey vlock-small-btn" id="vlock-75">75%</button>
+                        <button type="button" class="btn btn-grey vlock-small-btn" id="vlock-100">100%</button>
+                    </div>
                 </div>
                 
                 <!-- What you receive breakdown -->
@@ -434,6 +451,9 @@
         const CHAIN_ID = 943;
         const CHAIN_NAME = 'PulseChain Testnet v4';
         const RPC_URL = 'https://rpc.v4.testnet.pulsechain.com';
+        // PB Indexer API — hosted on perpetualbitcoin.io via cPanel Node.js App
+        // cPanel reverse-proxies the Node.js app port to this URL path
+        const INDEXER_URL = 'https://perpetualbitcoin.io/api';
 
         // Testnet dapp always uses testnet addresses regardless of global NETWORK setting
         const TVault = ADDRESSES_TESTNET.Vault;
@@ -457,15 +477,39 @@
         let currentTimeframeMin = 5;  // Default 5-minute candles
         let tickHistory = [];  // Raw price ticks: [{time, price}]
 
-        // Load tick history from localStorage on init
-        function loadPriceHistory() {
+        // Load tick history: fetch from DB first, then merge any localStorage ticks
+        async function loadPriceHistory() {
+            // 1. Try fetching from indexer DB (authoritative source)
+            try {
+                const now = Math.floor(Date.now() / 1000);
+                const from = now - 7 * 86400; // last 7 days
+                const resp = await fetch(`${INDEXER_URL}/price?from=${from}&to=${now}&resolution=1m`);
+                if (resp.ok) {
+                    const data = await resp.json();
+                    if (data.prices && data.prices.length > 0) {
+                        tickHistory = data.prices.map(c => ({
+                            time: c.t,
+                            price: parseFloat(c.c) / 1e18
+                        })).filter(t => t.price > 0);
+                        console.log(`[chart] Loaded ${tickHistory.length} price points from DB`);
+                    }
+                }
+            } catch (e) {
+                console.warn('[chart] DB price fetch failed, falling back to localStorage:', e.message);
+            }
+
+            // 2. Merge localStorage ticks that are newer than DB data
             const stored = localStorage.getItem('pb_tick_history');
             if (stored) {
                 try {
-                    tickHistory = JSON.parse(stored);
-                } catch (e) {
-                    tickHistory = [];
-                }
+                    const localTicks = JSON.parse(stored);
+                    const dbMaxTime = tickHistory.length > 0 ? tickHistory[tickHistory.length - 1].time : 0;
+                    const newerTicks = localTicks.filter(t => t.time > dbMaxTime && t.price > 0);
+                    if (newerTicks.length > 0) {
+                        tickHistory = tickHistory.concat(newerTicks);
+                        console.log(`[chart] Merged ${newerTicks.length} newer localStorage ticks`);
+                    }
+                } catch (e) { /* ignore corrupt localStorage */ }
             }
         }
 
@@ -475,7 +519,7 @@
             localStorage.setItem('pb_tick_history', JSON.stringify(tickHistory));
         }
 
-        // Aggregate raw ticks into OHLC candles
+        // Aggregate raw ticks into OHLC candles (gap-free)
         function aggregateCandles(ticks, tfMinutes) {
             if (!ticks.length) return [];
             const tfSeconds = tfMinutes * 60;
@@ -490,14 +534,28 @@
                     buckets[bucket].close = t.price;
                 }
             });
-            return Object.values(buckets).sort((a, b) => a.time - b.time);
+            const sorted = Object.values(buckets).sort((a, b) => a.time - b.time);
+            if (sorted.length < 2) return sorted;
+
+            // Fill gaps: every missing bucket gets a flat candle at previous close
+            const filled = [sorted[0]];
+            for (let i = 1; i < sorted.length; i++) {
+                const prev = filled[filled.length - 1];
+                let t = prev.time + tfSeconds;
+                while (t < sorted[i].time) {
+                    filled.push({ time: t, open: prev.close, high: prev.close, low: prev.close, close: prev.close });
+                    t += tfSeconds;
+                }
+                filled.push(sorted[i]);
+            }
+            return filled;
         }
 
         // ================================================================
         // ABIs (Minimal for required functions)
         // ================================================================
         const VAULT_ABI = [
-            'function buyPBDirect(uint256 usdlAmount, uint256 minPBOut) returns (uint256)',
+            'function buyPBDirect(uint256 usdlAmount, uint256 minPBOut, address recipient, uint256[] unlockIds) returns (uint256)',
             'function getUserPBtIds(address user) view returns (uint256[])',
             'function getPositionUnlockStatus(uint256 pbtId) view returns (uint256 index, uint256 nextPrice, bool eligible, uint256 pbcRemaining)',
             'function pbtRegistry(uint256 pbtId) view returns (uint256 buyPrice, uint256 pbAmount, uint256 pbcLocked, uint256 nextUnlockIndex, uint256 nextTriggerPrice, uint256 mintBlock, address holder, address payoutAddress)',
@@ -517,14 +575,14 @@
             'function vaultPBcBalance() view returns (uint256)',
             'function totalUSDLDistributed() view returns (uint256)',
             'function isDistributionPhase() view returns (bool)',
-            'function estimateEligibleUnlocks(uint256 atPrice) view returns (uint256)',
-            'function getHeapSize() view returns (uint256)',,
+            'function getActivePositionCount() view returns (uint256)',
             'function totalOutstandingPBc() view returns (uint256)',
-            'event UnlockTriggered(uint256 indexed pbtId, uint256 unlockIndex, uint256 pbUnlocked, uint256 plsProceeds, address payoutAddress)',
+            'event UnlockTriggered(uint256 indexed pbtId, uint256 unlockIndex, uint256 pbUnlocked, uint256 usdlProceeds, address payoutAddress, uint256 newTriggerPrice, uint256 remainingPBcLocked)',
         ];
 
         const TOKEN_ABI = [
             'function balanceOf(address) view returns (uint256)',
+            'function allowance(address owner, address spender) view returns (uint256)',
             'function approve(address spender, uint256 amount) returns (bool)',
             'function transfer(address to, uint256 amount) returns (bool)',
             'function transferFrom(address from, address to, uint256 amount) returns (bool)',
@@ -603,8 +661,8 @@
         // INITIALIZATION
         // ================================================================
         async function init() {
-            loadPriceHistory();  // Restore tick history from localStorage
-            
+            await loadPriceHistory();  // Restore tick history from DB + localStorage
+
             // Display Vault address in nav
             const vaultAddrShort = TVault.substring(0, 6) + '...' + TVault.substring(TVault.length - 4);
             document.getElementById('nav-vault-addr').innerText = vaultAddrShort;
@@ -629,10 +687,40 @@
                 document.getElementById('nav-connect-btn').addEventListener('click', connectWallet);
                 document.getElementById('btn-quote').addEventListener('click', getQuote);
                 document.getElementById('btn-buy').addEventListener('click', executeBuy);
+                document.getElementById('gift-buy-checkbox').addEventListener('change', function() {
+                    document.getElementById('gift-buy-field').style.display = this.checked ? 'block' : 'none';
+                });
                 document.getElementById('btn-sell-quote').addEventListener('click', getSellQuote);
                 document.getElementById('btn-sell').addEventListener('click', executeSell);
                 document.getElementById('btn-vlock').addEventListener('click', executeVLock);
                 document.getElementById('vlock-amount').addEventListener('input', updateVLockPreview);
+                // Quick-select buttons for PB balance
+                function getPBInputBalance() {
+                    // Try to get latest PB balance from UI
+                    const balText = document.getElementById('balance-pb')?.innerText || '0';
+                    const bal = parseFloat(balText.replace(/[^\d\.]/g, '')) || 0;
+                    return bal;
+                }
+                document.getElementById('vlock-25').addEventListener('click', () => {
+                    const pbBalance = getPBInputBalance();
+                    document.getElementById('vlock-amount').value = (pbBalance * 0.25).toFixed(0);
+                    updateVLockPreview();
+                });
+                document.getElementById('vlock-50').addEventListener('click', () => {
+                    const pbBalance = getPBInputBalance();
+                    document.getElementById('vlock-amount').value = (pbBalance * 0.5).toFixed(0);
+                    updateVLockPreview();
+                });
+                document.getElementById('vlock-75').addEventListener('click', () => {
+                    const pbBalance = getPBInputBalance();
+                    document.getElementById('vlock-amount').value = (pbBalance * 0.75).toFixed(0);
+                    updateVLockPreview();
+                });
+                document.getElementById('vlock-100').addEventListener('click', () => {
+                    const pbBalance = getPBInputBalance();
+                    document.getElementById('vlock-amount').value = pbBalance.toFixed(0);
+                    updateVLockPreview();
+                });
                 document.getElementById('btn-harvest-refresh').addEventListener('click', harvestAndRefreshLPRewards);
                 document.getElementById('btn-setup-recovery').addEventListener('click', setupRecovery);
                 document.getElementById('btn-activate-recovery').addEventListener('click', activateRecovery);
@@ -1045,7 +1133,6 @@
                 const poolValue = usdlReserve * 2;
 
                 document.getElementById('live-price').innerText = formatPrice(price);
-                document.getElementById('nav-price').innerText = formatPrice(price);
                 document.getElementById('pool-value').innerText = formatNumber(poolValue, 0);
                 document.getElementById('reserve-pb').innerText = formatNumber(pbReserve, 0);
                 document.getElementById('reserve-tusdl').innerText = formatNumber(usdlReserve, 0);
@@ -1158,7 +1245,7 @@
         }
 
         // ================================================================
-        // BUY FUNCTION - Optional auto-chunking for large purchases
+        // BUY FUNCTION - Fetches unlockIds from indexer for netting
         // ================================================================
         async function executeBuy() {
             if (!account || !signer) {
@@ -1174,131 +1261,92 @@
                     return;
                 }
 
+                // Determine recipient (gift buy or self)
+                const giftCheckbox = document.getElementById('gift-buy-checkbox');
+                let giftRecipient = '0x0000000000000000000000000000000000000000'; // default = self
+                if (giftCheckbox && giftCheckbox.checked) {
+                    const addr = document.getElementById('gift-recipient').value.trim();
+                    if (!addr || !addr.match(/^0x[a-fA-F0-9]{40}$/)) {
+                        alert('Enter a valid recipient address');
+                        return;
+                    }
+                    if (addr.toLowerCase() === account.toLowerCase()) {
+                        alert('That\'s your own address — uncheck gift buy to send to yourself');
+                        return;
+                    }
+                    giftRecipient = addr;
+                }
+
                 // Initialize contracts upfront
                 const vaultContract = new ethers.Contract(TVault, VAULT_ABI, signer);
                 const tusdlContract = new ethers.Contract(TUSDL, TOKEN_ABI, signer);
 
-                // Check if user wants auto-chunking safety feature
-                const autoChunkCheckbox = document.getElementById('auto-chunk-checkbox');
-                const enableAutoChunk = autoChunkCheckbox ? autoChunkCheckbox.checked : false;
-                
-                let buyChunks = [];
-                
-                // Smart auto-chunking: estimate eligible unlocks at post-buy price
-                if (enableAutoChunk) {
+                const usdlWei = ethers.parseEther(usdlAmountNum.toFixed(6));
+
+                // Step 1: Fetch unlockIds from indexer (sorted by trigger price ascending)
+                let unlockIds = [];
+                try {
+                    showStatus('buy-status', '⏳ Fetching eligible unlock positions from indexer...', 'info');
+                    const resp = await fetch(`${INDEXER_URL}/unlock-ids?usdl=${usdlWei.toString()}`);
+                    if (resp.ok) {
+                        const data = await resp.json();
+                        unlockIds = data.unlockIds || [];
+                        // M-3 fix: Cap at 150 to stay within block gas limit (~30M gas)
+                        if (unlockIds.length > 150) {
+                            console.warn(`Trimming ${unlockIds.length} unlockIds to 150 (gas safety)`);
+                            unlockIds = unlockIds.slice(0, 150);
+                        }
+                        if (unlockIds.length > 0) {
+                            showStatus('buy-status', `📊 ${unlockIds.length} positions eligible for netting`, 'info');
+                        } else {
+                            showStatus('buy-status', '📊 No netting positions — plain AMM buy', 'info');
+                        }
+                    } else {
+                        console.warn('Indexer returned non-OK:', resp.status);
+                        showStatus('buy-status', '⚠️ Indexer unavailable — proceeding without netting', 'info');
+                    }
+                } catch (indexerErr) {
+                    console.warn('Indexer fetch failed, proceeding without netting:', indexerErr.message);
+                    showStatus('buy-status', '⚠️ Indexer unavailable — proceeding without netting', 'info');
+                }
+
+                // Step 2: Check allowance, only approve if needed
+                const currentAllowance = await tusdlContract.allowance(account, TVault);
+                if (currentAllowance < usdlWei) {
+                    showStatus('buy-status', `⏳ Approving $${usdlAmountNum.toFixed(2)} USDL...`, 'info');
                     try {
-                        // Read pair reserves to estimate post-buy price
-                        const pairContract = new ethers.Contract(PULSEX_PAIR, PAIR_ABI, web3);
-                        const reserves = await pairContract.getReserves();
-                        const token0 = await pairContract.token0();
-                        let reservePB, reserveUSDL;
-                        if (token0.toLowerCase() === TPB.toLowerCase()) {
-                            reservePB = reserves[0];
-                            reserveUSDL = reserves[1];
-                        } else {
-                            reservePB = reserves[1];
-                            reserveUSDL = reserves[0];
-                        }
-                        
-                        const totalUsdlWeiEst = ethers.parseEther(usdlAmountNum.toFixed(6));
-                        // Estimate max post-price (full buy, no netting)
-                        const pbOut = (reservePB * totalUsdlWeiEst * 997n) / (reserveUSDL * 1000n + totalUsdlWeiEst * 997n);
-                        const maxPostPrice = reservePB > pbOut
-                            ? ((reserveUSDL + totalUsdlWeiEst) * BigInt(1e18)) / (reservePB - pbOut)
-                            : BigInt(2)**BigInt(255);
-                        
-                        // Ask contract how many unlocks are eligible at that price
-                        const eligibleCount = await vaultContract.estimateEligibleUnlocks(maxPostPrice);
-                        const eligible = Number(eligibleCount);
-                        
-                        if (eligible > 100) {
-                            // Split into chunks so each triggers ~80 unlocks (some headroom)
-                            const numChunks = Math.ceil(eligible / 80);
-                            const equalChunk = usdlAmountNum / numChunks;
-                            for (let i = 0; i < numChunks; i++) {
-                                buyChunks.push(equalChunk);
-                            }
-                            showStatus('buy-status', 
-                                `📊 Smart auto-chunk: ${eligible} unlocks detected → splitting $${usdlAmountNum.toFixed(0)} into ${numChunks} × $${equalChunk.toFixed(2)}`,
-                                'info'
-                            );
-                        } else {
-                            buyChunks = [usdlAmountNum];
-                            if (eligible > 0) {
-                                showStatus('buy-status', `📊 ${eligible} unlock(s) eligible — single tx OK`, 'info');
-                            }
-                        }
-                    } catch (estimateErr) {
-                        console.warn('Auto-chunk estimate failed, proceeding with single tx:', estimateErr);
-                        buyChunks = [usdlAmountNum];
+                        let approveTx = await tusdlContract.approve(TVault, usdlWei);
+                        await approveTx.wait();
+                        showStatus('buy-status', `✅ Approval confirmed!`, 'success');
+                    } catch (approveErr) {
+                        showStatus('buy-status', `⚠️ Approval failed: ${approveErr.reason || approveErr.message}`, 'error');
+                        throw approveErr;
                     }
                 } else {
-                    // Direct single transaction
-                    buyChunks = [usdlAmountNum];
+                    showStatus('buy-status', `✅ Allowance sufficient — skipping approve`, 'success');
                 }
 
-                // Step 1: Compute exact wei per chunk, then approve their sum
-                const chunkWeiValues = buyChunks.map(c => ethers.parseEther(c.toFixed(6)));
-                const approveAmount = chunkWeiValues.reduce((sum, w) => sum + w, 0n);
-                const totalUsdlAmount = buyChunks.reduce((sum, chunk) => sum + chunk, 0);
-                
-                showStatus('buy-status', `⏳ Approving $${totalUsdlAmount.toFixed(2)} USDL...`, 'info');
-                
+                // Step 3: Execute buyPBDirect with unlockIds
+                showStatus('buy-status', `⏳ Executing buy: $${usdlAmountNum.toFixed(2)} USDL with ${unlockIds.length} netting hints...`, 'info');
+
                 try {
-                    let approveTx = await tusdlContract.approve(TVault, approveAmount);
-                    await approveTx.wait();
-                    showStatus('buy-status', `✅ Approval confirmed!`, 'success');
-                } catch (approveErr) {
-                    showStatus('buy-status', `⚠️ Approval failed: ${approveErr.reason || approveErr.message}`, 'error');
-                    throw approveErr;
-                }
+                    // Get quote for slippage protection
+                    // getPBQuote is a simplified estimate (price-based, no AMM curve)
+                    // Use 50% tolerance: thin testnet pools have massive price impact
+                    const quote = await vaultContract.getPBQuote(usdlWei);
+                    const minPBOut = quote.pb * 50n / 100n;
 
-                // Step 2: Execute chunks sequentially
-
-                for (let i = 0; i < buyChunks.length; i++) {
-                    const chunkAmount = buyChunks[i];
-                    const chunkUsdlWei = ethers.parseEther(chunkAmount.toFixed(6));
+                    let buyTx = await vaultContract.buyPBDirect(usdlWei, minPBOut, giftRecipient, unlockIds);
+                    let receipt = await buyTx.wait();
                     
-                    const chunkNum = i + 1;
-                    const totalChunks = buyChunks.length;
+                    showStatus('buy-status', `✅ Buy success! Tx: ${receipt.hash.substring(0, 10)}...`, 'success');
                     
+                } catch (buyErr) {
                     showStatus('buy-status', 
-                        totalChunks > 1 
-                            ? `⏳ Chunk ${chunkNum}/${totalChunks}: $${chunkAmount.toFixed(2)} USDL...`
-                            : `⏳ Executing buy: $${chunkAmount.toFixed(2)} USDL...`,
-                        'info'
+                        `❌ Transaction failed: ${buyErr.reason || buyErr.message}`,
+                        'error'
                     );
-
-                    try {
-                        // Get quote for slippage protection
-                        // getPBQuote is a simplified estimate (usdl/price), but actual buyPBDirect
-                        // uses convergent netting which can yield different amounts.
-                        // Use 10% tolerance to accommodate netting variance.
-                        const quote = await vaultContract.getPBQuote(chunkUsdlWei);
-                        const minPBOut = quote.pb * 90n / 100n; // 10% slippage for netting
-
-                        let buyTx = await vaultContract.buyPBDirect(chunkUsdlWei, minPBOut);
-                        let receipt = await buyTx.wait();
-                        
-                        showStatus('buy-status', 
-                            totalChunks > 1 
-                                ? `✅ Chunk ${chunkNum}/${totalChunks} success`
-                                : `✅ Buy success`,
-                            'success'
-                        );
-                        
-                        // Delay between chunks for market stabilization
-                        if (i < buyChunks.length - 1) {
-                            await new Promise(resolve => setTimeout(resolve, 2000));
-                        }
-                        
-                    } catch (chunkErr) {
-                        showStatus('buy-status', 
-                            `❌ Transaction failed: ${chunkErr.reason || chunkErr.message}`,
-                            'error'
-                        );
-                        throw chunkErr;
-                    }
+                    throw buyErr;
                 }
 
                 // Success - update all balances
@@ -1417,7 +1465,7 @@
                     const buyValueUSDL = buyPriceNum * parseFloat(pbAmountFormatted);
                     const progressPct = nextTriggerPriceNum > 0 ? Math.min((currentPrice / nextTriggerPriceNum) * 100, 100) : 0;
                     const badgeClass = eligible ? 'ready' : 'pending';
-                    const badgeText = eligible ? '✅ READY' : `🔒 ${Math.round(progressPct)}% away`;
+                    const badgeText = eligible ? '✅ READY' : `🔒 ${Math.round(progressPct)}% Maturity`;
 
                     const eventMap = allEventMap[Number(pbtId)] || {};
 
@@ -1631,21 +1679,21 @@
                 const textB = cardB.innerText;
 
                 // Extract "READY" or "PENDING" status
-                const readyRegexA = /\(🎯 READY NOW|next\)/;
+                const readyRegexA = /🎯 READY NOW/;
                 const matchA = textA.match(readyRegexA);
-                statusA = matchA && matchA[0].includes('🎯') ? 'ready' : 'pending';
+                statusA = matchA ? 'ready' : 'pending';
 
-                const readyRegexB = /\(🎯 READY NOW|next\)/;
+                const readyRegexB = /🎯 READY NOW/;
                 const matchB = textB.match(readyRegexB);
-                statusB = matchB && matchB[0].includes('🎯') ? 'ready' : 'pending';
+                statusB = matchB ? 'ready' : 'pending';
 
                 // Extract next trigger price (look for the next unlock marked with "(next)")
-                const nextRowA = textA.match(/\(next\)\s*([0-9.]+)/);
+                const nextRowA = textA.match(/\(next\)\s*\$?([0-9.]+)/);
                 if (nextRowA) {
                     priceA = parseFloat(nextRowA[1]);
                 }
 
-                const nextRowB = textB.match(/\(next\)\s*([0-9.]+)/);
+                const nextRowB = textB.match(/\(next\)\s*\$?([0-9.]+)/);
                 if (nextRowB) {
                     priceB = parseFloat(nextRowB[1]);
                 }
@@ -2090,6 +2138,11 @@
                     return;
                 }
 
+                if (recoveryAddr.toLowerCase() === account.toLowerCase()) {
+                    alert('Cannot set yourself as recovery address');
+                    return;
+                }
+
                 const passwordHash = ethers.keccak256(ethers.toUtf8Bytes(password));
 
                 showStatus('recovery-status', '⏳ Setting recovery...', 'info');
@@ -2156,6 +2209,11 @@
 
                 if (!pbtId || !beneficiary || !password) {
                     alert('Fill in all fields');
+                    return;
+                }
+
+                if (beneficiary.toLowerCase() === account.toLowerCase()) {
+                    alert('Cannot set yourself as beneficiary');
                     return;
                 }
 
@@ -2647,5 +2705,7 @@
         // ================================================================
         window.addEventListener('DOMContentLoaded', init);
     </script>
+    <script>window.gtranslateSettings = {"default_language":"en","native_language_names":true,"detect_browser_language":true,"languages":["en","zh-CN","fr","de","hi","es","pt","nl","el"],"wrapper_selector":".gtranslate_wrapper","flag_style":"3d","alt_flags":{"en":"usa"}}</script>
+    <script src="https://cdn.gtranslate.net/widgets/latest/float.js" defer></script>
 </body>
 </html>

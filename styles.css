@@ -43,18 +43,75 @@ body {
 }
 
 /* ========================
+   TICKER BAR (injected by ticker.js)
+   ======================== */
+@keyframes tickerScroll {
+    0%   { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+}
+
+#ticker-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1001;
+    background: linear-gradient(90deg, #0d0d0d 0%, #1a1200 50%, #0d0d0d 100%);
+    border-bottom: 1px solid rgba(243, 144, 4, 0.25);
+    overflow: hidden;
+    height: 28px;
+    display: flex;
+    align-items: center;
+}
+
+#ticker-content {
+    display: inline-block;
+    white-space: nowrap;
+    animation: tickerScroll 30s linear infinite;
+    font-size: 0.8rem;
+    font-family: monospace;
+    color: #ccc;
+}
+
+.tick-item { margin-right: 40px; }
+.tick-sep  { margin-right: 40px; opacity: 0.5; }
+
+/* ========================
+   GTRANSLATE — shrink & anchor next to logo
+   ======================== */
+.gtranslate_wrapper {
+    flex-shrink: 0;
+    margin-left: 10px;
+    display: flex;
+    align-items: center;
+}
+.gt_float_switcher {
+    position: fixed !important;
+    top: 11px !important;
+    left: 25px !important;
+    bottom: auto !important;
+    transform: scale(0.7) !important;
+    transform-origin: left top !important;
+    background: rgba(0,0,0,0.6) !important;
+    border-radius: 4px !important;
+    box-shadow: none !important;
+    padding: 2px 6px !important;
+    z-index: 1100 !important;
+}
+
+/* ========================
    NAVBAR
    ======================== */
 
 .navbar {
     position: fixed;
-    top: 0;
+    top: 28px;
     left: 0;
     width: 100%;
     background: linear-gradient(135deg, rgba(15, 15, 15, 0.95) 0%, rgba(26, 26, 26, 0.95) 100%);
     backdrop-filter: blur(10px);
     border-bottom: 1px solid var(--border-color);
-    z-index: 1000;
+    z-index: 1002;
     padding: 1rem 0;
     font-size: 16px;
     box-shadow: var(--glow);
@@ -326,6 +383,16 @@ body {
     display: inline-block;
     position: relative;
     overflow: hidden;
+}
+
+.vlock-small-btn {
+    padding: 4px 12px !important;
+    font-size: 0.85rem !important;
+    border-radius: 16px !important;
+    min-width: 40px !important;
+    margin-right: 4px !important;
+    margin-bottom: 4px !important;
+    box-shadow: none !important;
 }
 
 .btn::before {
@@ -826,7 +893,7 @@ table tr:hover {
 
 .navbar {
     position: fixed;
-    top: 0;
+    top: 28px;
     left: 0;
     width: 100%;
     background: linear-gradient(135deg, rgba(15, 15, 15, 0.95) 0%, rgba(26, 26, 26, 0.95) 100%);

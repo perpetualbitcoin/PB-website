@@ -7,12 +7,21 @@
     <link rel="icon" href="Pic/favicon.ico" type="image/x-icon" />
     <link rel="stylesheet" href="styles.css" />
     <script src="config.js"></script>
+    <script defer src="ticker.js"></script>
+        <!-- Google tag (gtag.js) -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-LK69CE9C9C"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-LK69CE9C9C');
+        </script>
 </head>
 <body class="presale-dapp-bg">
-    <nav class="navbar">
-        <div id="nav-price" style="position: absolute; left: 20px; top: 50%; transform: translateY(-50%); font-size: 1.15rem; font-weight: 600; color: #4CAF50; white-space: nowrap; font-family: monospace;">$—</div>
-        <div class="nav-container">
-            <div class="logo"><img src="Pic/PB1.png" alt="Perpetual Bitcoin PB logo"></div>
+    <nav class="navbar" style="padding: 0.4rem 0;">
+        <div class="nav-container" style="padding: 0 2rem;">
+            <div class="logo"><img src="Pic/PB1.png" alt="Perpetual Bitcoin PB logo" style="width:40px;height:40px;"></div>
+            <div class="gtranslate_wrapper"></div>
             <ul class="nav-menu">
                 <li><a href="index.html#home" class="nav-link">Home</a></li>
                 <li><a href="faq.html" class="nav-link">FAQ</a></li>
@@ -22,14 +31,12 @@
                 <li><a href="testDapp.html" class="nav-link" style="color: #F39004; font-weight:600;">✨ Full testDapp</a></li>
             </ul>
             <div style="margin-left:12px;display:flex;align-items:center;gap:12px;flex-direction:row;">
-                <button class="btn btn-primary" id="nav-connect-btn" style="padding: 6px 12px; font-size: 0.85rem; white-space: nowrap;">Connect</button>
-                <label style="font-size:0.7rem;color:#999;font-family:monospace;white-space:nowrap">Network: <span id="nav-network-id">—</span></label>
-                <div style="display: flex; align-items: center; gap: 6px; margin-left: 12px; padding-left: 12px; border-left: 1px solid #555;">
-                    <select id="toggle-network" style="padding: 4px 8px; font-size: 0.7rem; background: #1a1a1a; color: #F39004; border: 1px solid #F39004; border-radius: 4px; cursor: pointer;">
-                        <option value="0x171" selected>🔴 Mainnet 369</option>
-                        <option value="0x3AF">🧪 Testnet 943</option>
-                    </select>
-                </div>
+                <select id="toggle-network" style="padding: 3px 6px; font-size: 0.7rem; background: #1a1a1a; color: #F39004; border: 1px solid #F39004; border-radius: 4px; cursor: pointer;">
+                    <option value="0x171" selected>🔴 Mainnet 369</option>
+                    <option value="0x3AF">🧪 Testnet 943</option>
+                </select>
+                <button class="btn btn-primary" id="nav-connect-btn" style="padding: 4px 10px; font-size: 0.8rem; white-space: nowrap;">Connect</button>
+                <label style="font-size:0.65rem;color:#999;font-family:monospace;white-space:nowrap">Network: <span id="nav-network-id">—</span></label>
             </div>
         </div>
     </nav>
@@ -56,7 +63,7 @@
                             <label class="wallet-label" for="presale-address" style="margin:0;flex:0 0 auto;white-space:nowrap">Presale Contract Address: </label>
                             <input id="presale-address" type="text" placeholder="0x..." style="flex:0 0 420px;max-width:60%;min-width:180px;font-size:0.95rem;padding:0.45rem 0.6rem;text-align:left" />
                         </div>
-                        <script>document.getElementById('presale-address').value = ADDRESSES.PRESALE_IOU;</script>
+                        <script>document.getElementById('presale-address').value = ADDRESSES_MAINNET.PRESALE_IOU;</script>
 
                         <div style="display:flex;align-items:center;gap:12px;margin-top:6px">
                             <div style="flex:0 0 auto;display:flex;align-items:center;gap:8px">
@@ -966,7 +973,7 @@
         // Check if presale sale is closed on-chain
         (async () => {
             try {
-                const presaleAddr = ADDRESSES.PRESALE_IOU;
+                const presaleAddr = ADDRESSES_MAINNET.PRESALE_IOU;
                 if (!presaleAddr) return;
                 const tempProv = window.ethereum ? new ethers.providers.Web3Provider(window.ethereum) : null;
                 if (!tempProv) return;
@@ -1002,5 +1009,7 @@
 
     </script>
     <script src="price-ticker.js"></script>
+    <script>window.gtranslateSettings = {"default_language":"en","native_language_names":true,"detect_browser_language":true,"languages":["en","zh-CN","fr","de","hi","es","pt","nl","el"],"wrapper_selector":".gtranslate_wrapper","flag_style":"3d","alt_flags":{"en":"usa"}}</script>
+    <script src="https://cdn.gtranslate.net/widgets/latest/float.js" defer></script>
 </body>
 </html>

@@ -6,12 +6,24 @@
     <title>FAQ - Perpetual Bitcoin</title>
     <link rel="icon" href="Pic/favicon.ico" type="image/x-icon" />
     <link rel="stylesheet" href="styles.css">
+    <script src="lib/ethers-6.umd.js"></script>
+    <script src="config.js"></script>
+    <script defer src="ticker.js"></script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-LK69CE9C9C"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-LK69CE9C9C');
+</script>
 </head>
 <body class="presale-dapp-bg">
-    <nav class="navbar">
-        <div id="nav-price" style="position: absolute; left: 20px; top: 50%; transform: translateY(-50%); font-size: 1.15rem; font-weight: 600; color: #4CAF50; white-space: nowrap; font-family: monospace;">$—</div>
-        <div class="nav-container">
-            <div class="logo"><img src="Pic/PB1.png" alt="PB Logo"></div>
+    <nav class="navbar" style="padding: 0.4rem 0;">
+        <div class="nav-container" style="padding: 0 2rem;">
+            <div class="logo"><img src="Pic/PB1.png" alt="PB Logo" style="width:40px;height:40px;"></div>
+            <div class="gtranslate_wrapper"></div>
             <ul class="nav-menu">
                 <li><a href="index.html#home" class="nav-link">Home</a></li>
                 <li><a href="faq.html" class="nav-link">FAQ</a></li>
@@ -205,7 +217,7 @@
                     <li>Checkpoint 2 &rarr; 2,222.22 unlock (1/3 of 6,666.67 remaining)</li>
                     <li>Checkpoint 3 &rarr; 1,481.48 unlock (1/3 of 4,444.45 remaining)</li>
                     <li>Checkpoint 4 &rarr; 987.65 unlock (1/3 of 2,962.97 remaining)</li>
-                    <li><em>Continues forever until &lt;10 Satoshi remains, then automatic sell</em></li>
+                    <li><em>Continues forever until &lt;15 Satoshi remains, then automatic sell</em></li>
                 </ul>
             </div>
 
@@ -232,7 +244,7 @@
                 </p>
                 <p>
                     Since each unlock releases only &frac13;, the remaining balance decreases geometrically. Eventually, the locked 
-                    amount drops below 10 Satoshi (dust threshold), at which point the vault automatically sells the entire remainder 
+                    amount drops below 15 Satoshi (dust threshold), at which point the vault automatically sells the entire remainder 
                     to your wallet
                     Your tokens stay locked. You retain full ownership and can't transfer or sell them. This is "intentional”
                     it ensures not only believers hold through price movements BUT everybody has diamond hands.
@@ -331,7 +343,7 @@
                     Unlocks are settled through <strong>convergent netting</strong> inside each buy transaction. When the next buyer calls <code>buyPBDirect()</code>:
                 </p>
                 <ul>
-                    <li>Vault scans positions whose trigger price &le; post-buy price (min-heap, up to 100 per tx)</li>
+                    <li>Vault scans positions whose trigger price &le; post-buy price (sequential scan, up to 500 per tx)</li>
                     <li>For each eligible position: &frac13; of remaining PBc is settled at the trigger price</li>
                     <li>The buyer's USDL pays you directly, no AMM sell, no slippage on your unlock</li>
                     <li>USDL arrives in your payout address automatically</li>
@@ -354,9 +366,9 @@
                     The vault is an autonomous smart contract that:
                 </p>
                 <ul>
-                    <li>Monitors price checkpoints for all PBt positions (min-heap, O(log N))</li>
+                    <li>Settles eligible unlocks via sequential netting scan (up to 500 per buy)</li>
                     <li>Nets unlocks against incoming buys, buyer's USDL pays holders directly</li>
-                    <li>Deepens AMM liquidity (55.55% of net USDL paired with vault excess PB &rarr; LP during Distribution Phase)</li>
+                    <li>Deepens AMM liquidity (36.9% of net USDL paired with vault excess PB &rarr; LP during Distribution Phase)</li>
                     <li>Maintains 1:1 PBc backing at all times</li>
                 </ul>
             </div>
@@ -364,7 +376,7 @@
             <div class="faq-item">
                 <h4>Why does the vault add liquidity?</h4>
                 <p>
-                    During the Distribution Phase, 55.55% of each buy's net USDL is paired with vault excess PB and added to the AMM pool. This serves two purposes:
+                    During the Distribution Phase, 36.9% of each buy's net USDL is paired with vault excess PB and added to the AMM pool. This serves two purposes:
                 </p>
                 <ul>
                     <li><strong>Deepens the pool:</strong> More liquidity = less slippage on every trade (buys and sells)</li>
@@ -382,13 +394,13 @@
                     <li><strong>Same rules for everyone:</strong> Every buyer receives the same 3.69% liquid / 96.31% locked PBc split. 
                         If you could buy PB directly on PulseX, you'd skip that split entirely and get 100% liquid PB ,  
                         an unfair advantage over everyone who participated through the proper channel.</li>
-                    <li><strong>Gas efficiency:</strong> The vault batches up to 100 pending unlocks into a single buyer's transaction 
+                    <li><strong>Gas efficiency:</strong> The vault batches up to 500 pending unlocks into a single buyer's transaction 
                         via convergent netting. Trying to enforce the split, LP contribution, and unlock settlement 
                         through a raw AMM callback would be extremely gas-heavy and fragile. Routing through <code>buyPBDirect()</code> 
                         keeps the entire flow in one clean, predictable call.</li>
                 </ul>
                 <p>
-                    In short: the vault <em>is</em> the exchange interface. It calls PulseX internally (44.45% AMM buy) after 
+                    In short: the vault <em>is</em> the exchange interface. It calls PulseX internally (63.1% AMM buy) after 
                     netting and LP are handled, so you still get AMM-priced PB ,  just with fair rules enforced.
                 </p>
             </div>
@@ -442,7 +454,7 @@
                 </p>
                 <p>
                     One thing to know: <code>executeUnlock()</code> is <strong>permissionless</strong>. Once price hits your trigger, 
-                    <em>anyone</em> can call it,  and during normal buys the vault batches up to 100 unlocks automatically. 
+                    <em>anyone</em> can call it,  and during normal buys the vault batches up to 500 unlocks automatically. 
                     You cannot opt out or delay an eligible unlock. When it fires, your PBc is converted to USDL and sent to your 
                     payout address. This is by design,  the protocol doesn't let you hoard locked positions past their trigger.
                 </p>
@@ -637,21 +649,21 @@
                     <li><strong>Convergent netting:</strong> 400 USDL paid directly to those unlock holders, vault keeps their PB (burns PBc)</li>
                     <li>Buyer credited with nettedPBc (the PB freed from those settled positions)</li>
                     <li>Net USDL = 1,000 &minus; 400 = <strong>600 USDL</strong> remaining</li>
-                    <li>55.55% of 600 = 333.3 USDL paired with vault excess PB &rarr; LP</li>
+                    <li>36.9% of 600 = 221.4 USDL paired with vault excess PB &rarr; LP</li>
                     <li>Buyer compensated with equal PB (compensationPB)</li>
-                    <li>44.45% of 600 = 266.7 USDL &rarr; AMM buy &rarr; ammPB</li>
+                    <li>63.1% of 600 = 378.6 USDL &rarr; AMM buy &rarr; ammPB</li>
                     <li>Total PB = nettedPBc + compensationPB + ammPB</li>
                     <li>Split: <strong>3.69% liquid PB</strong> + <strong>96.31% locked PBc</strong> (new PBt minted)</li>
                     <li><strong>Excess unchanged!</strong> Netting is neutral, vault keeps PB it already held</li>
                 </ul>
 
-                <p><strong>The 55.55% LP Rule (during distribution phase):</strong></p>
+                <p><strong>The 36.9% LP Rule (during distribution phase):</strong></p>
                 <ul>
-                    <li>55.55% of <strong>net USDL</strong> (after netting) is paired with vault <strong>excess PB</strong> &rarr; addLiquidity</li>
+                    <li>36.9% of <strong>net USDL</strong> (after netting) is paired with vault <strong>excess PB</strong> &rarr; addLiquidity</li>
                     <li>Vault needs 2&times; the PB: 1&times; for the LP pool, 1&times; as buyer compensation</li>
                     <li>If excess &lt; 2&times; needed, LP contribution is capped proportionally</li>
                     <li>Only excess PB is used, <strong>backing PB is never touched</strong></li>
-                    <li>The remaining 44.45% of net USDL goes to AMM buy, pushing price up</li>
+                    <li>The remaining 63.1% of net USDL goes to AMM buy, pushing price up</li>
                     <li><strong>Backing still 1:1!</strong> Vault PB always &ge; Outstanding PBc</li>
                 </ul>
 
@@ -664,7 +676,7 @@
                 </ul>
 
                 <p>
-                    <strong>Safety Check:</strong> Before every 55.55% LP contribution, the vault verifies 
+                    <strong>Safety Check:</strong> Before every 36.9% LP contribution, the vault verifies 
                     <code>vaultPBBalance > totalOutstandingPBc</code>. If not, the LP contribution is skipped. 
                     This ensures the vault <strong>never</strong> becomes undercollateralized, all PBc tokens 
                     remain 1:1 redeemable at all times.
@@ -681,7 +693,7 @@
                 <p><strong>The Gas Flow:</strong></p>
                 <ul>
                     <li>Buyer calls <code>vault.buyPBDirect(usdlAmount, minPBOut)</code></li>
-                    <li>The vault scans a min-heap of up to <strong>100 positions</strong> (MAX_UNLOCK_PER_BUY) to find eligible unlocks at current price</li>
+                    <li>The vault scans up to <strong>500 positions</strong> (MAX_UNLOCK_PER_BUY) sequentially to find eligible unlocks at current price</li>
                     <li>Convergent netting settles them internally: buyer's USDL pays holders directly, no AMM sell needed</li>
                     <li><strong>You (the buyer) pay the gas</strong> for the netting + LP + AMM buy in one transaction</li>
                     <li><strong>Pay It Forward:</strong> Your buy just settled someone else's unlock. When YOUR tokens unlock later, a future buyer's transaction settles them, and they pay that gas. Everyone pays it forward.</li>
@@ -722,10 +734,10 @@
                         <td>$2.61 (2.61% on $100 buy)</td>
                     </tr>
                     <tr>
-                        <td>Buy + 100 unlocks (max)</td>
-                        <td>~25,000K gas</td>
-                        <td><strong>$0.00275</strong></td>
-                        <td>$25 (theoretical max)</td>
+                        <td>Buy + 500 unlocks (max)</td>
+                        <td>~125,000K gas</td>
+                        <td><strong>$0.01375</strong></td>
+                        <td>$125 (theoretical max)</td>
                     </tr>
                 </table>
 
@@ -942,6 +954,8 @@
     <script src="lib/ethers-6.umd.js"></script>
     <script src="config.js"></script>
     <script src="price-ticker.js"></script>
+    <script>window.gtranslateSettings = {"default_language":"en","native_language_names":true,"detect_browser_language":true,"languages":["en","zh-CN","fr","de","hi","es","pt","nl","el"],"wrapper_selector":".gtranslate_wrapper","flag_style":"3d","alt_flags":{"en":"usa"}}</script>
+    <script src="https://cdn.gtranslate.net/widgets/latest/float.js" defer></script>
 </body>
 </html>
 

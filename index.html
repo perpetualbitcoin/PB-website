@@ -3,15 +3,27 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Perpetual Bitcoin (PB) Lite</title>
+    <title>Perpetual Bitcoin (PB)</title>
     <link rel="icon" href="Pic/favicon.ico" type="image/x-icon" />
     <link rel="stylesheet" href="styles.css" />
+    <script src="lib/ethers-6.umd.js"></script>
+    <script src="config.js"></script>
+    <script defer src="ticker.js"></script>
+
+        <!-- Google tag (gtag.js) -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-LK69CE9C9C"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-LK69CE9C9C');
+        </script>
 </head>
 <body class="presale-dapp-bg">
-    <nav class="navbar">
-        <div id="nav-price" style="position: absolute; left: 20px; top: 50%; transform: translateY(-50%); font-size: 1.15rem; font-weight: 600; color: #4CAF50; white-space: nowrap; font-family: monospace;">$—</div>
-        <div class="nav-container">
-            <div class="logo"><img src="Pic/PB1.png" alt="Perpetual Bitcoin PB logo"></div>
+    <nav class="navbar" style="padding: 0.4rem 0;">
+        <div class="nav-container" style="padding: 0 2rem;">
+            <div class="logo"><img src="Pic/PB1.png" alt="Perpetual Bitcoin PB logo" style="width:40px;height:40px;"></div>
+            <div class="gtranslate_wrapper"></div>
             <ul class="nav-menu" style="text-align: center;">
                 <li><a href="#home" class="nav-link">Home</a></li>
                 <li><a href="faq.html" class="nav-link">FAQ</a></li>
@@ -27,7 +39,7 @@
         <div class="hero-content"><br>
             <h1 class="hero-title">Perpetual Bitcoin</h1>
             <div class="hero-row">
-            <a href="https://azure-rational-salmon-152.mypinata.cloud/ipfs/QmXNMMZUA9kD4zwYBxboBjDuj5ULLZLHn4WttiwSXbGAyb/site/" target="_blank" class="hero-side-card" title="Browse on IPFS">
+            <a href="https://ipfs.io/ipfs/QmW2hCJFfVvVSxGNQpaL3CLsR2b3EU82zy7vmnMCnvgmCG/site/" target="_blank" class="hero-side-card" title="Browse on IPFS">
                 <span class="side-card-icon">🌐</span>
                 <span class="side-card-label">IPFS</span>
             </a>
@@ -38,6 +50,7 @@
             </a>
             </div>
             <p class="hero-subtitle">The anti‑rug blueprint. Immutable. Permissionless. Un‑cheatable.<br>All holders here are diamond‑handed by design.</p>
+            <p style="font-size: 1.3rem; color: #F39004; font-weight: bold; margin: 1rem 0;">We removed the #1 problem with crypto: <em>"trusting PEOPLE"</em></p>
             <div class="hero-stats">
                 <div class="stat">
                     <p class="stat-value">21M</p>
@@ -66,7 +79,7 @@
         <div class="video-container">
             <div class="video-wrapper">
                 <iframe 
-                    src="https://www.youtube.com/embed/YIot5ejS4m4" 
+                    src="https://www.youtube.com/embed/gjYPq_PpINs" 
                     title="Perpetual Bitcoin Presentation" 
                     frameborder="0" 
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen" 
@@ -152,7 +165,7 @@
                         <td>Rules that cannot be changed, by anyone!</td>
                     </tr>
                     <tr>
-                        <td>Sell pressure from VP's, time‑based vesting cliffs and dump windows</td>
+                        <td>Sell pressure from VC's, time‑based vesting cliffs and dump windows</td>
                         <td>Unlocks only when price GO UP! (proves demand)</td>
                     </tr>
                     <tr>
@@ -173,7 +186,7 @@
     </section>
 
     <section class="distribution" id="manifesto">
-        <h2>Manifesto (Lite)</h2>
+        <h2>Manifesto</h2>
         <div class="distribution-container">
             <div class="distribution-table">
                 <table>
@@ -302,7 +315,7 @@
     </section>
 
     <section class="features">
-        <h2>Security Model (Lite)</h2>
+        <h2>Security Model</h2>
         <div class="features-grid">
             <div class="feature-card">
                 <div class="feature-icon">🛡️</div>
@@ -368,5 +381,7 @@
     <script src="lib/ethers-6.umd.js"></script>
     <script src="config.js"></script>
     <script src="price-ticker.js"></script>
+    <script>window.gtranslateSettings = {"default_language":"en","native_language_names":true,"detect_browser_language":true,"languages":["en","zh-CN","fr","de","hi","es","pt","nl","el"],"wrapper_selector":".gtranslate_wrapper","flag_style":"3d","alt_flags":{"en":"usa"}}</script>
+    <script src="https://cdn.gtranslate.net/widgets/latest/float.js" defer></script>
 </body>
 </html>
