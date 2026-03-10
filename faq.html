@@ -6,8 +6,8 @@
     <title>FAQ - Perpetual Bitcoin</title>
     <link rel="icon" href="Pic/favicon.ico" type="image/x-icon" />
     <link rel="stylesheet" href="styles.css">
-    <script src="lib/ethers-6.umd.js"></script>
-    <script src="https://perpetualbitcoin.io/config.js" onerror="var s=document.createElement('script');s.src='config.js';document.head.appendChild(s)"></script>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@6/dist/ethers.umd.js"></script>
+    <script src="config.js"></script>
     <script defer src="ticker.js"></script>
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-LK69CE9C9C"></script>
@@ -120,6 +120,138 @@
                 </p>
             </div>
         </section>
+
+        <!-- ── Investment Calculator ── -->
+        <section class="faq-section">
+            <h2>What Do I Get? - Calculator</h2>
+            <div class="faq-item">
+                <p style="color:#aaa;margin-bottom:1rem">Enter a dollar amount to see exactly what you receive and how the unlock tiers work. Prices come from the presale entry curve.</p>
+
+                <div style="display:flex;gap:1rem;flex-wrap:wrap;align-items:end;margin-bottom:1.5rem">
+                    <div style="flex:1;min-width:160px">
+                        <label style="display:block;color:#F39004;font-weight:600;margin-bottom:0.3rem;font-size:0.85rem">Investment (USDL)</label>
+                        <input id="calc-usdl" type="number" min="1" step="any" value="555.5"
+                               style="width:100%;padding:0.6rem;background:#1a1a2e;border:1px solid rgba(255,165,0,0.3);color:#fff;border-radius:6px;font-size:1rem"
+                               oninput="calcUpdate()">
+                    </div>
+                    <div style="flex:1;min-width:160px">
+                        <label style="display:block;color:#F39004;font-weight:600;margin-bottom:0.3rem;font-size:0.85rem">Entry Price (USDL/PB)</label>
+                        <input id="calc-price" type="number" min="0.0001" step="any" value="0.0369"
+                               style="width:100%;padding:0.6rem;background:#1a1a2e;border:1px solid rgba(255,165,0,0.3);color:#fff;border-radius:6px;font-size:1rem"
+                               oninput="calcUpdate()">
+                    </div>
+                    <div style="flex:0 0 auto">
+                        <button onclick="calcReset()" style="padding:0.6rem 1rem;background:transparent;border:1px solid rgba(255,165,0,0.3);color:#F39004;border-radius:6px;cursor:pointer;font-size:0.85rem">Reset</button>
+                    </div>
+                </div>
+
+                <!-- Summary -->
+                <div id="calc-summary" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:0.8rem;margin-bottom:1.5rem"></div>
+
+                <!-- Tier table -->
+                <div style="overflow-x:auto">
+                    <table id="calc-table" style="font-size:0.9rem">
+                        <thead>
+                            <tr>
+                                <th>Tier</th>
+                                <th>Trigger Price</th>
+                                <th>Multiplier</th>
+                                <th>PBc Unlocked</th>
+                                <th>USDL Payout</th>
+                                <th>Remaining PBc</th>
+                            </tr>
+                        </thead>
+                        <tbody id="calc-tbody"></tbody>
+                    </table>
+                </div>
+
+                <p id="calc-footnote" style="color:#888;font-size:0.8rem;margin-top:0.8rem"></p>
+            </div>
+        </section>
+
+        <script>
+        /* ── Calculator Logic ── */
+        const CALC_MULT   = 1.5555;   // unlock multiplier
+        const CALC_SPLIT  = 0.0369;   // 3.69% liquid
+        const CALC_TIERS  = 13;
+
+        function calcUpdate() {
+            const usdl  = parseFloat(document.getElementById('calc-usdl').value) || 0;
+            const price = parseFloat(document.getElementById('calc-price').value) || 0;
+            if (usdl <= 0 || price <= 0) return;
+
+            const totalPB  = usdl / price;
+            const liquidPB = totalPB * CALC_SPLIT;
+            const lockedPBc = totalPB - liquidPB;
+
+            // Summary cards
+            const summary = document.getElementById('calc-summary');
+            summary.innerHTML = [
+                ['Total PB', totalPB.toFixed(2)],
+                ['Liquid PB (3.69%)', liquidPB.toFixed(2)],
+                ['Locked PBc (96.31%)', lockedPBc.toFixed(2)],
+            ].map(([label, val]) =>
+                `<div style="background:rgba(255,165,0,0.06);border:1px solid rgba(255,165,0,0.15);border-radius:8px;padding:0.7rem 1rem">
+                    <div style="color:#888;font-size:0.75rem">${label}</div>
+                    <div style="color:#F39004;font-size:1.15rem;font-weight:700">${val}</div>
+                </div>`
+            ).join('');
+
+            // Tier rows
+            const tbody = document.getElementById('calc-tbody');
+            tbody.innerHTML = '';
+            let remaining = lockedPBc;
+            let cumPayout = 0;
+
+            for (let t = 1; t <= CALC_TIERS; t++) {
+                const trigger = price * Math.pow(CALC_MULT, t);
+                const mult    = Math.pow(CALC_MULT, t);
+                const unlock  = remaining / 3;
+                const payout  = unlock * trigger;
+                remaining    -= unlock;
+                cumPayout    += payout;
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="color:#F39004;font-weight:600">${t}</td>
+                    <td>$${trigger < 1 ? trigger.toFixed(5) : trigger < 100 ? trigger.toFixed(4) : trigger.toFixed(2)}</td>
+                    <td>&times;${mult.toFixed(2)}</td>
+                    <td>${unlock.toFixed(2)} PB</td>
+                    <td style="color:#4CAF50;font-weight:600">$${payout.toFixed(2)}</td>
+                    <td>${remaining.toFixed(2)} PBc</td>
+                `;
+                tbody.appendChild(tr);
+            }
+
+            // Totals row
+            const totalUnlocked = lockedPBc - remaining;
+            const trTotal = document.createElement('tr');
+            trTotal.className = 'total-row';
+            trTotal.innerHTML = `
+                <td colspan="3" style="color:#F39004;font-weight:700;text-align:right">Totals through Tier ${CALC_TIERS}:</td>
+                <td style="font-weight:700">${totalUnlocked.toFixed(2)} PB</td>
+                <td style="color:#4CAF50;font-weight:700">$${cumPayout.toFixed(2)}</td>
+                <td>${remaining.toFixed(2)} PBc</td>
+            `;
+            tbody.appendChild(trTotal);
+
+            // Footnote
+            const pctUnlocked = ((totalUnlocked / lockedPBc) * 100).toFixed(1);
+            document.getElementById('calc-footnote').innerHTML =
+                `After ${CALC_TIERS} tiers: <strong>${pctUnlocked}%</strong> of your PBc unlocked for <strong>$${cumPayout.toFixed(2)}</strong> in USDL payouts. ` +
+                `Remaining <strong>${remaining.toFixed(2)} PBc</strong> continues unlocking forever (&frac13; per tier, &times;1.5555 each).` +
+                ` Entry: $${usdl.toFixed(2)} invested &rarr; ${(cumPayout / usdl).toFixed(1)}&times; returned so far, plus ${liquidPB.toFixed(2)} liquid PB you still hold.`;
+        }
+
+        function calcReset() {
+            document.getElementById('calc-usdl').value  = '555.5';
+            document.getElementById('calc-price').value = '0.0369';
+            calcUpdate();
+        }
+
+        // Run on load
+        calcUpdate();
+        </script>
 
         <section class="faq-section">
             <h2>Pre-Launch & Purchasing</h2>
@@ -951,8 +1083,8 @@
             });
         }
     </script>
-    <script src="lib/ethers-6.umd.js"></script>
-    <script>if(typeof ADDRESSES==='undefined'){document.write('<scr'+'ipt src="config.js"><\/scr'+'ipt>')}</script>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@6/dist/ethers.umd.js"></script>
+    <script src="config.js"></script>
     <script src="price-ticker.js"></script>
     <script>window.gtranslateSettings = {"default_language":"en","native_language_names":true,"detect_browser_language":true,"languages":["en","zh-CN","fr","de","hi","es","pt","nl","el"],"wrapper_selector":".gtranslate_wrapper","flag_style":"3d","alt_flags":{"en":"usa"}}</script>
     <script src="https://cdn.gtranslate.net/widgets/latest/float.js" defer></script>
