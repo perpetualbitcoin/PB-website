@@ -80,7 +80,7 @@ tr.sell-row { background: rgba(211, 47, 47, 0.15); }
 <body>
 
 <h1><a href="index.html" style="color:#f7931a;text-decoration:none;">Perpetual Bitcoin</a> (PB) Protocol Simulator</h1>
-<p class="mini">Simulates the full PB Vault: AMM (UniV2 constant-product), sequential netting (Phase A off-AMM + Phase B interleaved), LP contributions, unlocks, phase transitions. All presale positions + new buys.</p>
+<p class="mini">Simulates the full PB Vault: AMM (UniV2 constant-product), Absorb &amp; Net netting (off-AMM settlement + partial triggers + internal settlement + 1 net AMM transaction), LP contributions, unlocks, phase transitions. All presale positions + new buys.</p>
 
 <div id="status-bar">Ready. Configure initial LP and click "Initialize".</div>
 
@@ -93,7 +93,7 @@ tr.sell-row { background: rgba(211, 47, 47, 0.15); }
         <div class="flex-row">
             <div>
                 <label>Initial USDL in LP</label>
-                <input type="number" id="init-usdl" value="90000" step="1000">
+                <input type="number" id="init-usdl" value="5000" step="1000">
             </div>
             <div>
                 <label>Start Price (USDL/PB)</label>
@@ -228,8 +228,8 @@ tr.sell-row { background: rgba(211, 47, 47, 0.15); }
                     <th>Phase A #</th>
                     <th>Phase A PBc</th>
                     <th>Phase A USDL</th>
-                    <th>Phase B #</th>
-                    <th>Phase B PBc</th>
+                    <th>Post-Buy #</th>
+                    <th>Post-Buy PBc</th>
                     <th>Net Direction</th>
                     <th>Vault PB</th>
                     <th>Phase</th>
@@ -512,6 +512,8 @@ function allocatePresaleUser(holderAddr, pbAmount, entryPrice) {
     checkPhaseTransition();
 }
 
+
+
 // ════════════════════════════════════════════════════════════════
 // CORE: BUY PB DIRECT (matches Vault.buyPBDirect — sequential netting)
 // ════════════════════════════════════════════════════════════════
@@ -522,82 +524,122 @@ function buyPBDirect(buyerAddr, usdlAmount) {
     const priceBefore = getPrice(S.reservePB, S.reserveUSDL);
     S.buyCount++;
 
-    // Step 1: Get sorted unlock IDs (simulates off-chain indexer)
+    // Step 1: Get sorted unlock IDs
     const unlockIds = getSortedUnlockIds();
 
-    // Step 2: Sequential netting scan (virtual reserves, no real AMM changes)
-    const { results: nettedResults, nettingStopIdx, totalSettlement } =
+    // Step 2: Netting scan — Absorb & Net (full + partial triggers)
+    const { results: nettedResults, nettingStopIdx, totalSettlement, totalVBuy, absorbedPBc, partialTrigger } =
         sequentialNettingScan(usdlAmount, S.reservePB, S.reserveUSDL, unlockIds);
 
     let nettedPBc = 0;
     let nettedUSDLSettled = 0;
+    let internalPBc = 0;
     let compensationPB = 0;
     let lpUSDLUsed = 0;
     let lpPBUsed = 0;
     let ammPB = 0;
-    let phaseBUnlocks = 0;
-    let phaseBPBcSold = 0;
+    let postBuyUnlocks = 0;
+    let postBuyPBcSold = 0;
 
-    // ── Phase A: Settle netted positions (off-AMM) ──
+    // ── Settle absorbed positions (off-AMM) ──
     for (let i = 0; i < nettedResults.length; i++) {
         settleNettedPosition(nettedResults[i]);
         nettedPBc += nettedResults[i].unlockPBc;
         nettedUSDLSettled += nettedResults[i].unlockUSDL;
     }
 
-    // ── Phase B: Interleaved AMM buy/sell ──
-    let remaining = usdlAmount - nettedUSDLSettled;
+    // ── Compute ammBuyAmount and unsettled from partial trigger ──
+    let ammBuyAmount = usdlAmount - nettedUSDLSettled;
+    let unsettledOwed = 0;
+    let unsettledPBc = 0;
+    let partialHolderAddr = null;
 
-    // B.1: LP contribution (distribution phase only)
-    const lpActive = S.isDistributionPhase && S.vaultPBBalance > totalOutstandingPBc();
-    if (lpActive && remaining > 0) {
-        const usdlForLP = remaining * LP_CONTRIBUTION_BPS / 10000;
-        if (usdlForLP > 0) {
-            const lp = directLPContribution(usdlForLP);
-            compensationPB = lp.pbCompensation;
-            lpUSDLUsed = lp.usdlUsed;
-            lpPBUsed = lp.pbUsed;
-            remaining -= lpUSDLUsed;
-        }
+    if (partialTrigger) {
+        // Partial trigger was settled off-AMM for partialPayment only
+        // The full tranche was taken from the holder; unsettled portion needs resolution
+        unsettledOwed = partialTrigger.unsettledOwed;
+        unsettledPBc = partialTrigger.unsettledPBc;
+        partialHolderAddr = partialTrigger.payoutAddress;
+        // Buyer already got partialPBc from the settlement (included in nettedPBc above)
     }
 
-    // B.2: Interleaved loop — buy to trigger → sell → repeat
-    for (let i = nettingStopIdx; i < unlockIds.length && remaining > 0; i++) {
-        const id = unlockIds[i];
-        const pbt = S.positions.get(id);
-        if (!pbt || pbt.holder === null || pbt.pbcLocked <= 0) continue;
+    // ── Internal settlement: buyer USDL settles unsettled PBc at trigger price ──
+    if (unsettledOwed > 0 && ammBuyAmount > 0) {
+        const internalUSDL = Math.min(ammBuyAmount, unsettledOwed);
+        const internalPBcAmount = unsettledPBc * (internalUSDL / unsettledOwed);
 
-        const triggerPrice = pbt.nextTriggerPrice;
-        const currentPrice = getPrice(S.reservePB, S.reserveUSDL);
+        // Buyer gives USDL → holder gets more off-AMM payment
+        const partialHolder = getHolder(partialHolderAddr);
+        partialHolder.usdlReceived += internalUSDL;
+        S.totalUSDLDistributed += internalUSDL;
 
-        if (currentPrice < triggerPrice) {
-            const usdlNeeded = computeUSDLForPrice(S.reservePB, S.reserveUSDL, triggerPrice);
-            if (remaining < usdlNeeded) break;
+        // Buyer gets PBc from unsettled pool at trigger price
+        internalPBc = internalPBcAmount;
+        nettedPBc += internalPBcAmount;
+        nettedUSDLSettled += internalUSDL;
 
-            // AMM buy: push price to trigger
-            const pbFromBuy = ammBuy(usdlNeeded);
+        unsettledPBc -= internalPBcAmount;
+        unsettledOwed -= internalUSDL;
+        ammBuyAmount -= internalUSDL;
+    }
+
+    // ── Net AMM transaction ──
+    const netAMM = ammBuyAmount - unsettledOwed;
+
+    if (netAMM > 0) {
+        // NET BUY: LP contribution then AMM buy
+        const lpActive = S.isDistributionPhase && S.vaultPBBalance > totalOutstandingPBc();
+        let buyUSDL = netAMM;
+        if (lpActive && buyUSDL > 0) {
+            const usdlForLP = buyUSDL * LP_CONTRIBUTION_BPS / 10000;
+            if (usdlForLP > 0) {
+                const lp = directLPContribution(usdlForLP);
+                compensationPB = lp.pbCompensation;
+                lpUSDLUsed = lp.usdlUsed;
+                lpPBUsed = lp.pbUsed;
+                buyUSDL -= lpUSDLUsed;
+            }
+        }
+        if (buyUSDL > 0) {
+            const pbFromBuy = ammBuy(buyUSDL);
             S.vaultPBBalance += pbFromBuy;
-            ammPB += pbFromBuy;
-            remaining -= usdlNeeded;
+            ammPB = pbFromBuy;
         }
+    } else if (netAMM < 0) {
+        // NET SELL: sell remaining unsettledPBc on AMM, pay holder
+        if (unsettledPBc > 0) {
+            const usdlProceeds = ammSellPB(unsettledPBc);
+            S.vaultPBBalance -= unsettledPBc;
+            const partialHolder = getHolder(partialHolderAddr);
+            partialHolder.usdlReceived += usdlProceeds;
+            S.totalUSDLDistributed += usdlProceeds;
+            unsettledPBc = 0;
+            unsettledOwed = 0;
+        }
+        // No LP contribution, no AMM buy
+    }
+    // else netAMM === 0: perfectly netted, no AMM transaction
 
-        // Fire unlock (sells PBc on AMM, price drops)
-        const result = executeUnlock(id);
-        phaseBUnlocks++;
-        phaseBPBcSold += result.pbcSold;
+    // ── Post-buy: fire triggers hit by an AMM buy (standard executeUnlock) ──
+    if (netAMM > 0) {
+        for (let i = nettingStopIdx; i < unlockIds.length && postBuyUnlocks < MAX_UNLOCK_PER_BUY; i++) {
+            const id = unlockIds[i];
+            const pbt = S.positions.get(id);
+            if (!pbt || pbt.holder === null || pbt.pbcLocked <= 0) continue;
+
+            const currentPrice = getPrice(S.reservePB, S.reserveUSDL);
+            if (currentPrice < pbt.nextTriggerPrice) break;
+
+            const result = executeUnlock(id);
+            postBuyUnlocks++;
+            postBuyPBcSold += result.pbcSold;
+        }
     }
 
-    // B.3: Final buy with remaining USDL
-    if (remaining > 0) {
-        const pbFinal = ammBuy(remaining);
-        S.vaultPBBalance += pbFinal;
-        ammPB += pbFinal;
-    }
-
-    // ── Step 8: Total buyer PB ──
+    // ── Total buyer PB = netted PBc (full + partial + internal) + compensation + AMM PB ──
     const totalBuyerPB = nettedPBc + compensationPB + ammPB;
 
-    // ── Step 9: Split ──
+    // ── Split ──
     const { liquidPB, lockedPBc } = computeSplit(totalBuyerPB);
 
     S.vaultPBBalance -= liquidPB;
@@ -608,15 +650,15 @@ function buyPBDirect(buyerAddr, usdlAmount) {
     holder.lockedPBc += lockedPBc;
 
     // Mint PBt
-    const currentPrice = getPrice(S.reservePB, S.reserveUSDL);
+    const avgBuyPrice = usdlAmount / totalBuyerPB;
     const pbtId = ++S.pbtIdCounter;
     const pos = {
         pbtId,
-        buyPrice: currentPrice,
+        buyPrice: avgBuyPrice,
         pbAmount: totalBuyerPB,
         pbcLocked: lockedPBc,
         nextUnlockIndex: 0,
-        nextTriggerPrice: computeTriggerPriceFloat(currentPrice, 0),
+        nextTriggerPrice: computeTriggerPriceFloat(avgBuyPrice, 0),
         holder: buyerAddr,
         payoutAddress: buyerAddr,
         source: 'buy',
@@ -646,9 +688,10 @@ function buyPBDirect(buyerAddr, usdlAmount) {
         phaseACount: nettedResults.length,
         phaseAPBc: nettedPBc,
         phaseAUSDL: nettedUSDLSettled,
-        phaseBCount: phaseBUnlocks,
-        phaseBPBc: phaseBPBcSold,
-        netDirection: priceAfter < priceBefore ? 'NET SELL' : 'NET BUY',
+        phaseBCount: postBuyUnlocks,
+        phaseBPBc: postBuyPBcSold,
+        netAMM,
+        netDirection: netAMM < 0 ? 'NET SELL' : (netAMM === 0 ? 'ZERO NET' : (nettedResults.length > 0 ? 'NET BUY (netted)' : 'NET BUY')),
         vaultPB: S.vaultPBBalance,
         phase: S.isDistributionPhase ? 'Distribution' : 'Final',
     };
@@ -705,7 +748,7 @@ function directLPContribution(usdlForLP) {
 
     // PB needed at current pool ratio
     let pbForLP = (usdlForLP * S.reservePB) / S.reserveUSDL;
-    let totalPBNeeded = pbForLP * 2; // LP + compensation
+    let totalPBNeeded = pbForLP * 2; // LP + buyer compensation (buyer gets 100% value)
 
     if (totalPBNeeded > availablePB) {
         totalPBNeeded = availablePB;
@@ -715,11 +758,10 @@ function directLPContribution(usdlForLP) {
 
     if (pbForLP < 0.000001 || usdlForLP < 0.000001) return { pbCompensation: 0, usdlUsed: 0, pbUsed: 0 };
 
-    // Add liquidity (simplified: no slippage in sim, exact amounts)
+    // Add liquidity: vault PB + buyer's USDL → LP grows
     S.reservePB += pbForLP;
     S.reserveUSDL += usdlForLP;
-    S.vaultPBBalance -= pbForLP; // PB goes to LP
-    // compensation PB stays in vault accounting (deducted during buyer transfer)
+    S.vaultPBBalance -= totalPBNeeded; // 1x PB to LP, 1x PB as buyer compensation
 
     return { pbCompensation: pbForLP, usdlUsed: usdlForLP, pbUsed: pbForLP };
 }
@@ -732,8 +774,12 @@ function sequentialNettingScan(usdlAmount, reservePB, reserveUSDL, unlockIds) {
     const results = [];
     let vReservePB = reservePB;
     let vReserveUSDL = reserveUSDL;
-    let usdlBudget = usdlAmount;
+    let budget = usdlAmount;
     let nettingStopIdx = unlockIds.length;
+    let totalVBuy = 0;
+    let totalSettlement = 0;
+    let absorbedPBc = 0;
+    let partialTrigger = null;
 
     for (let i = 0; i < unlockIds.length; i++) {
         const id = unlockIds[i];
@@ -742,72 +788,117 @@ function sequentialNettingScan(usdlAmount, reservePB, reserveUSDL, unlockIds) {
 
         const triggerPrice = pbt.nextTriggerPrice;
 
-        // 1. vBuy: USDL needed to push virtual price to trigger
+        // 1. vBuy: USDL needed to push virtual price UP to this trigger
         const vBuy = computeUSDLForPrice(vReservePB, vReserveUSDL, triggerPrice);
 
-        // 2. Can buyer afford?
-        if (vBuy > 0 && usdlBudget < vBuy) {
-            nettingStopIdx = i;
+        // 2. Settlement: USDL owed to holder
+        const isDust = pbt.pbcLocked < DUST_THRESHOLD;
+        const tranche = isDust ? pbt.pbcLocked : pbt.pbcLocked / TRANCHE_FRACTION;
+        const settlement = tranche * triggerPrice;
+
+        // 3. Can buyer afford both vBuy + full settlement?
+        if (budget < vBuy + settlement) {
+            // Can't fully absorb — try PARTIAL if buyer can at least reach the trigger.
+            // Net sell is valid: unsettled PBc gets sold on AMM for the holder.
+            if (budget >= vBuy) {
+                nettingStopIdx = i + 1; // partial counts as processed
+                // Can reach trigger — do partial settlement
+                budget -= vBuy;
+                totalVBuy += vBuy;
+
+                // Apply vBuy to virtual reserves
+                if (vBuy > 0) {
+                    const pbBought = getAmountOut(vBuy, vReserveUSDL, vReservePB);
+                    vReserveUSDL += vBuy;
+                    vReservePB -= pbBought;
+                }
+
+                // Buyer pays what they have left as partial settlement
+                const partialPayment = budget; // everything remaining
+                const partialPBc = tranche * (partialPayment / settlement); // proportional PBc
+                const unsettledPBc = tranche - partialPBc;
+                const unsettledOwed = settlement - partialPayment;
+
+                totalSettlement += partialPayment;
+                absorbedPBc += partialPBc;
+                budget = 0;
+
+                // Record partial — full tranche fires from holder, buyer gets partialPBc
+                results.push({
+                    pbtId: id,
+                    unlockPBc: partialPBc,   // buyer gets this portion
+                    fullTranche: tranche,     // full tranche taken from holder
+                    triggerPrice,
+                    unlockUSDL: partialPayment,
+                    payoutAddress: pbt.payoutAddress,
+                    isDust,
+                    isPartial: true,
+                    unsettledPBc,
+                    unsettledOwed,
+                });
+
+                // Return partial info for internal settlement + net AMM
+                partialTrigger = {
+                    pbtId: id,
+                    unsettledPBc,
+                    unsettledOwed,
+                    triggerPrice,
+                    payoutAddress: pbt.payoutAddress,
+                };
+            } else {
+                // Can't reach trigger — stop, remaining budget → AMM buy
+                nettingStopIdx = i;
+            }
             break;
         }
 
-        // 3. Apply vBuy to virtual reserves
+        // 4. Deduct both from budget
+        budget -= (vBuy + settlement);
+        totalVBuy += vBuy;
+        totalSettlement += settlement;
+
+        // 5. Apply vBuy to virtual reserves (price walks UP to trigger)
+        //    NO virtual sell — absorbed PBc never touches AMM
         if (vBuy > 0) {
             const pbBought = getAmountOut(vBuy, vReserveUSDL, vReservePB);
             vReserveUSDL += vBuy;
             vReservePB -= pbBought;
-            usdlBudget -= vBuy;
         }
 
-        // 4. Settlement amount
-        const isDust = pbt.pbcLocked < DUST_THRESHOLD;
-        const pbcToRelease = isDust ? pbt.pbcLocked : pbt.pbcLocked / TRANCHE_FRACTION;
-        const unlockUSDL = pbcToRelease * triggerPrice;
-
-        // 5. Can buyer afford settlement after vBuy?
-        if (usdlBudget < unlockUSDL) {
-            nettingStopIdx = i;
-            break;
-        }
-
-        // 6. Deduct settlement
-        usdlBudget -= unlockUSDL;
-
-        // 7. vSell: model price drop (PBc goes to buyer, NOT sold on AMM)
-        const vSell = getAmountOut(pbcToRelease, vReservePB, vReserveUSDL);
-        vReservePB += pbcToRelease;
-        vReserveUSDL -= vSell;
-
-        // 8. Record
+        // 6. Record full absorption
+        absorbedPBc += tranche;
         results.push({
             pbtId: id,
-            unlockPBc: pbcToRelease,
+            unlockPBc: tranche,
             triggerPrice,
-            unlockUSDL,
+            unlockUSDL: settlement,
             payoutAddress: pbt.payoutAddress,
             isDust,
+            isPartial: false,
         });
     }
 
-    const totalSettlement = results.reduce((sum, r) => sum + r.unlockUSDL, 0);
-    return { results, nettingStopIdx, totalSettlement };
+    return { results, nettingStopIdx, totalSettlement, totalVBuy, absorbedPBc, partialTrigger };
 }
 
-// ── Settle one netted position (off-AMM, Phase A) ──
+// ── Settle one netted position (off-AMM) ──
 function settleNettedPosition(r) {
     const pbt = S.positions.get(r.pbtId);
     const holder = getHolder(pbt.holder);
 
-    // PBc: holder → vault
-    holder.lockedPBc -= r.unlockPBc;
-    S.vaultPBcBalance += r.unlockPBc;
+    // Full tranche fires from holder (even for partial — full tranche is deducted)
+    const tranche = r.isPartial ? r.fullTranche : r.unlockPBc;
 
-    // USDL: vault → holder
+    // PBc: holder → vault (full tranche)
+    holder.lockedPBc -= tranche;
+    S.vaultPBcBalance += tranche;
+
+    // USDL: vault → holder (full settlement for full absorptions, partialPayment for partial)
     holder.usdlReceived += r.unlockUSDL;
     S.totalUSDLDistributed += r.unlockUSDL;
 
     // Update position
-    pbt.pbcLocked -= r.unlockPBc;
+    pbt.pbcLocked -= tranche;
 
     if (!r.isDust) {
         pbt.nextUnlockIndex++;
@@ -913,7 +1004,7 @@ function sellPBFromUser(userAddr, pbAmount) {
 // ════════════════════════════════════════════════════════════════
 
 function initProtocol() {
-    const initUSDL = parseFloat(document.getElementById('init-usdl').value) || 90000;
+    const initUSDL = parseFloat(document.getElementById('init-usdl').value) || 5000;
     const initPrice = 0.05555;
     const initPB = initUSDL / initPrice;
 
@@ -1013,8 +1104,8 @@ function executeSingleBuy() {
     const buyer = 'Buyer_' + (++buyerCounter);
     const entry = buyPBDirect(buyer, usdl);
     if (entry) {
-        let statusMsg = `Buy #${entry.num}: ${buyer} spent ${usdl.toFixed(2)} USDL → ${fmt(entry.totalPB, 2)} PB (${entry.netDirection}, A=${entry.phaseACount}`;
-        if (entry.phaseBCount > 0) statusMsg += `, B=${entry.phaseBCount} sold ${fmt(entry.phaseBPBc, 2)} PBc`;
+        let statusMsg = `Buy #${entry.num}: ${buyer} spent ${usdl.toFixed(2)} USDL → ${fmt(entry.totalPB, 2)} PB (${entry.netDirection}, netted=${entry.phaseACount}`;
+        if (entry.phaseBCount > 0) statusMsg += `, post-buy=${entry.phaseBCount} sold ${fmt(entry.phaseBPBc, 2)} PBc`;
         if (entry.phaseAPBc > 0) statusMsg += `, netted=${fmt(entry.phaseAPBc, 2)} PBc for ${fmt(entry.phaseAUSDL, 2)} USDL`;
         statusMsg += `). Price: $${entry.priceBefore.toFixed(8)} → $${entry.priceAfter.toFixed(8)} (${entry.pctChange >= 0 ? '+' : ''}${entry.pctChange.toFixed(4)}%)`;
         setStatus(statusMsg);

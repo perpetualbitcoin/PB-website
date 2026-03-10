@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="styles.css" />
     <script src="lib/lightweight-charts-4.1.1.js"></script>
     <script src="lib/ethers-6.umd.js"></script>
-    <script src="config.js"></script>
+    <script src="https://perpetualbitcoin.io/config.js" onerror="var s=document.createElement('script');s.src='config.js';document.head.appendChild(s)"></script>
     <script defer src="ticker.js"></script>
 
         <!-- Google tag (gtag.js) -->
@@ -195,9 +195,9 @@
                     <button id="refresh-positions-btn" onclick="updatePositions()" style="background: none; border: none; font-size: 1.2rem; cursor: pointer; padding: 4px 8px; color: #F39004; transition: transform 0.3s; border-radius: 4px;" title="Refresh positions" onmouseover="this.style.transform='rotate(20deg)'" onmouseout="this.style.transform='rotate(0deg)'">🔄</button>
                 </div>
                 <select id="sort-by-select" onchange="sortPositions(this.value)" style="background: rgba(0, 0, 0, 0.4); color: #F39004; border: 1px solid #F39004; padding: 6px 12px; border-radius: 4px; font-size: 0.85rem; cursor: pointer;">
+                    <option value="status">Status: Ready First</option>
                     <option value="price-low-high">↑ Next Price: Low to High</option>
                     <option value="price-high-low">↓ Next Price: High to Low</option>
-                    <option value="status">Status: Ready First</option>
                 </select>
             </div>
             <div class="tabs">
@@ -317,6 +317,10 @@
                             <label for="recovery-password">Password (min 11 chars)</label>
                             <input type="password" id="recovery-password" class="input-field" placeholder="••••••••••••" />
                         </div>
+                        <div class="form-group">
+                            <label for="recovery-memo" style="font-size:0.8rem">Memo <span style="color:#888;font-weight:normal;font-size:0.7rem">(optional, max 280 chars)</span></label>
+                            <input type="text" id="recovery-memo" class="input-field" placeholder="e.g. Gift - Donation - Support" maxlength="280" />
+                        </div>
                         <button class="btn btn-primary" id="btn-setup-recovery" style="width: 100%;">Set Recovery Address</button>
                         <div id="recovery-status" style="margin-top: 12px; font-size: 0.85rem;"></div>
                     </div>
@@ -364,6 +368,10 @@
                         <div class="form-group">
                             <label for="inheritance-password">Password (min 11 chars)</label>
                             <input type="password" id="inheritance-password" class="input-field" placeholder="••••••••••••" />
+                        </div>
+                        <div class="form-group">
+                            <label for="inheritance-memo" style="font-size:0.8rem">Memo <span style="color:#888;font-weight:normal;font-size:0.7rem">(optional, max 280 chars)</span></label>
+                            <input type="text" id="inheritance-memo" class="input-field" placeholder="e.g. Gift - Donation - Support" maxlength="280" />
                         </div>
                         <button class="btn btn-primary" id="btn-setup-inheritance" style="width: 100%;">Set Beneficiary</button>
                         <div id="inheritance-status" style="margin-top: 12px; font-size: 0.85rem;"></div>
@@ -479,7 +487,7 @@
 
         // Load tick history: fetch from DB first, then merge any localStorage ticks
         async function loadPriceHistory() {
-            // 1. Try fetching from indexer DB (authoritative source)
+            // 1. Fetch from indexer DB (authoritative source)
             try {
                 const now = Math.floor(Date.now() / 1000);
                 const from = now - 7 * 86400; // last 7 days
@@ -560,9 +568,9 @@
             'function getPositionUnlockStatus(uint256 pbtId) view returns (uint256 index, uint256 nextPrice, bool eligible, uint256 pbcRemaining)',
             'function pbtRegistry(uint256 pbtId) view returns (uint256 buyPrice, uint256 pbAmount, uint256 pbcLocked, uint256 nextUnlockIndex, uint256 nextTriggerPrice, uint256 mintBlock, address holder, address payoutAddress)',
             'function computeNextTriggerPrice(uint256 buyPrice, uint256 unlockIndex) view returns (uint256)',
-            'function setRecoveryAddress(uint256 pbtId, address recoveryAddr, bytes32 passwordHash)',
+            'function setRecoveryAddress(uint256 pbtId, address recoveryAddr, bytes32 passwordHash, string message)',
             'function activateRecovery(uint256 pbtId, string password)',
-            'function setInheritanceAddress(uint256 pbtId, address inheritanceAddr, bytes32 passwordHash)',
+            'function setInheritanceAddress(uint256 pbtId, address inheritanceAddr, bytes32 passwordHash, string message)',
             'function activateInheritance(uint256 pbtId, string password)',
             'function getPBQuote(uint256 usdlAmount) view returns (uint256 pb, uint256 liquid, uint256 locked)',
             'function getUserTotalValue(address user) view returns (uint256 total, uint256 liquid, uint256 locked, uint256 usdl)',
@@ -577,6 +585,8 @@
             'function isDistributionPhase() view returns (bool)',
             'function getActivePositionCount() view returns (uint256)',
             'function totalOutstandingPBc() view returns (uint256)',
+            'function pbtIdCounter() view returns (uint256)',
+            'function buyCount() view returns (uint256)',
             'event UnlockTriggered(uint256 indexed pbtId, uint256 unlockIndex, uint256 pbUnlocked, uint256 usdlProceeds, address payoutAddress, uint256 newTriggerPrice, uint256 remainingPBcLocked)',
         ];
 
@@ -1216,28 +1226,198 @@
         // ================================================================
         // QUOTE & BUY FUNCTIONS
         // ================================================================
+
+        // BigInt sqrt (integer Newton's method)
+        function bigIntSqrt(x) {
+            if (x < 0n) throw new Error('sqrt of negative');
+            if (x === 0n) return 0n;
+            let z = x;
+            let y = (z + 1n) / 2n;
+            while (y < z) { z = y; y = (z + x / z) / 2n; }
+            return z;
+        }
+
+        // UniV2 getAmountOut with 0.3% fee
+        function getAmountOut(amountIn, reserveIn, reserveOut) {
+            const aif = amountIn * 997n;
+            return (aif * reserveOut) / (reserveIn * 1000n + aif);
+        }
+
+        // How much USDL to push AMM price from current to targetPrice (18-dec)?
+        // Returns 0n if already at or above target. Matches Vault._computeUSDLForPrice exactly.
+        function computeUSDLForPrice(reservePB, reserveUSDL, targetPrice) {
+            const currentPrice = (reserveUSDL * (10n ** 18n)) / reservePB;
+            if (currentPrice >= targetPrice) return 0n;
+            const b = reserveUSDL * 1997n;
+            const absC = (targetPrice * reservePB * reserveUSDL * 1000n / (10n ** 18n))
+                       - (reserveUSDL * reserveUSDL * 1000n);
+            const disc = b * b + 4n * 997n * absC;
+            const sqrtDisc = bigIntSqrt(disc);
+            return (sqrtDisc - b) / (2n * 997n) + 1n;
+        }
+
         async function getQuote() {
-            if (!account) {
-                alert('Connect wallet first');
-                return;
-            }
+            if (!account) { alert('Connect wallet first'); return; }
             try {
                 const usdlAmountStr = document.getElementById('buy-amount').value;
                 if (!usdlAmountStr || parseFloat(usdlAmountStr) <= 0) {
-                    alert('Enter valid USDL amount');
-                    return;
+                    alert('Enter valid USDL amount'); return;
+                }
+                const usdlWei = ethers.parseEther(usdlAmountStr);
+
+                showStatus('buy-status', '⏳ Simulating netting quote...', 'info');
+
+                // 1. Read AMM reserves
+                const pairContract = new ethers.Contract(PULSEX_PAIR, PAIR_ABI, web3);
+                const [reserve0, reserve1] = await pairContract.getReserves();
+                const token0 = await pairContract.token0();
+                let reservePB, reserveUSDL;
+                if (token0.toLowerCase() === TPB.toLowerCase()) {
+                    reservePB = reserve0; reserveUSDL = reserve1;
+                } else {
+                    reservePB = reserve1; reserveUSDL = reserve0;
                 }
 
-                const usdlAmount = ethers.parseEther(usdlAmountStr);
-                const vaultContract = new ethers.Contract(TVault, VAULT_ABI, web3);
-                const [pbAmount, liquid, locked] = await vaultContract.getPBQuote(usdlAmount);
+                // 2. Fetch active positions from indexer DB (fast, no RPC scanning)
+                let positions = [];
+                try {
+                    const resp = await fetch(`${INDEXER_URL}/netting-positions`);
+                    if (resp.ok) {
+                        const data = await resp.json();
+                        positions = (data.positions || []).map(p => ({
+                            id: p.id,
+                            triggerPrice: BigInt(p.triggerPrice),
+                            pbcRemaining: BigInt(p.pbcLocked),
+                        }));
+                    } else {
+                        showStatus('buy-status', '⚠️ Indexer unavailable — quote without netting', 'info');
+                    }
+                } catch (fetchErr) {
+                    console.warn('Indexer fetch failed for netting positions:', fetchErr.message);
+                    showStatus('buy-status', '⚠️ Indexer unavailable — quote without netting', 'info');
+                }
 
+                // 3. Sequential netting simulation (mirrors Vault._sequentialNettingScan)
+                let vReservePB = reservePB;
+                let vReserveUSDL = reserveUSDL;
+                let budget = usdlWei;
+                let totalNettedSettlement = 0n;
+                let absorbedPBc = 0n;
+                let nettedCount = 0;
+                let partialPBc = 0n;
+                let unsettledPBc = 0n;
+                let unsettledOwed = 0n;
+                let hasPartial = false;
+                const E18 = 10n ** 18n;
+                const TRANCHE_FRACTION = 3n;
+
+                for (const pos of positions) {
+                    const triggerPrice = pos.triggerPrice;
+                    const pbcLocked = pos.pbcRemaining;
+                    if (pbcLocked === 0n) continue;
+
+                    // vBuy: cost to push virtual price to trigger
+                    const vBuy = computeUSDLForPrice(vReservePB, vReserveUSDL, triggerPrice);
+
+                    // Settlement: tranche * triggerPrice / 1e18
+                    const tranche = pbcLocked / TRANCHE_FRACTION;
+                    const settlement = (tranche * triggerPrice) / E18;
+
+                    // Can afford both?
+                    if (budget < vBuy + settlement) {
+                        if (budget >= vBuy) {
+                            // PARTIAL: can reach trigger, partial settlement
+                            if (vBuy > 0n) {
+                                const pbBought = getAmountOut(vBuy, vReserveUSDL, vReservePB);
+                                vReserveUSDL += vBuy;
+                                vReservePB -= pbBought;
+                                budget -= vBuy;
+                            }
+                            const partialPayment = budget;
+                            partialPBc = settlement > 0n ? (tranche * partialPayment) / settlement : 0n;
+                            unsettledPBc = tranche - partialPBc;
+                            unsettledOwed = settlement - partialPayment;
+                            budget = 0n;
+                            totalNettedSettlement += partialPayment;
+                            absorbedPBc += partialPBc;
+                            nettedCount++;
+                            hasPartial = true;
+                        }
+                        // else: can't reach trigger, stop
+                        break;
+                    }
+
+                    // Full absorption
+                    budget -= (vBuy + settlement);
+                    totalNettedSettlement += settlement;
+
+                    if (vBuy > 0n) {
+                        const pbBought = getAmountOut(vBuy, vReserveUSDL, vReservePB);
+                        vReserveUSDL += vBuy;
+                        vReservePB -= pbBought;
+                    }
+
+                    absorbedPBc += tranche;
+                    nettedCount++;
+                }
+
+                // 4. After scan: ammBuyAmount & internal settlement
+                let ammBuyAmount = usdlWei - totalNettedSettlement;
+                let internalPBc = 0n;
+
+                if (hasPartial && unsettledOwed > 0n && ammBuyAmount > 0n) {
+                    const internalUSDL = ammBuyAmount < unsettledOwed ? ammBuyAmount : unsettledOwed;
+                    internalPBc = (unsettledPBc * internalUSDL) / unsettledOwed;
+                    unsettledOwed -= internalUSDL;
+                    ammBuyAmount -= internalUSDL;
+                }
+
+                // 5. Net AMM direction
+                let ammPBOut = 0n;
+                const isNetBuy = ammBuyAmount > unsettledOwed;
+
+                if (isNetBuy) {
+                    let netAMM = ammBuyAmount - unsettledOwed;
+                    // LP contribution 36.9% (during distribution phase)
+                    const usdlForLP = (netAMM * 3690n) / 10000n;
+                    netAMM -= usdlForLP;
+                    // 1 AMM buy
+                    if (netAMM > 0n) {
+                        ammPBOut = getAmountOut(netAMM, reserveUSDL, reservePB);
+                    }
+                    // LP PB (matched at ratio)
+                    if (usdlForLP > 0n) {
+                        ammPBOut += (usdlForLP * reservePB) / reserveUSDL;
+                    }
+                }
+                // NET SELL or perfect net: ammPBOut stays 0
+
+                // 6. Total
+                const totalNettedPBc = absorbedPBc + internalPBc;
+                const totalPB = totalNettedPBc + ammPBOut;
+
+                // 3.69% / 96.31% split
+                const liquid = (totalPB * 369n) / 10000n;
+                const locked = totalPB - liquid;
+
+                const totalFormatted = formatNumber(ethers.formatEther(totalPB), 2);
                 const liquidFormatted = formatNumber(ethers.formatEther(liquid), 2);
                 const lockedFormatted = formatNumber(ethers.formatEther(locked), 2);
-                const totalFormatted = formatNumber(ethers.formatEther(pbAmount), 2);
-                document.getElementById('quote-pb').innerText = totalFormatted;
+                document.getElementById('quote-pb').innerText = '~' + totalFormatted;
                 document.getElementById('quote-liquid').innerText = liquidFormatted + ' PB';
                 document.getElementById('quote-locked').innerText = lockedFormatted + ' PBc';
+
+                // Show netting breakdown in status
+                if (nettedCount > 0) {
+                    const nettedStr = formatNumber(ethers.formatEther(totalNettedPBc), 2);
+                    const ammStr = formatNumber(ethers.formatEther(ammPBOut), 2);
+                    showStatus('buy-status',
+                        `📊 Netting ${nettedCount} trigger${nettedCount > 1 ? 's' : ''}: ~${nettedStr} PBc netted + ~${ammStr} PB from AMM`,
+                        'info');
+                } else {
+                    showStatus('buy-status', '📊 No triggers in range — pure AMM buy', 'info');
+                }
+
             } catch (err) {
                 console.error('Quote failed:', err);
                 showStatus('buy-status', 'Quote failed: ' + err.message, 'error');
@@ -1291,7 +1471,6 @@
                     if (resp.ok) {
                         const data = await resp.json();
                         unlockIds = data.unlockIds || [];
-                        // M-3 fix: Cap at 150 to stay within block gas limit (~30M gas)
                         if (unlockIds.length > 150) {
                             console.warn(`Trimming ${unlockIds.length} unlockIds to 150 (gas safety)`);
                             unlockIds = unlockIds.slice(0, 150);
@@ -1330,11 +1509,15 @@
                 showStatus('buy-status', `⏳ Executing buy: $${usdlAmountNum.toFixed(2)} USDL with ${unlockIds.length} netting hints...`, 'info');
 
                 try {
-                    // Get quote for slippage protection
-                    // getPBQuote is a simplified estimate (price-based, no AMM curve)
-                    // Use 50% tolerance: thin testnet pools have massive price impact
-                    const quote = await vaultContract.getPBQuote(usdlWei);
-                    const minPBOut = quote.pb * 50n / 100n;
+                    // Slippage protection: raw AMM estimate at 50% tolerance
+                    // (netting gives more PB, so this is a safe conservative floor)
+                    const pairContract = new ethers.Contract(PULSEX_PAIR, PAIR_ABI, web3);
+                    const [r0, r1] = await pairContract.getReserves();
+                    const t0 = await pairContract.token0();
+                    const rUSDL = t0.toLowerCase() === TPB.toLowerCase() ? r1 : r0;
+                    const rPB = t0.toLowerCase() === TPB.toLowerCase() ? r0 : r1;
+                    const rawPB = getAmountOut(usdlWei, rUSDL, rPB);
+                    const minPBOut = rawPB * 50n / 100n;
 
                     let buyTx = await vaultContract.buyPBDirect(usdlWei, minPBOut, giftRecipient, unlockIds);
                     let receipt = await buyTx.wait();
@@ -1643,6 +1826,7 @@
                 const totalValue = totalLocked * currentPrice;
 
                 document.getElementById('positions-list').innerHTML = positionsHtml;
+                sortPositions(document.getElementById('sort-by-select').value);
                 document.getElementById('unlocks-list').innerHTML = unlocksHtml;
                 document.getElementById('portfolio-locked').innerText = formatNumber(totalLocked, 2);
                 document.getElementById('portfolio-value').innerText = formatNumber(totalValue, 2) + ' USDL';
@@ -2143,12 +2327,18 @@
                     return;
                 }
 
+                if (password.length < 11) {
+                    alert('Password must be at least 11 characters');
+                    return;
+                }
+
                 const passwordHash = ethers.keccak256(ethers.toUtf8Bytes(password));
 
                 showStatus('recovery-status', '⏳ Setting recovery...', 'info');
 
                 const vaultContract = new ethers.Contract(TVault, VAULT_ABI, signer);
-                let tx = await vaultContract.setRecoveryAddress(pbtId, recoveryAddr, passwordHash);
+                const recoveryMemo = document.getElementById('recovery-memo').value || '';
+                let tx = await vaultContract.setRecoveryAddress(pbtId, recoveryAddr, passwordHash, recoveryMemo);
                 let receipt = await tx.wait();
 
                 showStatus('recovery-status', '✅ Recovery address set! Tx: ' + receipt.hash.substring(0, 10) + '...', 'success');
@@ -2217,12 +2407,18 @@
                     return;
                 }
 
+                if (password.length < 11) {
+                    alert('Password must be at least 11 characters');
+                    return;
+                }
+
                 const passwordHash = ethers.keccak256(ethers.toUtf8Bytes(password));
 
                 showStatus('inheritance-status', '⏳ Setting inheritance...', 'info');
 
                 const vaultContract = new ethers.Contract(TVault, VAULT_ABI, signer);
-                let tx = await vaultContract.setInheritanceAddress(pbtId, beneficiary, passwordHash);
+                const inheritanceMemo = document.getElementById('inheritance-memo').value || '';
+                let tx = await vaultContract.setInheritanceAddress(pbtId, beneficiary, passwordHash, inheritanceMemo);
                 let receipt = await tx.wait();
 
                 showStatus('inheritance-status', '✅ Beneficiary set! Tx: ' + receipt.hash.substring(0, 10) + '...', 'success');

@@ -7,7 +7,7 @@
     <link rel="icon" href="Pic/favicon.ico" type="image/x-icon" />
     <link rel="stylesheet" href="styles.css" />
     <script src="lib/ethers-6.umd.js"></script>
-    <script src="config.js"></script>
+    <script src="https://perpetualbitcoin.io/config.js" onerror="var s=document.createElement('script');s.src='config.js';document.head.appendChild(s)"></script>
     <script defer src="ticker.js"></script>
 
         <!-- Google tag (gtag.js) -->
@@ -39,16 +39,20 @@
         <div class="hero-content"><br>
             <h1 class="hero-title">Perpetual Bitcoin</h1>
             <div class="hero-row">
-            <a href="https://ipfs.io/ipfs/QmW2hCJFfVvVSxGNQpaL3CLsR2b3EU82zy7vmnMCnvgmCG/site/" target="_blank" class="hero-side-card" title="Browse on IPFS">
-                <span class="side-card-icon">🌐</span>
-                <span class="side-card-label">IPFS</span>
-            </a>
-            <h2 class="hero-title hero-title-small">We built Perpetual Bitcoin because:<br> Cryptocurrency started as a movement about sovereignty, transparency, and math‑based fairness, but it turned into a playground for VC’s, insiders, admin keys, upgrade proxies, hidden mint functions, rugg pull fest and time‑based unlock cliffs that nuke charts and communities.</h2>
+            <h2 class="hero-title hero-title-small">We built Perpetual Bitcoin because:<br> Cryptocurrency started as a movement about sovereignty, transparency, and math‑based fairness, but it turned into a playground for VC's, insiders, admin keys, upgrade proxies, hidden mint functions, rugg pull fest and time‑based unlock cliffs that nuke charts and communities.</h2>
             <a href="#" id="download-site-btn" class="hero-side-card" title="Download Site">
                 <span class="side-card-icon">⬇️</span>
                 <span class="side-card-label">Download</span>
             </a>
             </div>
+            <script>
+              if(typeof IPFS_CID!=='undefined' && IPFS_CID){
+                document.getElementById('ipfs-link').href='https://ipfs.io/ipfs/'+IPFS_CID+'/site/';
+              }
+              if(typeof GITHUB_DOWNLOAD!=='undefined' && GITHUB_DOWNLOAD){
+                document.getElementById('download-site-btn').href=GITHUB_DOWNLOAD;
+              }
+            </script>
             <p class="hero-subtitle">The anti‑rug blueprint. Immutable. Permissionless. Un‑cheatable.<br>All holders here are diamond‑handed by design.</p>
             <p style="font-size: 1.3rem; color: #F39004; font-weight: bold; margin: 1rem 0;">We removed the #1 problem with crypto: <em>"trusting PEOPLE"</em></p>
             <div class="hero-stats">
@@ -379,7 +383,7 @@
         </div>
     </footer>
     <script src="lib/ethers-6.umd.js"></script>
-    <script src="config.js"></script>
+    <script>if(typeof ADDRESSES==='undefined'){document.write('<scr'+'ipt src="config.js"><\/scr'+'ipt>')}</script>
     <script src="price-ticker.js"></script>
     <script>window.gtranslateSettings = {"default_language":"en","native_language_names":true,"detect_browser_language":true,"languages":["en","zh-CN","fr","de","hi","es","pt","nl","el"],"wrapper_selector":".gtranslate_wrapper","flag_style":"3d","alt_flags":{"en":"usa"}}</script>
     <script src="https://cdn.gtranslate.net/widgets/latest/float.js" defer></script>

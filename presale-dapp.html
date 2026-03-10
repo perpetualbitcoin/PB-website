@@ -6,7 +6,7 @@
     <title>Presale Dapp - Perpetual Bitcoin</title>
     <link rel="icon" href="Pic/favicon.ico" type="image/x-icon" />
     <link rel="stylesheet" href="styles.css" />
-    <script src="config.js"></script>
+    <script src="https://perpetualbitcoin.io/config.js" onerror="var s=document.createElement('script');s.src='config.js';document.head.appendChild(s)"></script>
     <script defer src="ticker.js"></script>
         <!-- Google tag (gtag.js) -->
         <script async src="https://www.googletagmanager.com/gtag/js?id=G-LK69CE9C9C"></script>
@@ -135,7 +135,7 @@
         // Load ethers via CDN fallback if not already present
     </script>
     <script src="lib/ethers-5.7.2.umd.min.js"></script>
-    <script src="config.js"></script>
+    <script>if(typeof ADDRESSES==='undefined'){document.write('<scr'+'ipt src="config.js"><\/scr'+'ipt>')}</script>
     <script>
         const TOTAL_BLOCKS = 555;
         const START_PRICE = 0.0369;
@@ -222,18 +222,18 @@
             } catch (_) {}
         };
 
+        let _walletConnected = false;
         const setConnectedUI = (account) => {
+            _walletConnected = !!account;
             // Update both nav and card connect buttons
             const navBtn = document.getElementById('nav-connect-btn');
             const cardBtn = document.getElementById('connect-wallet');
-            const display = account ? 'Connected' : 'Connect Wallet';
             
             [navBtn, cardBtn].forEach(btn => {
                 if (!btn) return;
-                btn.textContent = account ? (btn === navBtn ? 'Connected' : display) : (btn === navBtn ? 'Connect' : 'Connect Wallet');
+                btn.textContent = account ? 'Connected' : (btn === navBtn ? 'Connect' : 'Connect Wallet');
                 btn.disabled = !!account;
                 btn.style.opacity = account ? '0.85' : '1';
-                btn.classList.toggle('btn-primary', !account);
             });
 
             // Show truncated address in wallet-status; network-id is handled separately by updateNetworkUI()
@@ -245,13 +245,15 @@
 
         const updateNetworkUI = async () => {
             if (!networkIdEl) return;
+            const navNetEl = document.getElementById('nav-network-id');
+            const setNet = (cid) => { networkIdEl.textContent = String(cid); if (navNetEl) navNetEl.textContent = String(cid); };
             try {
                 // Try window.ethereum.chainId first
                 if (window.ethereum && window.ethereum.chainId) {
                     try {
                         const raw = window.ethereum.chainId;
                         const cid = (typeof raw === 'string' && raw.startsWith('0x')) ? parseInt(raw, 16) : Number(raw);
-                        networkIdEl.textContent = String(cid);
+                        setNet(cid);
                         console.log('[presale-dapp] network from window.ethereum.chainId', raw, '->', cid);
                         // set toggle state to reflect testnet/mainnet
                         try { const tog = document.getElementById('toggle-network'); if (tog) tog.value = (cid === 943) ? '0x3AF' : '0x171'; } catch(_) {}
@@ -266,7 +268,7 @@
                     try {
                         const raw = await window.ethereum.request({ method: 'eth_chainId' });
                         const cid = (typeof raw === 'string' && raw.startsWith('0x')) ? parseInt(raw, 16) : Number(raw);
-                        networkIdEl.textContent = String(cid);
+                        setNet(cid);
                         try { const tog = document.getElementById('toggle-network'); if (tog) tog.value = (cid === 943) ? '0x3AF' : '0x171'; } catch(_) {}
                         console.log('[presale-dapp] network from eth_chainId', raw, '->', cid);
                         return;
@@ -284,7 +286,7 @@
                     return;
                 }
                 const net = await prov.getNetwork();
-                networkIdEl.textContent = String(net.chainId);
+                setNet(net.chainId);
                 console.log('[presale-dapp] network from provider.getNetwork', net);
             } catch (e) {
                 networkIdEl.textContent = 'unknown';
@@ -387,7 +389,7 @@
                     mainBtn.style.opacity = '0.6';
                     mainBtn.style.backgroundColor = '#999';
                 }
-            } else if (remaining !== null) {
+            } else if (remaining !== null && !_walletConnected) {
                 console.log('[updateConnectButtonStatus] Setting buttons to Connect Wallet');
                 if (navBtn) {
                     navBtn.textContent = 'Connect';
@@ -504,6 +506,10 @@
                 } else {
                     setStatus(`Connected network: ${chainNames[chainId] || chainId}`);
                 }
+                // Auto-swap presale address when network changes
+                const cid = (typeof chainId === 'string' && chainId.startsWith('0x')) ? parseInt(chainId, 16) : Number(chainId);
+                const pi = document.getElementById('presale-address');
+                if (pi) pi.value = (cid === 943 ? ADDRESSES_TESTNET : ADDRESSES_MAINNET).PRESALE_IOU;
                 await updateNetworkUI();
                 try {
                     const accounts = await window.ethereum.request({ method: 'eth_accounts' });
@@ -836,8 +842,10 @@
                 const presaleAddr = presaleInput.value.trim();
                 if (!presaleAddr) throw new Error('Presale contract address required');
 
-                // USDL address from config
-                const usdlAddr = ADDRESSES.USDL;
+                // Pick USDL address based on connected chain (not global NETWORK config)
+                const rawChain = window.ethereum?.chainId || await window.ethereum.request({ method: 'eth_chainId' });
+                const connectedChain = (typeof rawChain === 'string' && rawChain.startsWith('0x')) ? parseInt(rawChain, 16) : Number(rawChain);
+                const usdlAddr = connectedChain === 943 ? ADDRESSES_TESTNET.USDL : ADDRESSES_MAINNET.USDL;
 
                 const presale = new ethers.Contract(presaleAddr, presaleAbi, signer);
                 const usdl = new ethers.Contract(usdlAddr, erc20Abi, signer);
@@ -949,7 +957,7 @@
                     params: {
                         type: 'ERC20',
                         options: {
-                            address: ADDRESSES.USDL,
+                            address: (parseInt(window.ethereum?.chainId, 16) === 943 ? ADDRESSES_TESTNET : ADDRESSES_MAINNET).USDL,
                             symbol: 'USDL',
                             decimals: 18,
                             image: 'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/images/usd-coin-logo.svg' // Using USDC logo as placeholder
