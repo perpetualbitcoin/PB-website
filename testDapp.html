@@ -3,12 +3,29 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Perpetual Bitcoin - Dapp</title>
+    <title>PB DApp - Buy, Trade & Manage Perpetual Bitcoin</title>
+    <meta name="description" content="The Perpetual Bitcoin DApp: buy PB with USDL, view your positions, track price-driven PBc unlocks, manage recovery and inheritance - all on PulseChain. No admin keys, fully immutable." />
+    <meta name="keywords" content="Perpetual Bitcoin DApp, buy PB, PulseChain DApp, PBc unlocks, USDL, vault positions, recovery, inheritance, decentralized app" />
+    <meta name="robots" content="index, follow" />
+    <meta name="theme-color" content="#F39004" />
+    <link rel="canonical" href="https://perpetualbitcoin.io/testDapp.html" />
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://perpetualbitcoin.io/testDapp.html" />
+    <meta property="og:title" content="PB DApp - Buy, Trade & Manage Perpetual Bitcoin" />
+    <meta property="og:description" content="Buy PB, track unlocks, manage recovery and inheritance. Fully immutable DeFi on PulseChain." />
+    <meta property="og:image" content="https://perpetualbitcoin.io/Pic/PB_logo.jpg" />
+    <meta property="og:site_name" content="Perpetual Bitcoin" />
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="PB DApp - Buy, Trade & Manage Perpetual Bitcoin" />
+    <meta name="twitter:description" content="Buy PB, track unlocks, manage recovery and inheritance. Fully immutable DeFi on PulseChain." />
+    <meta name="twitter:image" content="https://perpetualbitcoin.io/Pic/PB_logo.jpg" />
     <link rel="icon" href="Pic/favicon.ico" type="image/x-icon" />
     <link rel="stylesheet" href="styles.css" />
-    <script src="lib/lightweight-charts-4.1.1.js"></script>
-    <script src="lib/ethers-6.umd.js"></script>
-    <script src="https://perpetualbitcoin.io/config.js" onerror="var s=document.createElement('script');s.src='config.js';document.head.appendChild(s)"></script>
+    <script src="https://unpkg.com/lightweight-charts@4.1.1/dist/lightweight-charts.standalone.production.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@6/dist/ethers.umd.js"></script>
+    <script src="config.js"></script>
     <script defer src="ticker.js"></script>
 
         <!-- Google tag (gtag.js) -->
@@ -42,7 +59,7 @@
                     <option value="369">🔴 Mainnet 369</option>
                 </select>
                 <button class="btn btn-primary" id="nav-connect-btn" style="padding: 4px 10px; font-size: 0.8rem; white-space: nowrap;">Connect</button>
-                <label style="font-size:0.65rem;color:#999;font-family:monospace;white-space:nowrap">Vault: <span id="nav-vault-addr">—</span></label>
+                <label style="font-size:0.75rem;color:#999;font-family:monospace;white-space:nowrap">Vault: <span id="nav-vault-addr">-</span></label>
             </div>
         </div>
     </nav>
@@ -59,7 +76,7 @@
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <h2 style="margin: 0;">Wallet Status</h2>
                 <div style="display: flex; gap: 10px; align-items: center;">
-                    <span id="network-display" style="color: #F39004; font-weight: 600;">Chain: —</span>
+                    <span id="network-display" style="color: #F39004; font-weight: 600;">Chain: -</span>
                     <button class="btn btn-primary" id="connect-btn">Connect Wallet</button>
                 </div>
             </div>
@@ -68,13 +85,13 @@
                     <div><div class="stat-label">Address</div><div id="wallet-addr" style="color: #ddd; font-family: monospace; font-size: 0.8rem;">Not connected</div></div>
                 </div>
                 <div class="stat-box">
-                    <div><div class="stat-label"><span id="fox-link-1" style="cursor: pointer; user-select: none;" title="Click to copy address">🦊</span> PB Liquid</div><div id="balance-pb" class="stat-value">—</div></div>
+                    <div><div class="stat-label"><span id="fox-link-1" style="cursor: pointer; user-select: none;" title="Click to copy address">🦊</span> PB Liquid</div><div id="balance-pb" class="stat-value">-</div></div>
                 </div>
                 <div class="stat-box">
-                    <div><div class="stat-label"><span id="fox-link-2" style="cursor: pointer; user-select: none;" title="Click to copy address">🦊</span> PBc Balance</div><div id="balance-pbc" class="stat-value">—</div></div>
+                    <div><div class="stat-label"><span id="fox-link-2" style="cursor: pointer; user-select: none;" title="Click to copy address">🦊</span> PBc Balance</div><div id="balance-pbc" class="stat-value">-</div></div>
                 </div>
                 <div class="stat-box">
-                    <div><div class="stat-label"><span id="fox-link-3" style="cursor: pointer; user-select: none;" title="Click to copy address">🦊</span> Total USDL Value</div><div id="total-value" class="stat-value" style="font-size: 1.1rem; color: #4CAF50;">—</div></div>
+                    <div><div class="stat-label"><span id="fox-link-3" style="cursor: pointer; user-select: none;" title="Click to copy address">🦊</span> Total USDL Value</div><div id="total-value" class="stat-value" style="font-size: 1.1rem; color: #4CAF50;">-</div></div>
                 </div>
             </div>
             
@@ -100,18 +117,18 @@
                 <div style="display: flex; align-items: center; gap: 20px;">
                     <div>
                         <div style="color: #aaa; font-size: 0.8rem; margin-bottom: 2px;">Price $ onPulseX</div>
-                        <div class="price-display" id="live-price" style="font-size: 1.8rem;">—</div>
+                        <div class="price-display" id="live-price" style="font-size: 1.8rem;">-</div>
                     </div>
                     <div style="border-left: 1px solid rgba(255, 165, 0, 0.2); padding-left: 20px;">
                         <div style="color: #aaa; font-size: 0.8rem; margin-bottom: 4px;">Liquidity</div>
                         <div style="font-size: 0.9rem; color: #4CAF50;">
-                            <span id="reserve-pb" style="font-weight: 600;">—</span> PB / 
-                            <span id="reserve-tusdl" style="font-weight: 600;">—</span> USDL
+                            <span id="reserve-pb" style="font-weight: 600;">-</span> PB / 
+                            <span id="reserve-tusdl" style="font-weight: 600;">-</span> USDL
                         </div>
                     </div>
                     <div style="border-left: 1px solid rgba(255, 165, 0, 0.2); padding-left: 20px;">
                         <div style="color: #aaa; font-size: 0.8rem; margin-bottom: 4px;">Pool Value</div>
-                        <div style="font-size: 1rem; color: #FFD700; font-weight: 600;" id="pool-value">—</div>
+                        <div style="font-size: 1rem; color: #FFD700; font-weight: 600;" id="pool-value">-</div>
                     </div>
                 </div>
                 <div style="display: flex; gap: 4px;" id="timeframe-buttons">
@@ -146,8 +163,8 @@
                         <input type="number" id="buy-amount" class="input-field" placeholder="100" value="100" style="width: 100px !important; flex: none !important; min-width: unset !important;" />
                         <button class="btn btn-primary" id="btn-quote" style="padding: 8px 16px; font-size: 0.85rem; white-space: nowrap;">Get Quote</button>
                         <div style="flex: 1; display: flex; align-items: center; gap: 8px;">
-                            <div id="quote-pb" style="font-size: 1.1rem; font-weight: bold; color: #4CAF50;">—</div>
-                            <div style="font-size: 0.8rem; color: #aaa;">(<span id="quote-liquid" style="color: #4CAF50;">—</span> + <span id="quote-locked" style="color: #ff9800;">—</span>)</div>
+                            <div id="quote-pb" style="font-size: 1.1rem; font-weight: bold; color: #4CAF50;">-</div>
+                            <div style="font-size: 0.8rem; color: #aaa;">(<span id="quote-liquid" style="color: #4CAF50;">-</span> + <span id="quote-locked" style="color: #ff9800;">-</span>)</div>
                         </div>
                     </div>
                 </div>
@@ -178,7 +195,7 @@
                         <button class="btn btn-primary" id="btn-sell-quote" style="padding: 8px 16px; font-size: 0.85rem; white-space: nowrap;">Get Quote</button>
                         <div style="flex: 1; display: flex; align-items: center; gap: 6px;">
                             <div style="font-size: 0.8rem; color: #aaa;">You get:</div>
-                            <div id="quote-usdl" style="font-size: 1.1rem; font-weight: bold; color: #FFD700;">—</div>
+                            <div id="quote-usdl" style="font-size: 1.1rem; font-weight: bold; color: #FFD700;">-</div>
                         </div>
                     </div>
                 </div>
@@ -221,13 +238,13 @@
             <div id="value" class="tab-content">
                 <div class="grid-3col" style="margin-top: 15px;">
                     <div class="stat-box">
-                        <div><div class="stat-label">Total Liquid PB</div><div id="portfolio-liquid" class="stat-value" style="font-size: 1.2rem;">—</div></div>
+                        <div><div class="stat-label">Total Liquid PB</div><div id="portfolio-liquid" class="stat-value" style="font-size: 1.2rem;">-</div></div>
                     </div>
                     <div class="stat-box">
-                        <div><div class="stat-label">Total Locked PBc</div><div id="portfolio-locked" class="stat-value" style="font-size: 1.2rem;">—</div></div>
+                        <div><div class="stat-label">Total Locked PBc</div><div id="portfolio-locked" class="stat-value" style="font-size: 1.2rem;">-</div></div>
                     </div>
                     <div class="stat-box">
-                        <div><div class="stat-label">Portfolio Value</div><div id="portfolio-value" class="stat-value" style="font-size: 1.2rem; color: #4CAF50;">—</div></div>
+                        <div><div class="stat-label">Portfolio Value</div><div id="portfolio-value" class="stat-value" style="font-size: 1.2rem; color: #4CAF50;">-</div></div>
                     </div>
                 </div>
             </div>
@@ -249,13 +266,13 @@
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                     <div>
                         <div style="font-size: 0.85rem; color: #aaa; margin-bottom: 4px;">Pool USDL Fees</div>
-                        <div style="font-size: 0.8rem; color: #888; margin-bottom: 6px;">TOTAL: <span id="lp-usdl" style="color: #4CAF50; font-weight: 600;">—</span></div>
-                        <div id="lp-usdl-your" style="font-size: 0.8rem; color: #888;">Your 5.555%: — USDL</div>
+                        <div style="font-size: 0.8rem; color: #888; margin-bottom: 6px;">TOTAL: <span id="lp-usdl" style="color: #4CAF50; font-weight: 600;">-</span></div>
+                        <div id="lp-usdl-your" style="font-size: 0.8rem; color: #888;">Your 5.555%: - USDL</div>
                     </div>
                     <div>
                         <div style="font-size: 0.85rem; color: #aaa; margin-bottom: 4px;">Pool PB Fees</div>
-                        <div style="font-size: 0.8rem; color: #888; margin-bottom: 6px;">TOTAL: <span id="lp-pb" style="color: #4CAF50; font-weight: 600;">—</span></div>
-                        <div id="lp-pb-your" style="font-size: 0.8rem; color: #888;">Your 5.555%: — PB</div>
+                        <div style="font-size: 0.8rem; color: #888; margin-bottom: 6px;">TOTAL: <span id="lp-pb" style="color: #4CAF50; font-weight: 600;">-</span></div>
+                        <div id="lp-pb-your" style="font-size: 0.8rem; color: #888;">Your 5.555%: - PB</div>
                     </div>
                 </div>
             </div>
@@ -350,7 +367,7 @@
             <section class="card">
                 <h3 class="section-title">👨‍👩‍👧‍👦 PBi - Inheritance</h3>
                 <div class="alert alert-info" style="font-size: 0.9rem;">
-                    <strong>Inheritance:</strong> Designate a beneficiary who can claim your assets. No timeout — your choice.
+                    <strong>Inheritance:</strong> Designate a beneficiary who can claim your assets. No timeout - your choice.
                 </div>
                 <div class="form-columns">
                     <div class="form-column">
@@ -405,18 +422,18 @@
         <section class="card">
             <h3 class="section-title">🔧 On-Chain Diagnostics</h3>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 0.85rem;">
-                <div style="padding: 10px; background: rgba(0,0,0,0.2); border-radius: 4px;"><span style="color: #aaa;">Vault address:</span> <span id="diag-vault" style="color: #F39004; font-family: monospace; cursor: pointer; text-decoration: underline; user-select: none;" onclick="copyDiagVaultAddress()" title="Click to copy">—</span></div>
-                <div style="padding: 10px; background: rgba(0,0,0,0.2); border-radius: 4px;"><span style="color: #aaa;">Phase:</span> <span id="diag-phase" style="color: #FFC107; font-weight: 600;">—</span></div>
-                <div style="padding: 10px; background: rgba(0,0,0,0.2); border-radius: 4px;"><span style="color: #aaa;">PB in Vault:</span> <span id="diag-vault-pb" style="color: #4CAF50;">—</span></div>
-                <div style="padding: 10px; background: rgba(0,0,0,0.2); border-radius: 4px;"><span style="color: #aaa;">PBc in Vault:</span> <span id="diag-vault-pbc" style="color: #4CAF50;">—</span></div>
-                <div style="padding: 10px; background: rgba(0,0,0,0.2); border-radius: 4px;"><span style="color: #aaa;">Total Users Perpetual Bitcoin:</span> <span id="diag-total-user-pb" style="color: #4CAF50;">—</span></div>
-                <div style="padding: 10px; background: rgba(0,0,0,0.2); border-radius: 4px;"><span style="color: #aaa;">Users Supply held:</span> <span id="diag-supply-cap" style="color: #F39004;">—</span></div>
-                <div style="padding: 10px; background: rgba(0,0,0,0.2); border-radius: 4px;"><span style="color: #aaa;">User held Breakdown:</span> <span id="diag-total-user-pb-breakdown" style="color: #888;">—</span></div>
-                <div style="padding: 10px; background: rgba(0,0,0,0.2); border-radius: 4px;"><span style="color: #aaa;">PB in LP:</span> <span id="diag-pb-in-lp" style="color: #FF6B9D;">—</span></div>
-                <div style="padding: 10px; background: rgba(0,0,0,0.2); border-radius: 4px;"><span style="color: #aaa;">TOTAL Market Cap:</span> <span id="diag-market-cap" style="color: #FFD700; font-weight: 600;">—</span><div style="font-size: 0.8rem; color: #ccc; margin-top: 4px;" id="diag-market-cap-calc"></div></div>
-                <div style="padding: 10px; background: rgba(0,0,0,0.2); border-radius: 4px;"><span style="color: #aaa;">MC Held by Users:</span> <span id="diag-market-cap-users" style="color: #4CAF50; font-weight: 600;">—</span><div style="font-size: 0.8rem; color: #88dd88; margin-top: 4px;" id="diag-market-cap-users-calc"></div></div>
-                <div style="padding: 10px; background: rgba(0,0,0,0.2); border-radius: 4px;"><span style="color: #aaa;">Total USDL Distributed:</span> <span id="diag-accumulated-tusdl" style="color: #F39004;">—</span></div>
-                <div style="padding: 10px; background: rgba(0,0,0,0.2); border-radius: 4px;"><span style="color: #aaa;">% Gain/Loss Since Deploy:</span> <span id="diag-gain-loss" style="font-weight: 600;">—</span></div>
+                <div style="padding: 10px; background: rgba(0,0,0,0.2); border-radius: 4px;"><span style="color: #aaa;">Vault address:</span> <span id="diag-vault" style="color: #F39004; font-family: monospace; cursor: pointer; text-decoration: underline; user-select: none;" onclick="copyDiagVaultAddress()" title="Click to copy">-</span></div>
+                <div style="padding: 10px; background: rgba(0,0,0,0.2); border-radius: 4px;"><span style="color: #aaa;">Phase:</span> <span id="diag-phase" style="color: #FFC107; font-weight: 600;">-</span></div>
+                <div style="padding: 10px; background: rgba(0,0,0,0.2); border-radius: 4px;"><span style="color: #aaa;">PB in Vault:</span> <span id="diag-vault-pb" style="color: #4CAF50;">-</span></div>
+                <div style="padding: 10px; background: rgba(0,0,0,0.2); border-radius: 4px;"><span style="color: #aaa;">PBc in Vault:</span> <span id="diag-vault-pbc" style="color: #4CAF50;">-</span></div>
+                <div style="padding: 10px; background: rgba(0,0,0,0.2); border-radius: 4px;"><span style="color: #aaa;">Total Users Perpetual Bitcoin:</span> <span id="diag-total-user-pb" style="color: #4CAF50;">-</span></div>
+                <div style="padding: 10px; background: rgba(0,0,0,0.2); border-radius: 4px;"><span style="color: #aaa;">Users Supply held:</span> <span id="diag-supply-cap" style="color: #F39004;">-</span></div>
+                <div style="padding: 10px; background: rgba(0,0,0,0.2); border-radius: 4px;"><span style="color: #aaa;">User held Breakdown:</span> <span id="diag-total-user-pb-breakdown" style="color: #888;">-</span></div>
+                <div style="padding: 10px; background: rgba(0,0,0,0.2); border-radius: 4px;"><span style="color: #aaa;">PB in LP:</span> <span id="diag-pb-in-lp" style="color: #FF6B9D;">-</span></div>
+                <div style="padding: 10px; background: rgba(0,0,0,0.2); border-radius: 4px;"><span style="color: #aaa;">TOTAL Market Cap:</span> <span id="diag-market-cap" style="color: #FFD700; font-weight: 600;">-</span><div style="font-size: 0.8rem; color: #ccc; margin-top: 4px;" id="diag-market-cap-calc"></div></div>
+                <div style="padding: 10px; background: rgba(0,0,0,0.2); border-radius: 4px;"><span style="color: #aaa;">MC Held by Users:</span> <span id="diag-market-cap-users" style="color: #4CAF50; font-weight: 600;">-</span><div style="font-size: 0.8rem; color: #88dd88; margin-top: 4px;" id="diag-market-cap-users-calc"></div></div>
+                <div style="padding: 10px; background: rgba(0,0,0,0.2); border-radius: 4px;"><span style="color: #aaa;">Total USDL Distributed:</span> <span id="diag-accumulated-tusdl" style="color: #F39004;">-</span></div>
+                <div style="padding: 10px; background: rgba(0,0,0,0.2); border-radius: 4px;"><span style="color: #aaa;">% Gain/Loss Since Deploy:</span> <span id="diag-gain-loss" style="font-weight: 600;">-</span></div>
             </div>
     </div>
 
@@ -459,7 +476,7 @@
         const CHAIN_ID = 943;
         const CHAIN_NAME = 'PulseChain Testnet v4';
         const RPC_URL = 'https://rpc.v4.testnet.pulsechain.com';
-        // PB Indexer API — hosted on perpetualbitcoin.io via cPanel Node.js App
+        // PB Indexer API - hosted on perpetualbitcoin.io via cPanel Node.js App
         // cPanel reverse-proxies the Node.js app port to this URL path
         const INDEXER_URL = 'https://perpetualbitcoin.io/api';
 
@@ -1290,11 +1307,11 @@
                             pbcRemaining: BigInt(p.pbcLocked),
                         }));
                     } else {
-                        showStatus('buy-status', '⚠️ Indexer unavailable — quote without netting', 'info');
+                        showStatus('buy-status', '⚠️ Indexer unavailable - quote without netting', 'info');
                     }
                 } catch (fetchErr) {
                     console.warn('Indexer fetch failed for netting positions:', fetchErr.message);
-                    showStatus('buy-status', '⚠️ Indexer unavailable — quote without netting', 'info');
+                    showStatus('buy-status', '⚠️ Indexer unavailable - quote without netting', 'info');
                 }
 
                 // 3. Sequential netting simulation (mirrors Vault._sequentialNettingScan)
@@ -1415,7 +1432,7 @@
                         `📊 Netting ${nettedCount} trigger${nettedCount > 1 ? 's' : ''}: ~${nettedStr} PBc netted + ~${ammStr} PB from AMM`,
                         'info');
                 } else {
-                    showStatus('buy-status', '📊 No triggers in range — pure AMM buy', 'info');
+                    showStatus('buy-status', '📊 No triggers in range - pure AMM buy', 'info');
                 }
 
             } catch (err) {
@@ -1451,7 +1468,7 @@
                         return;
                     }
                     if (addr.toLowerCase() === account.toLowerCase()) {
-                        alert('That\'s your own address — uncheck gift buy to send to yourself');
+                        alert('That\'s your own address - uncheck gift buy to send to yourself');
                         return;
                     }
                     giftRecipient = addr;
@@ -1478,15 +1495,15 @@
                         if (unlockIds.length > 0) {
                             showStatus('buy-status', `📊 ${unlockIds.length} positions eligible for netting`, 'info');
                         } else {
-                            showStatus('buy-status', '📊 No netting positions — plain AMM buy', 'info');
+                            showStatus('buy-status', '📊 No netting positions - plain AMM buy', 'info');
                         }
                     } else {
                         console.warn('Indexer returned non-OK:', resp.status);
-                        showStatus('buy-status', '⚠️ Indexer unavailable — proceeding without netting', 'info');
+                        showStatus('buy-status', '⚠️ Indexer unavailable - proceeding without netting', 'info');
                     }
                 } catch (indexerErr) {
                     console.warn('Indexer fetch failed, proceeding without netting:', indexerErr.message);
-                    showStatus('buy-status', '⚠️ Indexer unavailable — proceeding without netting', 'info');
+                    showStatus('buy-status', '⚠️ Indexer unavailable - proceeding without netting', 'info');
                 }
 
                 // Step 2: Check allowance, only approve if needed
@@ -1502,7 +1519,7 @@
                         throw approveErr;
                     }
                 } else {
-                    showStatus('buy-status', `✅ Allowance sufficient — skipping approve`, 'success');
+                    showStatus('buy-status', `✅ Allowance sufficient - skipping approve`, 'success');
                 }
 
                 // Step 3: Execute buyPBDirect with unlockIds
@@ -1549,13 +1566,13 @@
         // POSITIONS & UNLOCKS
         // ================================================================
 
-        // Local trigger price calc — matches Vault.computeNextTriggerPrice
+        // Local trigger price calc - matches Vault.computeNextTriggerPrice
         // price = buyPrice × (15555/10000)^(unlockIndex+1)  (integer-style)
         function localTriggerPrice(buyPriceNum, unlockIndex) {
             let p = buyPriceNum;
             for (let i = 0; i <= unlockIndex; i++) {
                 p = Math.floor(p / 10000 * 10000) / 10000 * 15555 / 10000 * 10000 / 10000;
-                // Simpler: just use floating point — display-only, doesn't need exact wei match
+                // Simpler: just use floating point - display-only, doesn't need exact wei match
             }
             // Redo cleanly with floating point (good enough for display)
             let price = buyPriceNum;
@@ -1765,7 +1782,7 @@
                         </div>
                     `;
 
-                    // Unlocks timeline (T1-T8) — all computed locally, zero RPC
+                    // Unlocks timeline (T1-T8) - all computed locally, zero RPC
                     let triggerTableHtml = `
                         <div class="position-card">
                             <div style="margin-bottom: 12px;">

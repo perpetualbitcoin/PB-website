@@ -3,9 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FAQ - Perpetual Bitcoin</title>
+    <title>FAQ - Perpetual Bitcoin | How PB Works</title>
+    <meta name="description" content="Frequently asked questions about Perpetual Bitcoin. Learn how PB works, presale mechanics, price-driven PBc unlocks, vault collateralization, netting, and the immutable smart contract design." />
+    <meta name="keywords" content="Perpetual Bitcoin FAQ, PB FAQ, how PB works, PBc unlock, presale FAQ, PulseChain DeFi, vault mechanics, convergent netting" />
+    <meta name="robots" content="index, follow" />
+    <meta name="theme-color" content="#F39004" />
+    <link rel="canonical" href="https://perpetualbitcoin.io/faq.html" />
+    <!-- Open Graph -->
+    <meta property="og:type" content="article" />
+    <meta property="og:url" content="https://perpetualbitcoin.io/faq.html" />
+    <meta property="og:title" content="FAQ - Perpetual Bitcoin | How PB Works" />
+    <meta property="og:description" content="Everything you need to know about Perpetual Bitcoin: presale, unlocks, vault mechanics, security, and more." />
+    <meta property="og:image" content="https://perpetualbitcoin.io/Pic/PB_logo.jpg" />
+    <meta property="og:site_name" content="Perpetual Bitcoin" />
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="FAQ - Perpetual Bitcoin | How PB Works" />
+    <meta name="twitter:description" content="Everything you need to know about Perpetual Bitcoin: presale, unlocks, vault mechanics, security, and more." />
+    <meta name="twitter:image" content="https://perpetualbitcoin.io/Pic/PB_logo.jpg" />
     <link rel="icon" href="Pic/favicon.ico" type="image/x-icon" />
     <link rel="stylesheet" href="styles.css">
+    <style>
+        .calc-toggle { cursor:pointer; list-style:none; padding:0.6rem 0; display:flex; align-items:center; gap:0.6rem; }
+        .calc-toggle::-webkit-details-marker { display:none; }
+        .calc-toggle::before { content:"▶"; color:#F39004; font-size:0.75rem; transition:transform 0.2s; }
+        #calc-collapse[open] > .calc-toggle::before { transform:rotate(90deg); }
+        #calc-collapse > .faq-item { animation:calcFade 0.25s ease; }
+        @keyframes calcFade { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:translateY(0); } }
+    </style>
     <script src="https://cdn.jsdelivr.net/npm/ethers@6/dist/ethers.umd.js"></script>
     <script src="config.js"></script>
     <script defer src="ticker.js"></script>
@@ -18,11 +43,108 @@
 
   gtag('config', 'G-LK69CE9C9C');
 </script>
+    <!-- FAQ Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "What is Perpetual Bitcoin (PB)?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "PB is a finished, deployed, immutable protocol with a fixed supply of 21 million tokens that unlock only when market price reaches specific checkpoints. No admin keys, no back doors, no VCs, no mint function, no rug factors, no governance, no freeze function, no blacklist function, no inflation ever. Everyone gets the same rules."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What chain is PB deployed on?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "PB is deployed on PulseChain, a high-speed, EVM-compatible blockchain chosen for its low transaction costs and growing ecosystem."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Who controls PB? Is there a team?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "PB is a fully autonomous protocol with no admin keys. Once deployed, contracts cannot be modified. The team that built it has no special control or governance rights. Everyone is equal."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How do I buy PB during presale?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Presale offers 555 blocks at a fixed cost of 555.5 USDL per block. When you buy, you receive a PBIOU NFT (ERC-721, non-transferable) representing your block purchase. At launch, the LaunchConverter contract converts your PBIOU into a real PBt position with 3.69% liquid PB and 96.31% locked as PBc."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What is PBc?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "PBc (Perpetual Bitcoin Claim) is a non-transferable ERC-20 token issued when you buy PB. It represents your locked share in the vault that unlocks through price-driven checkpoints at 1.5555x multiplier tiers."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How many times do tokens unlock? Is there an end?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Unlocks continue forever. Each tier releases 1/3 of your remaining PBc, following a (2/3)^n decay curve. The tiers never end - every 1.5555x price increase triggers another unlock until less than 15 wei remains, at which point the vault sweeps the dust."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Are the contracts audited?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. The contracts have been professionally audited. The audit report is publicly available on the website. All contracts are verified on the PulseChain block explorer."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can the team pause or upgrade the contracts?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "No. There are zero admin functions. No pause, no upgrade proxy, no owner-only methods. The protocol runs on pure math and cannot be altered by anyone including its creators."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is PB a security?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "PB is a utility token on a decentralized protocol. There is no company, no team, no issuer, and no counterparty. No one promises returns. There is no yield, staking reward, APY, or dividend. Unlocks settle your own locked tokens, not someone else's money. Consult a lawyer for your jurisdiction."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What if I lose my private keys?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "PB includes built-in recovery and inheritance mechanisms. You can set a recovery address and an inheritance address on-chain. Recovery requires a waiting period to prevent abuse. Inheritance provides planned succession for long-term holders."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Why does PB use USDL?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "PB is built on full immutability, no admin keys, no pause, no freeze, no blacklist. If the stablecoin used in the protocol had any of those controls, the entire promise breaks. USDT and USDC have blacklist and freeze functions controlled by a single company. Bridged tokens carry the same risk plus bridge failure risk. pDAI is governed by MakerDAO with emergency shutdown capability and was far from its dollar peg at deployment time. USDL has no blacklist, no freeze, and no admin, pause, it is the only dollar-pegged (ish) stablecoin on PulseChain that matches PB's trustless design."
+          }
+        }
+      ]
+    }
+    </script>
 </head>
 <body class="presale-dapp-bg">
     <nav class="navbar" style="padding: 0.4rem 0;">
         <div class="nav-container" style="padding: 0 2rem;">
-            <div class="logo"><img src="Pic/PB1.png" alt="PB Logo" style="width:40px;height:40px;"></div>
+            <div class="logo"><img src="Pic/PB1.png" alt="Perpetual Bitcoin PB logo" style="width:40px;height:40px;"></div>
             <div class="gtranslate_wrapper"></div>
             <ul class="nav-menu">
                 <li><a href="index.html#home" class="nav-link">Home</a></li>
@@ -55,9 +177,10 @@
             <div class="faq-item">
                 <h4>What is Perpetual Bitcoin (PB)?</h4>
                 <p>
-                    PB is a <strong>finished, deployed, immutable protocol</strong>, not a roadmap or a promise. 
+                    PB is a <strong>finished, deployed, immutable protocol</strong> with <strong>automated DCA-out</strong> built in, not a roadmap or a promise. 
                     It is a fixed-supply digital asset with 21 million tokens that unlock only when market price 
-                    reaches specific checkpoints. Pure, deterministic protocol mechanics.
+                    reaches specific checkpoints, automatically settling &frac13; of your remaining locked tokens 
+                    into USDL at every milestone. Pure, deterministic protocol mechanics.
                 </p>
                 <ul>
                     <li>NO admin keys</li>
@@ -119,24 +242,62 @@
                     This removes bureaucracy and ensures fair, deterministic execution.
                 </p>
             </div>
+
+            <div class="faq-item">
+                <h4>Why does PB use USDL?</h4>
+                <p>
+                    This is not a minor detail, it is <strong>fundamental to the entire protocol's integrity</strong>.
+                </p>
+                <p>
+                    PB is built on one core principle: <strong>no human can interfere</strong>. No admin keys. No pause function. 
+                    No blacklist. No freeze. No off switch. If PB used a stablecoin that <em>doesn't</em> share those properties, 
+                    the entire promise collapses.
+                </p>
+                <ul>
+                    <li><strong>USDT / USDC</strong>, controlled by a company (Tether / Circle). Both have 
+                        <strong>blacklist and freeze functions</strong>. A single entity can lock your funds, freeze the vault, 
+                        or kill the LP pool with one transaction. Using these would mean PB's "immutable" claim is a lie, 
+                        because someone <em>else</em> holds the kill switch.</li>
+                    <li><strong>Bridged tokens</strong> (eUSDC, eUSDT, eDAI on PulseChain), same blacklist risk 
+                        <strong>plus</strong> bridge risk. If the bridge gets hacked or paused, the token becomes worthless overnight.</li>
+                    <li><strong>eDAI</strong>, governed by MakerDAO with admin governance, emergency shutdown capability, and changeable parameters. </li>
+                    <li><strong>pDAI</strong> at the time of PB's deployment was trading <strong>far from its dollar peg</strong>, making it unsuitable as a reliable unit of account.
+                </ul>
+                <p>
+                    <strong>USDL has no blacklist. No freeze. No admin pause.</strong> It is the only dollar-pegged (ish) stablecoin on PulseChain 
+                    that matches PB's trustless design. Every presale payment, every unlock payout, every LP pair, all flow through USDL 
+                    because it is the <em>only</em> option that doesn't introduce a single point of failure.
+                </p>
+                <p>
+                    Using any other stablecoin would be like building an indestructible vault and then handing 
+                    someone else the master key. <strong>We don't do that.</strong>
+                </p>
+            </div>
         </section>
 
         <!-- ── Investment Calculator ── -->
         <section class="faq-section">
-            <h2>What Do I Get? - Calculator</h2>
+            <details id="calc-collapse" open>
+                <summary class="calc-toggle"><h2 style="display:inline;margin:0">What Do I Get? - Calculator</h2></summary>
             <div class="faq-item">
                 <p style="color:#aaa;margin-bottom:1rem">Enter a dollar amount to see exactly what you receive and how the unlock tiers work. Prices come from the presale entry curve.</p>
 
                 <div style="display:flex;gap:1rem;flex-wrap:wrap;align-items:end;margin-bottom:1.5rem">
                     <div style="flex:1;min-width:160px">
                         <label style="display:block;color:#F39004;font-weight:600;margin-bottom:0.3rem;font-size:0.85rem">Investment (USDL)</label>
-                        <input id="calc-usdl" type="number" min="1" step="any" value="555.5"
+                        <input id="calc-usdl" type="number" min="1" step="any" value="500"
                                style="width:100%;padding:0.6rem;background:#1a1a2e;border:1px solid rgba(255,165,0,0.3);color:#fff;border-radius:6px;font-size:1rem"
                                oninput="calcUpdate()">
                     </div>
                     <div style="flex:1;min-width:160px">
                         <label style="display:block;color:#F39004;font-weight:600;margin-bottom:0.3rem;font-size:0.85rem">Entry Price (USDL/PB)</label>
-                        <input id="calc-price" type="number" min="0.0001" step="any" value="0.0369"
+                        <input id="calc-price" type="number" min="0.0001" step="any" value="0.05555"
+                               style="width:100%;padding:0.6rem;background:#1a1a2e;border:1px solid rgba(255,165,0,0.3);color:#fff;border-radius:6px;font-size:1rem"
+                               oninput="calcUpdate()">
+                    </div>
+                    <div style="flex:1;min-width:120px">
+                        <label style="display:block;color:#F39004;font-weight:600;margin-bottom:0.3rem;font-size:0.85rem">Tiers to Show</label>
+                        <input id="calc-tiers" type="number" min="1" max="100" step="1" value="13"
                                style="width:100%;padding:0.6rem;background:#1a1a2e;border:1px solid rgba(255,165,0,0.3);color:#fff;border-radius:6px;font-size:1rem"
                                oninput="calcUpdate()">
                     </div>
@@ -165,19 +326,28 @@
                     </table>
                 </div>
 
-                <p id="calc-footnote" style="color:#888;font-size:0.8rem;margin-top:0.8rem"></p>
+                <p id="calc-footnote" style="color:#888;font-size:1rem;margin-top:0.8rem;line-height:1.6"></p>
             </div>
+            </details>
         </section>
 
         <script>
         /* ── Calculator Logic ── */
         const CALC_MULT   = 1.5555;   // unlock multiplier
         const CALC_SPLIT  = 0.0369;   // 3.69% liquid
-        const CALC_TIERS  = 13;
+
+        function fmtPB(v) {
+            if (v >= 1)       return v.toFixed(2);
+            if (v >= 0.001)   return v.toFixed(6);
+            if (v >= 1e-8)    return v.toFixed(10);
+            if (v >= 1e-14)   return v.toFixed(16);
+            return v.toExponential(4);
+        }
 
         function calcUpdate() {
             const usdl  = parseFloat(document.getElementById('calc-usdl').value) || 0;
             const price = parseFloat(document.getElementById('calc-price').value) || 0;
+            const tiers = Math.max(1, Math.min(100, parseInt(document.getElementById('calc-tiers').value) || 13));
             if (usdl <= 0 || price <= 0) return;
 
             const totalPB  = usdl / price;
@@ -187,9 +357,9 @@
             // Summary cards
             const summary = document.getElementById('calc-summary');
             summary.innerHTML = [
-                ['Total PB', totalPB.toFixed(2)],
-                ['Liquid PB (3.69%)', liquidPB.toFixed(2)],
-                ['Locked PBc (96.31%)', lockedPBc.toFixed(2)],
+                ['Total PB', fmtPB(totalPB)],
+                ['Liquid PB (3.69%)', fmtPB(liquidPB)],
+                ['Locked PBc (96.31%)', fmtPB(lockedPBc)],
             ].map(([label, val]) =>
                 `<div style="background:rgba(255,165,0,0.06);border:1px solid rgba(255,165,0,0.15);border-radius:8px;padding:0.7rem 1rem">
                     <div style="color:#888;font-size:0.75rem">${label}</div>
@@ -202,23 +372,25 @@
             tbody.innerHTML = '';
             let remaining = lockedPBc;
             let cumPayout = 0;
+            let lastTrigger = 0;
 
-            for (let t = 1; t <= CALC_TIERS; t++) {
+            for (let t = 1; t <= tiers; t++) {
                 const trigger = price * Math.pow(CALC_MULT, t);
                 const mult    = Math.pow(CALC_MULT, t);
                 const unlock  = remaining / 3;
                 const payout  = unlock * trigger;
                 remaining    -= unlock;
                 cumPayout    += payout;
+                lastTrigger   = trigger;
 
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td style="color:#F39004;font-weight:600">${t}</td>
                     <td>$${trigger < 1 ? trigger.toFixed(5) : trigger < 100 ? trigger.toFixed(4) : trigger.toFixed(2)}</td>
                     <td>&times;${mult.toFixed(2)}</td>
-                    <td>${unlock.toFixed(2)} PB</td>
+                    <td>${fmtPB(unlock)} PB</td>
                     <td style="color:#4CAF50;font-weight:600">$${payout.toFixed(2)}</td>
-                    <td>${remaining.toFixed(2)} PBc</td>
+                    <td>${fmtPB(remaining)} PBc</td>
                 `;
                 tbody.appendChild(tr);
             }
@@ -228,24 +400,33 @@
             const trTotal = document.createElement('tr');
             trTotal.className = 'total-row';
             trTotal.innerHTML = `
-                <td colspan="3" style="color:#F39004;font-weight:700;text-align:right">Totals through Tier ${CALC_TIERS}:</td>
-                <td style="font-weight:700">${totalUnlocked.toFixed(2)} PB</td>
+                <td colspan="3" style="color:#F39004;font-weight:700;text-align:right">Totals through Tier ${tiers}:</td>
+                <td style="font-weight:700">${fmtPB(totalUnlocked)} PB</td>
                 <td style="color:#4CAF50;font-weight:700">$${cumPayout.toFixed(2)}</td>
-                <td>${remaining.toFixed(2)} PBc</td>
+                <td>${fmtPB(remaining)} PBc</td>
             `;
             tbody.appendChild(trTotal);
 
             // Footnote
             const pctUnlocked = ((totalUnlocked / lockedPBc) * 100).toFixed(1);
+            const liquidVal   = liquidPB * lastTrigger;
+            const remainVal   = remaining * lastTrigger;
+            const totalValue  = cumPayout + liquidVal + remainVal;
             document.getElementById('calc-footnote').innerHTML =
-                `After ${CALC_TIERS} tiers: <strong>${pctUnlocked}%</strong> of your PBc unlocked for <strong>$${cumPayout.toFixed(2)}</strong> in USDL payouts. ` +
-                `Remaining <strong>${remaining.toFixed(2)} PBc</strong> continues unlocking forever (&frac13; per tier, &times;1.5555 each).` +
-                ` Entry: $${usdl.toFixed(2)} invested &rarr; ${(cumPayout / usdl).toFixed(1)}&times; returned so far, plus ${liquidPB.toFixed(2)} liquid PB you still hold.`;
+                `After ${tiers} tiers: <strong>${pctUnlocked}%</strong> of your PBc unlocked for <strong>$${cumPayout.toFixed(2)}</strong> in USDL payouts. <br>` +
+                `Remaining <strong>${fmtPB(remaining)} PBc</strong> continues unlocking forever (&frac13; per tier, &times;1.5555 each).<br>` +
+                ` Entry: $${usdl.toFixed(2)} invested &rarr; ${(cumPayout / usdl).toFixed(1)}&times; returned so far, plus ${fmtPB(liquidPB)} liquid PB you still hold` +
+                ` (worth <strong>$${liquidVal.toFixed(2)}</strong> at tier ${tiers} price of $${lastTrigger < 1 ? lastTrigger.toFixed(5) : lastTrigger.toFixed(2)})` +
+                ` + remaining PBc worth <strong>$${remainVal.toFixed(2)}</strong>.<br>` +
+                `<span style="color:#F39004;font-weight:700;font-size:1.1em">Total Value: <span style="color:#4CAF50">$${totalValue.toFixed(2)}</span></span>` +
+                ` (payouts $${cumPayout.toFixed(2)} + liquid PB $${liquidVal.toFixed(2)} + remaining PBc $${remainVal.toFixed(2)})` +
+                ` ; <strong>${(totalValue / usdl).toFixed(1)}&times;</strong> on $${usdl.toFixed(2)} invested.`;
         }
 
         function calcReset() {
             document.getElementById('calc-usdl').value  = '555.5';
             document.getElementById('calc-price').value = '0.0369';
+            document.getElementById('calc-tiers').value = '13';
             calcUpdate();
         }
 
@@ -519,12 +700,12 @@
             <div class="faq-item">
                 <h4>Why can't I buy PB on PulseX directly?</h4>
                 <p>
-                    All PB purchases route through the vault's <code>buyPBDirect()</code> function ,  not a raw AMM swap. 
+                    All PB purchases route through the vault's <code>buyPBDirect()</code> function, not a raw AMM swap. 
                     This is necessary for two reasons:
                 </p>
                 <ul>
                     <li><strong>Same rules for everyone:</strong> Every buyer receives the same 3.69% liquid / 96.31% locked PBc split. 
-                        If you could buy PB directly on PulseX, you'd skip that split entirely and get 100% liquid PB ,  
+                        If you could buy PB directly on PulseX, you'd skip that split entirely and get 100% liquid PB, 
                         an unfair advantage over everyone who participated through the proper channel.</li>
                     <li><strong>Gas efficiency:</strong> The vault batches up to 500 pending unlocks into a single buyer's transaction 
                         via convergent netting. Trying to enforce the split, LP contribution, and unlock settlement 
@@ -533,7 +714,7 @@
                 </ul>
                 <p>
                     In short: the vault <em>is</em> the exchange interface. It calls PulseX internally (63.1% AMM buy) after 
-                    netting and LP are handled, so you still get AMM-priced PB ,  just with fair rules enforced.
+                    netting and LP are handled, so you still get AMM-priced PB, just with fair rules enforced.
                 </p>
             </div>
 
@@ -541,7 +722,7 @@
                 <h4>Can I sell PB directly on PulseX?</h4>
                 <p>
                     Yes. PB is a standard ERC-20 token. You can sell (or transfer) your liquid PB on PulseX or any DEX 
-                    at any time ,  no vault interaction required. The split and netting mechanics only apply to <em>buying</em>.
+                    at any time, no vault interaction required. The split and netting mechanics only apply to <em>buying</em>.
                 </p>
             </div>
 
@@ -916,7 +1097,7 @@
                 <h4>How does PB protect against price manipulation?</h4>
                 <p>
                     The protocol's <strong>96.31% lock ratio</strong> makes multiple attack vectors economically impossible.
-                    Every buy ,  regardless of size ,  goes through the same <code>buyPBDirect()</code> rules:
+                    Every buy, regardless of size, goes through the same <code>buyPBDirect()</code> rules:
                     convergent netting, 3.69% liquid / 96.31% locked split, and LP contribution. There are no special
                     tiers, no buy caps, and no whale lists. Everyone plays by the same rules.
                 </p>
@@ -1022,6 +1203,37 @@
                     The protocol doesn't restrict this. Just be aware: only liquid PB can be used for LP,  locked PBc 
                     cannot be added to pools. And only the canonical <strong>PB/USDL pair on PulseX</strong> affects 
                     the vault's price feed and unlock triggers. LP on other pairs or DEXs won't influence unlocks.
+                </p>
+            </div>
+
+            <div class="faq-item">
+                <h4>Is Perpetual Bitcoin designed with a DCA out?</h4>
+                <p>
+                    <strong>Yes, but automated, on-chain, and you never have to decide when to sell.</strong>
+                </p>
+                <p>
+                    Traditional DCA out means you manually sell a portion of your holdings at regular intervals, 
+                    hoping to average a good exit price. The problem? Timing, discipline, and emotion. Most people 
+                    either sell too early, too late, or panic-dump everything at once.
+                </p>
+                <p>
+                    PB's unlock mechanism is <strong>price-triggered DCA out built into the protocol</strong>:
+                </p>
+                <ul>
+                    <li>Every 55.55% price increase (&times;1.5555), &frac13; of your remaining locked PBc is automatically settled</li>
+                    <li>You receive USDL directly, no AMM sell, no slippage on your payout</li>
+                    <li>It happens <strong>without you doing anything, No need to pay a gas fee</strong>, the next buyer's transaction settles it</li>
+                    <li>The remaining &frac23; stays locked, compounding into higher-value unlocks as price climbs</li>
+                    <li>This continues <strong>forever</strong>, there is no end date. Each unlock pays more USDL than the last</li>
+                </ul>
+                <p>
+                    The key difference: traditional DCA out reduces your position and you're done. PB's unlock decay 
+                    (&frac23; remaining each tier) means you <strong>always</strong> have skin in the game. You're never 
+                    fully out. You take profits at every milestone while your remaining position keeps growing in value.
+                </p>
+                <p>
+                    Think of it as <strong>perpetual profit-taking with enforced diamond hands</strong>. The protocol 
+                    does the selling for you, at mathematically optimal intervals, and you can't second-guess it.
                 </p>
             </div>
         </section>

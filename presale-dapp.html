@@ -3,10 +3,27 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Presale Dapp - Perpetual Bitcoin</title>
+    <title>PB Presale - Buy Perpetual Bitcoin Blocks</title>
+    <meta name="description" content="Join the Perpetual Bitcoin presale. 555 blocks at 555.5 USDL each. Every block converts to PB + PBc at launch with price-driven unlock tiers. No admin keys, fully immutable." />
+    <meta name="keywords" content="Perpetual Bitcoin presale, PB presale, buy PB, PulseChain presale, USDL, PBIOU, DeFi presale, PBc unlocks" />
+    <meta name="robots" content="index, follow" />
+    <meta name="theme-color" content="#F39004" />
+    <link rel="canonical" href="https://perpetualbitcoin.io/presale-dapp.html" />
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://perpetualbitcoin.io/presale-dapp.html" />
+    <meta property="og:title" content="PB Presale - Buy Perpetual Bitcoin Blocks" />
+    <meta property="og:description" content="555 blocks. 555.5 USDL each. Converts to PB + PBc at launch with perpetual price-driven unlock tiers." />
+    <meta property="og:image" content="https://perpetualbitcoin.io/Pic/PB_logo.jpg" />
+    <meta property="og:site_name" content="Perpetual Bitcoin" />
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="PB Presale - Buy Perpetual Bitcoin Blocks" />
+    <meta name="twitter:description" content="555 blocks. 555.5 USDL each. Converts to PB + PBc at launch with perpetual price-driven unlock tiers." />
+    <meta name="twitter:image" content="https://perpetualbitcoin.io/Pic/PB_logo.jpg" />
     <link rel="icon" href="Pic/favicon.ico" type="image/x-icon" />
     <link rel="stylesheet" href="styles.css" />
-    <script src="https://perpetualbitcoin.io/config.js" onerror="var s=document.createElement('script');s.src='config.js';document.head.appendChild(s)"></script>
+    <script src="config.js"></script>
     <script defer src="ticker.js"></script>
         <!-- Google tag (gtag.js) -->
         <script async src="https://www.googletagmanager.com/gtag/js?id=G-LK69CE9C9C"></script>
@@ -20,7 +37,7 @@
 <body class="presale-dapp-bg">
     <nav class="navbar" style="padding: 0.4rem 0;">
         <div class="nav-container" style="padding: 0 2rem;">
-            <div class="logo"><img src="Pic/PB1.png" alt="Perpetual Bitcoin PB logo" style="width:40px;height:40px;"></div>
+            <div class="logo"><img src="../Pic/PB1.png" alt="Perpetual Bitcoin PB logo" style="width:40px;height:40px;"></div>
             <div class="gtranslate_wrapper"></div>
             <ul class="nav-menu">
                 <li><a href="index.html#home" class="nav-link">Home</a></li>
@@ -36,7 +53,7 @@
                     <option value="0x3AF">🧪 Testnet 943</option>
                 </select>
                 <button class="btn btn-primary" id="nav-connect-btn" style="padding: 4px 10px; font-size: 0.8rem; white-space: nowrap;">Connect</button>
-                <label style="font-size:0.65rem;color:#999;font-family:monospace;white-space:nowrap">Network: <span id="nav-network-id">—</span></label>
+                <label style="font-size:0.65rem;color:#999;font-family:monospace;white-space:nowrap">Network: <span id="nav-network-id">-</span></label>
             </div>
         </div>
     </nav>
@@ -52,7 +69,7 @@
             <div class="wallet-panel" style="margin:0 auto;max-width:880px;width:85%;">
                 <div class="wallet-info-row" style="display:flex;align-items:center;gap:12px;width:100%">
                     <p id="wallet-status" class="wallet-value" style="margin:0">Not connected</p>
-                    <p id="network-id" class="wallet-value" style="margin:0;opacity:0.95">—</p>
+                    <p id="network-id" class="wallet-value" style="margin:0;opacity:0.95">-</p>
                     <div id="your-entries" style="margin-left:auto;color:#fff;font-weight:700;background:rgba(0,0,0,0.18);padding:6px 10px;border-radius:6px;">YOUR entries: 0 / 5</div>
                 </div>
                 <button class="btn btn-primary" id="connect-wallet">Connect Wallet</button>
@@ -73,24 +90,24 @@
                             <div style="flex:1"></div>
 
                             <div style="flex:0 0 auto">
-                                <button id="remaining-public-btn" class="btn btn-primary" disabled style="cursor:default;white-space:nowrap;min-width:160px;padding:0.6rem 0.8rem;pointer-events:none;opacity:0.95">Remaining public: —</button>
+                                <button id="remaining-public-btn" class="btn btn-primary" disabled style="cursor:default;white-space:nowrap;min-width:160px;padding:0.6rem 0.8rem;pointer-events:none;opacity:0.95">Remaining public: -</button>
                             </div>
                         </div>
 
                         <div id="right-block-info" style="width:100%;margin-top:12px;color:#ddd;font-size:0.95rem">
                             <div style="display:flex;justify-content:space-between;gap:12px">
-                                <div>Price per block: <span id="price-per-block">—</span></div>
-                                <div style="text-align:right">Users Locked IN: <span id="stat-assigned">—</span></div>
+                                <div>Price per block: <span id="price-per-block">-</span></div>
+                                <div style="text-align:right">Users Locked IN: <span id="stat-assigned">-</span></div>
                             </div>
 
                             <div style="display:flex;justify-content:space-between;gap:12px;margin-top:6px">
-                                <div>Total to pay: <span id="payment-amount">—</span></div>
-                                <div style="text-align:right">Blocks Available: <span id="stat-unassigned">—</span></div>
+                                <div>Total to pay: <span id="payment-amount">-</span></div>
+                                <div style="text-align:right">Blocks Available: <span id="stat-unassigned">-</span></div>
                             </div>
 
                             <div style="display:flex;justify-content:space-between;gap:12px;margin-top:6px">
                                 <div></div>
-                                <div style="text-align:right">Leftover blockNum count: <span id="stat-zero-blocknum">—</span></div>
+                                <div style="text-align:right">Leftover blockNum count: <span id="stat-zero-blocknum">-</span></div>
                             </div>
 
                             <div id="tx-status" style="margin-top:8px;text-align:left;color:#ffd"> </div>
@@ -134,8 +151,8 @@
     <script>
         // Load ethers via CDN fallback if not already present
     </script>
-    <script src="lib/ethers-5.7.2.umd.min.js"></script>
-    <script>if(typeof ADDRESSES==='undefined'){document.write('<scr'+'ipt src="config.js"><\/scr'+'ipt>')}</script>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+    <script src="config.js"></script>
     <script>
         const TOTAL_BLOCKS = 555;
         const START_PRICE = 0.0369;
@@ -527,7 +544,7 @@
                 } else {
                     setStatus('Not connected');
                     setConnectedUI(null);
-                    if (networkIdEl) networkIdEl.textContent = '—';
+                    if (networkIdEl) networkIdEl.textContent = '-';
                 }
             });
         }
@@ -564,7 +581,7 @@
         const ensureConnected = async () => {
             const detected = detectProvider();
             if (!detected) {
-                setStatus('No wallet detected — install MetaMask or OKX Wallet', true);
+                setStatus('No wallet detected - install MetaMask or OKX Wallet', true);
                 throw new Error('No wallet');
             }
 
@@ -920,7 +937,7 @@
                     const rawMsg = err && (err.message || (err.error && err.error.message) || '');
                     const msg = String(rawMsg || err || '');
                     if (msg.includes('Max blocks per address') || msg.includes('Max blocks per address')) {
-                        txStatus.textContent = 'Buy error: max per-address entries reached — you already have 5 entries.';
+                        txStatus.textContent = 'Buy error: max per-address entries reached - you already have 5 entries.';
                     } else {
                         txStatus.textContent = 'Buy error: ' + (err && err.message ? err.message : String(err));
                     }

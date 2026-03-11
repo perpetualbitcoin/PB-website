@@ -3,11 +3,28 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Perpetual Bitcoin (PB)</title>
+    <title>Perpetual Bitcoin (PB) - Immutable DeFi on PulseChain</title>
+    <meta name="description" content="Perpetual Bitcoin is a finished, immutable DeFi protocol on PulseChain with automated DCA-out. No admin keys, no governance, no trust required. Price-driven unlocks pay you automatically - forever." />
+    <meta name="keywords" content="Perpetual Bitcoin, PB, PulseChain, DeFi, immutable, permissionless, no admin keys, price-driven unlocks, PBc, presale, decentralized finance, automated DCA-out, no trust, no governance" />
+    <meta name="robots" content="index, follow" />
+    <meta name="theme-color" content="#F39004" />
+    <link rel="canonical" href="https://perpetualbitcoin.io/" />
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://perpetualbitcoin.io/" />
+    <meta property="og:title" content="Perpetual Bitcoin (PB) - Immutable DeFi on PulseChain" />
+    <meta property="og:description" content="Finished, immutable protocol with automated DCA-out. No admin keys, no governance, no trust required. Price-driven unlocks pay you at every milestone - forever." />
+    <meta property="og:image" content="https://perpetualbitcoin.io/Pic/PB_logo.jpg" />
+    <meta property="og:site_name" content="Perpetual Bitcoin" />
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Perpetual Bitcoin (PB) - Immutable DeFi on PulseChain" />
+    <meta name="twitter:description" content="Finished, immutable protocol with automated DCA-out. No admin keys, no governance, no trust required. Price-driven unlocks pay you at every milestone - forever." />
+    <meta name="twitter:image" content="https://perpetualbitcoin.io/Pic/PB_logo.jpg" />
     <link rel="icon" href="Pic/favicon.ico" type="image/x-icon" />
     <link rel="stylesheet" href="styles.css" />
-    <script src="lib/ethers-6.umd.js"></script>
-    <script src="https://perpetualbitcoin.io/config.js" onerror="var s=document.createElement('script');s.src='config.js';document.head.appendChild(s)"></script>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@6/dist/ethers.umd.js"></script>
+    <script src="config.js"></script>
     <script defer src="ticker.js"></script>
 
         <!-- Google tag (gtag.js) -->
@@ -18,11 +35,36 @@
             gtag('js', new Date());
             gtag('config', 'G-LK69CE9C9C');
         </script>
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "Perpetual Bitcoin",
+      "url": "https://perpetualbitcoin.io/",
+      "description": "Immutable, permissionless DeFi protocol on PulseChain. 21M fixed supply with price-driven unlock mechanics. No admin keys, no rug pulls.",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://perpetualbitcoin.io/faq.html?q={search_term_string}",
+        "query-input": "required name=search_term_string"
+      }
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "Perpetual Bitcoin",
+      "url": "https://perpetualbitcoin.io/",
+      "logo": "https://perpetualbitcoin.io/Pic/PB_logo.jpg",
+      "sameAs": []
+    }
+    </script>
 </head>
 <body class="presale-dapp-bg">
     <nav class="navbar" style="padding: 0.4rem 0;">
         <div class="nav-container" style="padding: 0 2rem;">
-            <div class="logo"><img src="Pic/PB1.png" alt="Perpetual Bitcoin PB logo" style="width:40px;height:40px;"></div>
+            <div class="logo"><img src="../Pic/PB1.png" alt="Perpetual Bitcoin PB logo" style="width:40px;height:40px;"></div>
             <div class="gtranslate_wrapper"></div>
             <ul class="nav-menu" style="text-align: center;">
                 <li><a href="#home" class="nav-link">Home</a></li>
@@ -39,6 +81,10 @@
         <div class="hero-content"><br>
             <h1 class="hero-title">Perpetual Bitcoin</h1>
             <div class="hero-row">
+            <a href="#" id="ipfs-link" target="_blank" class="hero-side-card" title="Browse on IPFS">
+                <span class="side-card-icon">🌐</span>
+                <span class="side-card-label">IPFS</span>
+            </a>
             <h2 class="hero-title hero-title-small">We built Perpetual Bitcoin because:<br> Cryptocurrency started as a movement about sovereignty, transparency, and math‑based fairness, but it turned into a playground for VC's, insiders, admin keys, upgrade proxies, hidden mint functions, rugg pull fest and time‑based unlock cliffs that nuke charts and communities.</h2>
             <a href="#" id="download-site-btn" class="hero-side-card" title="Download Site">
                 <span class="side-card-icon">⬇️</span>
@@ -53,8 +99,6 @@
                 document.getElementById('download-site-btn').href=GITHUB_DOWNLOAD;
               }
             </script>
-            <p class="hero-subtitle">The anti‑rug blueprint. Immutable. Permissionless. Un‑cheatable.<br>All holders here are diamond‑handed by design.</p>
-            <p style="font-size: 1.3rem; color: #F39004; font-weight: bold; margin: 1rem 0;">We removed the #1 problem with crypto: <em>"trusting PEOPLE"</em></p>
             <div class="hero-stats">
                 <div class="stat">
                     <p class="stat-value">21M</p>
@@ -74,7 +118,38 @@
                 <a href="https://twitter.com/PerpetualB67383" class="btn btn-secondary">Follow us on X</a>
                 <a href="Pic/PERPETUAL BITCOIN Whitepaper-Lt.pdf" class="btn btn-outline" download>Download Whitepaper</a>
             </div>
-            <p class="lite-note">PB is a mathematical constitution: one Vault, one supply, one set of rules, zero exceptions.</p>
+        </div>
+    </section>
+
+    <section class="distribution" id="what-is-pb">
+        <h2>What Is Perpetual Bitcoin?</h2>
+        <div class="distribution-container">
+            <div class="distribution-table">
+                <p style="color:#ccc;font-size:1.25rem;line-height:1.7;text-align:center;padding:1.5rem;">
+                    Perpetual Bitcoin is a <strong>finished, immutable, permissionless protocol</strong> with <strong>automated DCA-out</strong> built in.<br>
+                    21 million fixed supply. No admin keys. No governance. No freeze. No blacklist. No human in the loop.<br>
+                    When price rises 55.55%, one-third of your locked tokens automatically settle into USDL.<br> 
+                    <strong style="color:#F39004;">you take profits at every milestone while always keeping skin in the game</strong>.<br>
+                    No timing decisions. No emotion. The protocol does it for you, forever.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <section class="distribution" id="trust-problem">
+        <h2>We Removed the #1 Problem with Crypto:<br><em>"Trusting PEOPLE"</em></h2>
+        <div class="distribution-container">
+            <div class="distribution-table">
+                <p style="color:#ccc;font-size:1.25rem;line-height:1.7;text-align:center;padding:1.5rem;">
+                    Every token asks you to trust a team, a DAO, a multisig, a bridge, or a stablecoin issuer. 
+                    One wrong decision, one compromised key, one regulatory order, and your funds are gone. 
+                    <strong style="color:#F39004;">PB eliminates that entirely.</strong>
+                </p>
+            </div>
+        </div>
+        <div class="hero-buttons" style="margin-top: 1.5rem;">
+            <a href="presale-dapp.html" class="btn btn-primary">I'm interested</a>
+            <a href="https://twitter.com/PerpetualB67383" class="btn btn-secondary">Follow us on X</a>
         </div>
     </section>
 
@@ -382,8 +457,8 @@
             </div>
         </div>
     </footer>
-    <script src="lib/ethers-6.umd.js"></script>
-    <script>if(typeof ADDRESSES==='undefined'){document.write('<scr'+'ipt src="config.js"><\/scr'+'ipt>')}</script>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@6/dist/ethers.umd.js"></script>
+    <script src="config.js"></script>
     <script src="price-ticker.js"></script>
     <script>window.gtranslateSettings = {"default_language":"en","native_language_names":true,"detect_browser_language":true,"languages":["en","zh-CN","fr","de","hi","es","pt","nl","el"],"wrapper_selector":".gtranslate_wrapper","flag_style":"3d","alt_flags":{"en":"usa"}}</script>
     <script src="https://cdn.gtranslate.net/widgets/latest/float.js" defer></script>
