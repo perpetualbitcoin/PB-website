@@ -28,8 +28,48 @@
         .calc-toggle::-webkit-details-marker { display:none; }
         .calc-toggle::before { content:"▶"; color:#F39004; font-size:0.75rem; transition:transform 0.2s; }
         #calc-collapse[open] > .calc-toggle::before { transform:rotate(90deg); }
-        #calc-collapse > .faq-item { animation:calcFade 0.25s ease; }
+        /* ensure calculator card uses same animation as other faq items */
+        #calc-collapse { animation:calcFade 0.25s ease; }
         @keyframes calcFade { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:translateY(0); } }
+        /* FAQ details styling to match other FAQ cards */
+        .faq-section details { margin-bottom:12px; }
+        .faq-section details > summary { list-style:none; cursor:pointer; padding:10px 12px; display:flex; align-items:center; justify-content:space-between; gap:12px; background:#0f0f14; border:1px solid rgba(255,165,0,0.04); border-radius:6px; }
+        .faq-section details > summary h4, .faq-section details > summary h2 { margin:0; font-size:1rem; }
+        .faq-section details > summary::-webkit-details-marker { display:none; }
+        .faq-section details > summary::after { content:'+'; color:#F39004; font-weight:700; font-size:1.05rem; }
+        .faq-section details[open] > summary::after { content:'−'; }
+        .faq-section details .faq-item { padding:12px; background:#0f0f14; border-top:1px solid rgba(255,165,0,0.02); }
+        .address-panels { display:grid; grid-template-columns:repeat(auto-fit, minmax(320px, 1fr)); gap:1rem; margin-top:1rem; }
+        .address-panel { background:linear-gradient(180deg, rgba(243,144,4,0.08), rgba(243,144,4,0.02)); border:1px solid rgba(243,144,4,0.18); border-radius:12px; padding:1rem; }
+        .address-panel-header { display:flex; justify-content:space-between; align-items:flex-start; gap:0.75rem; margin-bottom:1rem; }
+        .address-panel-header h5 { margin:0; font-size:1.05rem; color:#fff; }
+        .address-panel-header p { margin:0.2rem 0 0; color:rgba(255,255,255,0.72); font-size:0.92rem; }
+        .address-panel-actions { display:flex; flex-wrap:wrap; gap:0.45rem; justify-content:flex-end; }
+        .address-list { display:flex; flex-direction:column; gap:0.65rem; }
+        .address-row { background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:0.8rem; }
+        .address-row-header { display:flex; justify-content:space-between; align-items:center; gap:0.75rem; margin-bottom:0.45rem; }
+        .address-name { font-weight:700; color:#fff; }
+        .address-state { font-size:0.78rem; font-weight:700; letter-spacing:0.04em; text-transform:uppercase; color:#F39004; }
+        .address-value-wrap { display:flex; align-items:center; gap:0.5rem; }
+        .address-value { flex:1; font-family:monospace; font-size:0.9rem; line-height:1.45; color:#f7f7f7; word-break:break-all; }
+        .address-value.copyable { cursor:pointer; transition:color 0.2s ease, opacity 0.2s ease; }
+        .address-value.copyable:hover { color:#F39004; }
+        .address-value.unpublished { color:rgba(255,255,255,0.58); font-style:italic; }
+        .address-btn { border:1px solid rgba(243,144,4,0.28); background:rgba(243,144,4,0.08); color:#fff; border-radius:999px; padding:0.42rem 0.72rem; font-size:0.82rem; font-weight:600; cursor:pointer; transition:background 0.2s ease, border-color 0.2s ease, transform 0.2s ease; }
+        .address-btn:hover { background:rgba(243,144,4,0.16); border-color:rgba(243,144,4,0.45); transform:translateY(-1px); }
+        .address-btn.secondary { background:rgba(255,255,255,0.04); border-color:rgba(255,255,255,0.1); }
+        .address-btn:disabled { opacity:0.45; cursor:not-allowed; transform:none; }
+        .address-note { margin-top:0.9rem; font-size:0.86rem; color:rgba(255,255,255,0.72); }
+        .address-status { min-height:1.25rem; margin-top:0.8rem; font-size:0.85rem; color:#F39004; }
+        .fox-icon-btn { display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px; padding:0; border:0; background:transparent; color:#fff; cursor:pointer; opacity:0.88; transition:opacity 0.2s ease, transform 0.2s ease; }
+        .fox-icon-btn:hover { opacity:1; transform:translateY(-1px) scale(1.04); }
+        .fox-icon-btn:focus-visible { outline:2px solid rgba(255,122,0,0.7); outline-offset:3px; border-radius:4px; }
+        .fox-icon-btn { font-size:18px; line-height:1; }
+        @media (max-width: 720px) {
+            .address-panel-header { flex-direction:column; }
+            .address-panel-actions { justify-content:flex-start; }
+            .address-row-header { flex-direction:column; align-items:flex-start; }
+        }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/ethers@6/dist/ethers.umd.js"></script>
     <script src="config.js"></script>
@@ -54,7 +94,7 @@
           "name": "What is Perpetual Bitcoin (PB)?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "PB is a finished, deployed, immutable protocol with a fixed supply of 21 million tokens that unlock only when market price reaches specific checkpoints. No admin keys, no back doors, no VCs, no mint function, no rug factors, no governance, no freeze function, no blacklist function, no inflation ever. Everyone gets the same rules."
+            "text": "PB is a finished, deployed, immutable protocol with a fixed supply of 21 million tokens that unlock only when market price reache your specific checkpoints. No admin keys, no back doors, no VCs, no mint function, no rug factors, no governance, no freeze function, no blacklist function, no inflation ever. Everyone gets the same rules."
           }
         },
         {
@@ -149,9 +189,11 @@
             <ul class="nav-menu">
                 <li><a href="index.html#home" class="nav-link">Home</a></li>
                 <li><a href="faq.html" class="nav-link">FAQ</a></li>
+                <li><a href="faq.html#disclaimer" class="nav-link">Disclaimer</a></li>
                 <li><a href="whitepaperLite.html" class="nav-link">Whitepaper Lite</a></li>
                 <li><a href="PBManifesto.html" class="nav-link">PB Manifesto</a></li>
                 <li><a href="presale-dapp-test.html" class="nav-link">Presale🎉</a></li>
+                <li><a href="portfolio.html" class="nav-link">Portfolio</a></li>
                 <li><a href="testDapp.html" class="nav-link" style="color: #F39004; font-weight:600;">✨ Full testDapp</a></li>
             </ul>
         </div>
@@ -162,11 +204,119 @@
         <p>Everything You Need to Know About PB</p>
         <p style="margin-top: 0.75rem; font-size: 0.9rem; opacity: 0.85;">
             This site is hosted on <strong>IPFS</strong>, fully decentralized and censorship-resistant.
-            You can also <a href="https://ipfs.io/ipfs/QmPYWcHWyoQk7NVN8MZWtF5z2Qnq3DES5djUcgJUfuFAQc/site/" style="color: var(--primary-color); text-decoration: underline;">browse the IPFS copy</a>.
+            You can also <a id="faq-ipfs-link" href="#" style="color: var(--primary-color); text-decoration: underline;">browse the IPFS copy</a>.
         </p>
+        <script>
+            if (typeof IPFS_CID !== 'undefined' && IPFS_CID) {
+                const faqIpfsLink = document.getElementById('faq-ipfs-link');
+                if (faqIpfsLink) faqIpfsLink.href = 'https://ipfs.io/ipfs/' + IPFS_CID + '/site/';
+            }
+        </script>
     </section>
 
     <div class="page-container">
+        <section class="faq-section" id="disclaimer">
+            <h2>Disclaimer: Perpetual Bitcoin (PB) Legal Disclaimer</h2>
+            <div class="faq-item">
+                <h4>Full Legal Disclaimer - Read Before Connecting Your Wallet</h4>
+                <p><strong>Important Notice: Read Before Connecting Your Wallet</strong></p>
+                <p>By interacting with the Perpetual Bitcoin (PB) protocol, you acknowledge and agree to the following terms. If you do not accept these terms in full, you should not proceed.</p>
+                <ol>
+                    <li><strong>Not Financial Advice</strong><br>Nothing on this website, or within the PB protocol, constitutes financial, investment, legal, or tax advice. PB is a software protocol, and participation is entirely at your own risk. Consult with qualified professionals before making any financial decisions.</li>
+                    <li><strong>No Guarantees or Returns Promised</strong><br>PB does not provide interest, yield, dividends, rewards, or any form of return beyond the return of your own previously locked tokens. No guarantees are made regarding price, performance, market demand, or future unlocks. All outcomes depend entirely on market conditions. Past performance does not guarantee future results.</li>
+                    <li><strong>Immutability and No Administrative Control</strong><br>The PB protocol is completely immutable, with no administrators, owners, or operators. No party has the ability to intervene, modify, or reverse transactions. All interactions are permanent and irreversible, and users assume all risks associated with blockchain transactions, including loss of access, market volatility, and smart contract risks.</li>
+                    <li><strong>Not a Securities Offering (continued)</strong><br>PB and PBc tokens are not offered as securities or financial instruments. Purchasing PB does not grant ownership, rights, dividends, profit-sharing, or expectations of profit from the efforts of others. PB is a decentralized software protocol, and all participation is self-directed.</li>
+                    <li><strong>No Refunds or Chargebacks</strong><br>All purchases and blockchain interactions are final and non-refundable. Due to the immutable nature of the protocol, no refunds, reversals, or chargebacks are possible.</li>
+                    <li><strong>User Assumes All Risks</strong><br>Interacting with PB involves significant risks, including the potential loss of all value. Blockchain networks may experience congestion, failure, or unexpected behavior. Smart contracts may contain vulnerabilities. By using PB, you acknowledge and accept all associated risks.</li>
+                    <li><strong>No Roadmap, No Future Promises</strong><br>PB has no roadmap, no future promises, and no ongoing development obligations. The protocol is complete and operates autonomously. There will be no updates, changes, or modifications to the protocol.</li>
+                    <li><strong>Jurisdiction and Eligibility</strong><br>PB may not be available to users in certain jurisdictions. It is your responsibility to ensure that your participation complies with local laws and regulations.</li>
+                </ol>
+            </div>
+            <div id="pb-faq-accept" style="margin-top:12px;display:flex;align-items:center;gap:10px;">
+                <input type="checkbox" id="pb-faq-checkbox" />
+                <button id="pb-faq-accept-btn" class="btn btn-primary" disabled>Accept Disclaimer</button>
+                <div id="pb-faq-status" style="color:#4CAF50;font-weight:700;display:none;margin-left:8px">Accepted</div>
+            </div>
+            <script>
+                (function(){
+                    const KEY = 'pb_disclaimer_accepted_v1';
+                    const chk = document.getElementById('pb-faq-checkbox');
+                    const btn = document.getElementById('pb-faq-accept-btn');
+                    const status = document.getElementById('pb-faq-status');
+                    const disclaimerSection = document.getElementById('disclaimer');
+                    const pbItem = document.getElementById('what-is-pb');
+
+                    function setCookie(name,value,days){
+                        const d=new Date(); d.setTime(d.getTime()+(days*24*60*60*1000));
+                        document.cookie = name+"="+value+";expires="+d.toUTCString()+";path=/";
+                    }
+
+                    function isAccepted(){
+                        try{ if(localStorage.getItem(KEY)==='1') return true; }catch(e){}
+                        try{ if(document.cookie.split(';').some(c=>c.trim().startsWith(KEY+'='))) return true; }catch(e){}
+                        return false;
+                    }
+
+                    function showAccepted(){
+                        if (chk) chk.style.display='none';
+                        if (btn) btn.style.display='none';
+                        if (status) status.style.display='inline-block';
+                        // add a small accepted badge into the header so the disclaimer remains visible when collapsed
+                        try {
+                            const disclaimerItem = disclaimerSection && disclaimerSection.querySelector('.faq-item');
+                            if (disclaimerItem) {
+                                const hdr = disclaimerItem.querySelector('h4');
+                                if (hdr && !document.getElementById('pb-faq-accepted-badge')) {
+                                    const badge = document.createElement('span');
+                                    badge.id = 'pb-faq-accepted-badge';
+                                    badge.textContent = 'Accepted';
+                                    badge.style.cssText = 'background:#0b3b1f;color:#9ff0c6;padding:2px 8px;border-radius:12px;font-size:0.8rem;margin-left:10px;font-weight:700;';
+                                    hdr.appendChild(badge);
+                                }
+                            }
+                        } catch(e){}
+                    }
+
+                    function handleAcceptedOnLoad(){
+                        setTimeout(()=>{
+                            if(!isAccepted()) return;
+                            try{ showAccepted(); }catch(e){}
+                            try {
+                                // keep disclaimer visible but collapse its faq-item so users can still view it later
+                                const disclaimerItem = disclaimerSection && disclaimerSection.querySelector('.faq-item');
+                                if (disclaimerItem) disclaimerItem.classList.remove('open');
+                            } catch(e){}
+                            try {
+                                if (pbItem) {
+                                    pbItem.classList.add('open');
+                                    pbItem.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                }
+                            } catch(e){}
+                        }, 50);
+                    }
+
+                    if (document.readyState === 'loading') {
+                        document.addEventListener('DOMContentLoaded', handleAcceptedOnLoad);
+                    } else {
+                        handleAcceptedOnLoad();
+                    }
+
+                    if (chk) chk.addEventListener('change', ()=>{ if(btn) btn.disabled = !chk.checked; });
+                    if (btn) btn.addEventListener('click', ()=>{
+                        try{ localStorage.setItem(KEY,'1'); }catch(e){}
+                        try{ setCookie(KEY,'1',365); }catch(e){}
+                        showAccepted();
+                        try {
+                            // keep the disclaimer visible but collapsed so users can access it later
+                            const disclaimerItem = disclaimerSection && disclaimerSection.querySelector('.faq-item');
+                            if (disclaimerItem) disclaimerItem.classList.remove('open');
+                        } catch(e){}
+                        try { if (pbItem) { pbItem.classList.add('open'); pbItem.scrollIntoView({ behavior: 'smooth', block: 'start' }); } } catch(e){}
+                    });
+                })();
+            </script>
+
+        </section>
         <section class="faq-search">
             <input type="text" id="faq-search" placeholder="Search FAQs..." class="search-input" onkeyup="filterFAQ()">
         </section>
@@ -174,23 +324,19 @@
         <section class="faq-section">
             <h2>General Questions</h2>
 
-            <div class="faq-item">
+            <div class="faq-item" id="what-is-pb">
                 <h4>What is Perpetual Bitcoin (PB)?</h4>
                 <p>
-                    PB is a <strong>finished, deployed, immutable protocol</strong> with <strong>automated DCA-out</strong> built in, not a roadmap or a promise. 
-                    It is a fixed-supply digital asset with 21 million tokens that unlock only when market price 
-                    reaches specific checkpoints, automatically settling &frac13; of your remaining locked tokens 
-                    into USDL at every milestone. Pure, deterministic protocol mechanics.
+                    PB is a <strong>finished, immutable 21 million supply protocol</strong> with built-in, price-triggered settlement.
+                    When market price reaches your specific <a href="#hardcore-price" style="color: var(--primary-color);">checkpoints</a>, 
+                    &frac13; of your remaining locked position is automatically settled into USDL. No roadmap, no promises, just deterministic on-chain rules.
                 </p>
                 <ul>
                     <li>NO admin keys</li>
-                    <li>NO back doors</li>
-                    <li>NO VC's</li>
-                    <li>NO mint function</li>
-                    <li>NO rug factors</li>
                     <li>NO governance</li>
-                    <li>NO freeze function</li>
-                    <li>NO blacklist function</li>
+                    <li>NO tax</li>
+                    <li>NO mint function</li>
+                    <li>NO freeze or blacklist function</li>
                     <li>NO inflation, EVER</li>
                     <li><strong>EVERYONE gets the same rules</strong></li>
                 </ul>
@@ -218,9 +364,9 @@
                 <p>
                     PB is a utility token on a decentralized protocol. There is no company, no team, no issuer, and no 
                     counterparty, just you and the smart contract. No one promises you returns. There is no yield, no 
-                    staking reward, no APY, and no dividend. When unlocks happen, the vault sells your locked PB on the AMM and 
-                    sends you the USDL proceeds, it's the value of <em>your own</em> tokens, not someone else's money. 
-                    PB does not represent equity, debt, or earnings.
+                    staking reward, no APY, and no dividend. When unlocks happen, your locked position settles into USDL under the 
+                    protocol rules, normally through internal netting and, if needed, through the AMM fallback path. It is still the 
+                    value of <em>your own</em> tokens, not someone else's money. PB does not represent equity, debt, or earnings.
                 </p>
                 <p>
                     That said, <strong>consult a lawyer for your jurisdiction</strong>, regulations vary globally.
@@ -246,12 +392,8 @@
             <div class="faq-item">
                 <h4>Why does PB use USDL?</h4>
                 <p>
-                    This is not a minor detail, it is <strong>fundamental to the entire protocol's integrity</strong>.
-                </p>
-                <p>
-                    PB is built on one core principle: <strong>no human can interfere</strong>. No admin keys. No pause function. 
-                    No blacklist. No freeze. No off switch. If PB used a stablecoin that <em>doesn't</em> share those properties, 
-                    the entire promise collapses.
+                    PB is built around one core rule: <strong>no outside party should be able to interfere with the system.</strong>
+                    If the stable asset inside the protocol has freeze, blacklist, pause, or admin controls, then PB is not truly trustless.
                 </p>
                 <ul>
                     <li><strong>USDT / USDC</strong>, controlled by a company (Tether / Circle). Both have 
@@ -265,174 +407,10 @@
                 </ul>
                 <p>
                     <strong>USDL has no blacklist. No freeze. No admin pause.</strong> It is the only dollar-pegged (ish) stablecoin on PulseChain 
-                    that matches PB's trustless design. Every presale payment, every unlock payout, every LP pair, all flow through USDL 
-                    because it is the <em>only</em> option that doesn't introduce a single point of failure.
-                </p>
-                <p>
-                    Using any other stablecoin would be like building an indestructible vault and then handing 
-                    someone else the master key. <strong>We don't do that.</strong>
+                    that matches PB's trustless design. That is why PB uses USDL for purchases, unlock payouts, and the canonical LP pair.
                 </p>
             </div>
         </section>
-
-        <!-- ── Investment Calculator ── -->
-        <section class="faq-section">
-            <details id="calc-collapse" open>
-                <summary class="calc-toggle"><h2 style="display:inline;margin:0">What Do I Get? - Calculator</h2></summary>
-            <div class="faq-item">
-                <p style="color:#aaa;margin-bottom:1rem">Enter a dollar amount to see exactly what you receive and how the unlock tiers work. Prices come from the presale entry curve.</p>
-
-                <div style="display:flex;gap:1rem;flex-wrap:wrap;align-items:end;margin-bottom:1.5rem">
-                    <div style="flex:1;min-width:160px">
-                        <label style="display:block;color:#F39004;font-weight:600;margin-bottom:0.3rem;font-size:0.85rem">Investment (USDL)</label>
-                        <input id="calc-usdl" type="number" min="1" step="any" value="500"
-                               style="width:100%;padding:0.6rem;background:#1a1a2e;border:1px solid rgba(255,165,0,0.3);color:#fff;border-radius:6px;font-size:1rem"
-                               oninput="calcUpdate()">
-                    </div>
-                    <div style="flex:1;min-width:160px">
-                        <label style="display:block;color:#F39004;font-weight:600;margin-bottom:0.3rem;font-size:0.85rem">Entry Price (USDL/PB)</label>
-                        <input id="calc-price" type="number" min="0.0001" step="any" value="0.05555"
-                               style="width:100%;padding:0.6rem;background:#1a1a2e;border:1px solid rgba(255,165,0,0.3);color:#fff;border-radius:6px;font-size:1rem"
-                               oninput="calcUpdate()">
-                    </div>
-                    <div style="flex:1;min-width:120px">
-                        <label style="display:block;color:#F39004;font-weight:600;margin-bottom:0.3rem;font-size:0.85rem">Tiers to Show</label>
-                        <input id="calc-tiers" type="number" min="1" max="100" step="1" value="13"
-                               style="width:100%;padding:0.6rem;background:#1a1a2e;border:1px solid rgba(255,165,0,0.3);color:#fff;border-radius:6px;font-size:1rem"
-                               oninput="calcUpdate()">
-                    </div>
-                    <div style="flex:0 0 auto">
-                        <button onclick="calcReset()" style="padding:0.6rem 1rem;background:transparent;border:1px solid rgba(255,165,0,0.3);color:#F39004;border-radius:6px;cursor:pointer;font-size:0.85rem">Reset</button>
-                    </div>
-                </div>
-
-                <!-- Summary -->
-                <div id="calc-summary" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:0.8rem;margin-bottom:1.5rem"></div>
-
-                <!-- Tier table -->
-                <div style="overflow-x:auto">
-                    <table id="calc-table" style="font-size:0.9rem">
-                        <thead>
-                            <tr>
-                                <th>Tier</th>
-                                <th>Trigger Price</th>
-                                <th>Multiplier</th>
-                                <th>PBc Unlocked</th>
-                                <th>USDL Payout</th>
-                                <th>Remaining PBc</th>
-                            </tr>
-                        </thead>
-                        <tbody id="calc-tbody"></tbody>
-                    </table>
-                </div>
-
-                <p id="calc-footnote" style="color:#888;font-size:1rem;margin-top:0.8rem;line-height:1.6"></p>
-            </div>
-            </details>
-        </section>
-
-        <script>
-        /* ── Calculator Logic ── */
-        const CALC_MULT   = 1.5555;   // unlock multiplier
-        const CALC_SPLIT  = 0.0369;   // 3.69% liquid
-
-        function fmtPB(v) {
-            if (v >= 1)       return v.toFixed(2);
-            if (v >= 0.001)   return v.toFixed(6);
-            if (v >= 1e-8)    return v.toFixed(10);
-            if (v >= 1e-14)   return v.toFixed(16);
-            return v.toExponential(4);
-        }
-
-        function calcUpdate() {
-            const usdl  = parseFloat(document.getElementById('calc-usdl').value) || 0;
-            const price = parseFloat(document.getElementById('calc-price').value) || 0;
-            const tiers = Math.max(1, Math.min(100, parseInt(document.getElementById('calc-tiers').value) || 13));
-            if (usdl <= 0 || price <= 0) return;
-
-            const totalPB  = usdl / price;
-            const liquidPB = totalPB * CALC_SPLIT;
-            const lockedPBc = totalPB - liquidPB;
-
-            // Summary cards
-            const summary = document.getElementById('calc-summary');
-            summary.innerHTML = [
-                ['Total PB', fmtPB(totalPB)],
-                ['Liquid PB (3.69%)', fmtPB(liquidPB)],
-                ['Locked PBc (96.31%)', fmtPB(lockedPBc)],
-            ].map(([label, val]) =>
-                `<div style="background:rgba(255,165,0,0.06);border:1px solid rgba(255,165,0,0.15);border-radius:8px;padding:0.7rem 1rem">
-                    <div style="color:#888;font-size:0.75rem">${label}</div>
-                    <div style="color:#F39004;font-size:1.15rem;font-weight:700">${val}</div>
-                </div>`
-            ).join('');
-
-            // Tier rows
-            const tbody = document.getElementById('calc-tbody');
-            tbody.innerHTML = '';
-            let remaining = lockedPBc;
-            let cumPayout = 0;
-            let lastTrigger = 0;
-
-            for (let t = 1; t <= tiers; t++) {
-                const trigger = price * Math.pow(CALC_MULT, t);
-                const mult    = Math.pow(CALC_MULT, t);
-                const unlock  = remaining / 3;
-                const payout  = unlock * trigger;
-                remaining    -= unlock;
-                cumPayout    += payout;
-                lastTrigger   = trigger;
-
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td style="color:#F39004;font-weight:600">${t}</td>
-                    <td>$${trigger < 1 ? trigger.toFixed(5) : trigger < 100 ? trigger.toFixed(4) : trigger.toFixed(2)}</td>
-                    <td>&times;${mult.toFixed(2)}</td>
-                    <td>${fmtPB(unlock)} PB</td>
-                    <td style="color:#4CAF50;font-weight:600">$${payout.toFixed(2)}</td>
-                    <td>${fmtPB(remaining)} PBc</td>
-                `;
-                tbody.appendChild(tr);
-            }
-
-            // Totals row
-            const totalUnlocked = lockedPBc - remaining;
-            const trTotal = document.createElement('tr');
-            trTotal.className = 'total-row';
-            trTotal.innerHTML = `
-                <td colspan="3" style="color:#F39004;font-weight:700;text-align:right">Totals through Tier ${tiers}:</td>
-                <td style="font-weight:700">${fmtPB(totalUnlocked)} PB</td>
-                <td style="color:#4CAF50;font-weight:700">$${cumPayout.toFixed(2)}</td>
-                <td>${fmtPB(remaining)} PBc</td>
-            `;
-            tbody.appendChild(trTotal);
-
-            // Footnote
-            const pctUnlocked = ((totalUnlocked / lockedPBc) * 100).toFixed(1);
-            const liquidVal   = liquidPB * lastTrigger;
-            const remainVal   = remaining * lastTrigger;
-            const totalValue  = cumPayout + liquidVal + remainVal;
-            document.getElementById('calc-footnote').innerHTML =
-                `After ${tiers} tiers: <strong>${pctUnlocked}%</strong> of your PBc unlocked for <strong>$${cumPayout.toFixed(2)}</strong> in USDL payouts. <br>` +
-                `Remaining <strong>${fmtPB(remaining)} PBc</strong> continues unlocking forever (&frac13; per tier, &times;1.5555 each).<br>` +
-                ` Entry: $${usdl.toFixed(2)} invested &rarr; ${(cumPayout / usdl).toFixed(1)}&times; returned so far, plus ${fmtPB(liquidPB)} liquid PB you still hold` +
-                ` (worth <strong>$${liquidVal.toFixed(2)}</strong> at tier ${tiers} price of $${lastTrigger < 1 ? lastTrigger.toFixed(5) : lastTrigger.toFixed(2)})` +
-                ` + remaining PBc worth <strong>$${remainVal.toFixed(2)}</strong>.<br>` +
-                `<span style="color:#F39004;font-weight:700;font-size:1.1em">Total Value: <span style="color:#4CAF50">$${totalValue.toFixed(2)}</span></span>` +
-                ` (payouts $${cumPayout.toFixed(2)} + liquid PB $${liquidVal.toFixed(2)} + remaining PBc $${remainVal.toFixed(2)})` +
-                ` ; <strong>${(totalValue / usdl).toFixed(1)}&times;</strong> on $${usdl.toFixed(2)} invested.`;
-        }
-
-        function calcReset() {
-            document.getElementById('calc-usdl').value  = '555.5';
-            document.getElementById('calc-price').value = '0.0369';
-            document.getElementById('calc-tiers').value = '13';
-            calcUpdate();
-        }
-
-        // Run on load
-        calcUpdate();
-        </script>
 
         <section class="faq-section">
             <h2>Pre-Launch & Purchasing</h2>
@@ -445,7 +423,7 @@
                     The PBIOU records your block number, entry price, and buyer address on-chain.
                 </p>
                 <p>
-                    <strong>At launch</strong>, the LaunchConverter contract converts your PBIOU into a real PBt position: 
+                    <strong>At launch</strong>, the LaunchConverter contract converts your PBIOU into a real <a href="#hardcore-backing" style="color: var(--primary-color);">PBt position</a>:
                     it calculates your PB amount (<code>555.5 / entryPrice</code>), allocates your tokens through the vault 
                     (3.69% liquid + 96.31% locked PBc), mints your PBt tracker, and burns the PBIOU. Conversion happens 
                     in batches and is handled automatically.
@@ -460,8 +438,18 @@
             <div class="faq-item">
                 <h4>What's the minimum and maximum investment?</h4>
                 <p>
-                    Minimum: 1 block (555.5 USDL). Maximum: 5 blocks per address (enforced on-chain). Using multiple wallets is possible.
-                    Purchase price is fixed per block; entry prices vary by block for unlock timing.
+                    <strong>During presale:</strong> minimum is 1 block (555.5 USDL) and maximum is 5 blocks per address (enforced on-chain).
+                    Purchase price is fixed per block, while entry prices vary by block for unlock timing.
+                </p>
+                <p>
+                    <strong>After mainnet launch:</strong> that presale cap no longer applies. Live vault buys are not capped by the protocol in the same way.
+                </p>
+            </div>
+
+            <div class="faq-item">
+                <h4>Shielding, buy & send in one transaction</h4>
+                <p>
+                    You can "shield" a purchase by providing a recipient address when calling the buy flow (the Dapp uses the Vault's <code>recipient</code> parameter). This lets you buy and send in a single on‑chain transaction, useful for gifting, custodial transfers, or directly routing purchases into recovery/inheritance workflows (PBr / PBi). Shielding is simply a user pattern: the buy mints the PBt for the specified recipient so no additional move is needed.
                 </p>
             </div>
 
@@ -479,22 +467,17 @@
                 <h4>Can I get a refund?</h4>
                 <p>
                     No. All purchases are final. Once you participate, you get a PBt tracker NFT recording your purchase, entry price, and unlock schedule.
-                    This is by "design” it ensures commitment and prevents gaming.
+                    This is by design. It ensures commitment and prevents gaming.
                 </p>
             </div>
 
             <div class="faq-item">
                 <h4>What happens if I buy multiple blocks?</h4>
                 <p>
-                    Each block gets its own entry price (based on block number) and unlock schedule. This means you can 
-                    <strong>design your own unlock ladder</strong>, spread purchases across different blocks to stagger 
-                    when your unlocks trigger. Lower blocks have lower entry prices and unlock sooner; higher blocks unlock later 
-                    at higher price targets.
-                </p>
-                <p>
-                    For example, if you buy blocks #10 and #100, you'll have two separate PBt NFTs with different entry prices 
-                    and different 1.5555&times; unlock thresholds. Block #10 unlocks first, giving you early USDL payouts, 
-                    while block #100 unlocks later at a higher price, like building a staircase of future payouts.
+                    Each block gets its own entry price and its own unlock schedule, so yes, buying multiple blocks lets you build a
+                    <strong>ladder</strong> instead of relying on one single entry.
+                    If you want the strategy side of that, see
+                    <a href="#investment-strategy" style="color: var(--primary-color);">Investment &amp; Strategy</a> below.
                 </p>
             </div>
 
@@ -514,16 +497,31 @@
                 <h4>What is a PBc?</h4>
                 <p>
                     PBc (Perpetual Bitcoin Claim) is a non-transferable ERC-20 token issued when you buy PB. It represents your 
-                    locked allocation and is tied to your wallet. You can't "sell it” you can only unlock it by reaching price 
-                    checkpoints.
+                    locked allocation and is tied to your wallet. You cannot sell it or transfer it. It only settles when price
+                    reaches the next checkpoint.
                 </p>
             </div>
 
             <div class="faq-item">
-                <h4>How many tokens unlock per checkpoint?</h4>
+                <h4>How do unlock checkpoints work?</h4>
                 <p>
-                    <strong>1/3 (one-third) of your remaining locked amount</strong> unlocks at each checkpoint. 
-                    So if you have 10,000 locked PB:
+                    Each checkpoint does two things:
+                    the <strong>trigger price</strong> is set by your entry price, and when that trigger is reached,
+                    <strong>1/3 (one-third) of your remaining locked amount</strong> is settled.
+                </p>
+                <p>
+                    Trigger prices follow the formula: <code>checkpoint_n = entryPrice &times; (1.5555^n)</code>
+                </p>
+                <p>
+                    <strong>Example:</strong> If your entry price is $0.04, then the first checkpoints are:
+                </p>
+                <ul>
+                    <li>Checkpoint 1 trigger: $0.0622 (&times;1.5555)</li>
+                    <li>Checkpoint 2 trigger: $0.0968 (&times;2.4217)</li>
+                    <li>Checkpoint 3 trigger: $0.1507 (&times;3.7698)</li>
+                </ul>
+                <p>
+                    If you have 10,000 locked PB, the unlock sequence would look like this:
                 </p>
                 <ul>
                     <li>Checkpoint 1 &rarr; 3,333.33 unlock (1/3 of 10,000)</li>
@@ -531,21 +529,6 @@
                     <li>Checkpoint 3 &rarr; 1,481.48 unlock (1/3 of 4,444.45 remaining)</li>
                     <li>Checkpoint 4 &rarr; 987.65 unlock (1/3 of 2,962.97 remaining)</li>
                     <li><em>Continues forever until &lt;15 Satoshi remains, then automatic sell</em></li>
-                </ul>
-            </div>
-
-            <div class="faq-item">
-                <h4>What are the unlock thresholds?</h4>
-                <p>
-                    Checkpoints follow the formula: <code>checkpoint_n = entryPrice &times; (1.5555^n)</code>
-                </p>
-                <p>
-                    <strong>Example:</strong> If your entry price is $0.04 (early block):
-                </p>
-                <ul>
-                    <li>Checkpoint 1: $0.0622 (&times;1.5555)</li>
-                    <li>Checkpoint 2: $0.0968 (&times;2.4217)</li>
-                    <li>Checkpoint 3: $0.1507 (&times;3.7698)</li>
                 </ul>
             </div>
 
@@ -567,93 +550,24 @@
             <div class="faq-item">
                 <h4>Can I trade my PBc?</h4>
                 <p>
-                    No. PBC's are non-transferable by design. You can't sell, gift, or delegate them. Only you can unlock them.
+                    No. PBc is non-transferable by design. You cannot sell, gift, or delegate it. Only the vault can move it during unlock settlement.
                 </p>
             </div>
 
             <div class="faq-item">
                 <h4>Can I check my unlock status?</h4>
                 <p>
-                    Yes! Use the <a href="testDapp.html" style="color: var(--primary-color);">PB Dapp</a> 
-                    to view your PBC's, entry prices, current checkpoint, and next unlock threshold.
+                    Yes. Use the <a href="testDapp.html" style="color: var(--primary-color);">PB Dapp</a>
+                    to view your PBc balance, PBt positions, entry prices, current checkpoint, and next unlock threshold.
                 </p>
             </div>
 
-            <div class="faq-item">
-                <h4>Real Example: $1,000 Purchase with 5 Unlocks</h4>
-                <p>
-                    Let's walk through a concrete example. You invest <strong>$1,000 USD</strong> at launch price of <strong>$0.05555 USD/PB</strong>.
-                </p>
-                <p><strong>At Purchase:</strong></p>
-                <ul>
-                    <li>Total PB Received: 1,000 &divide; 0.05555 = <strong>18,001.8 PB</strong></li>
-                    <li>Liquid Immediately: 18,001.8 &times; 3.69% = <strong>664.27 PB</strong> (can trade now)</li>
-                    <li>Locked as PBc: 18,001.8 &times; 96.31% = <strong>17,337.53 PBc</strong> (locked in Vault)</li>
-                </ul>
-                <p><strong>Your Unlock Schedule (FIRST 5 Triggers):</strong></p>
-                <table>
-                    <tr>
-                        <th>Trigger</th>
-                        <th>Price Target</th>
-                        <th>Multiplier</th>
-                        <th>Unlock Amount (PB)</th>
-                        <th>USD Received (100%)</th>
-                        <th>Remaining Locked</th>
-                    </tr>
-                    <tr>
-                        <td>1st</td>
-                        <td><strong>$0.08641</strong></td>
-                        <td>&times;1.5555</td>
-                        <td><strong>5,779.18 PB</strong></td>
-                        <td><strong>$499.59</strong></td>
-                        <td>11,558.35 PBc</td>
-                    </tr>
-                    <tr>
-                        <td>2nd</td>
-                        <td><strong>$0.13447</strong></td>
-                        <td>&times;2.4217</td>
-                        <td><strong>3,852.78 PB</strong></td>
-                        <td><strong>$518.24</strong></td>
-                        <td>7,705.57 PBc</td>
-                    </tr>
-                    <tr>
-                        <td>3rd</td>
-                        <td><strong>$0.20918</strong></td>
-                        <td>&times;3.7698</td>
-                        <td><strong>2,568.52 PB</strong></td>
-                        <td><strong>$537.42</strong></td>
-                        <td>5,137.05 PBc</td>
-                    </tr>
-                    <tr>
-                        <td>4th</td>
-                        <td><strong>$0.32545</strong></td>
-                        <td>&times;5.8584</td>
-                        <td><strong>1,712.35 PB</strong></td>
-                        <td><strong>$557.40</strong></td>
-                        <td>3,424.70 PBc</td>
-                    </tr>
-                    <tr>
-                        <td>5th</td>
-                        <td><strong>$0.50665</strong></td>
-                        <td>&times;9.1174</td>
-                        <td><strong>1,141.57 PB</strong></td>
-                        <td><strong>$578.34</strong></td>
-                        <td>2,283.13 PBc</td>
-                    </tr>
-                </table>
-                <p>
-                    <strong>How Unlocks Work:</strong> Each time PB's price reaches your next 1.5555&times; threshold, 
-                    &frac13; of your remaining locked PBc is settled. The next buyer's USDL pays you directly via 
-                    <strong>convergent netting</strong>, no AMM sell, no slippage on your payout. 
-                    USDL arrives in your wallet automatically. The 6th, 7th, 8th&hellip; triggers continue 
-                    forever with (2/3)&#x207F; decay until &lt;10 Satoshi remains, then the vault sweeps the dust.
-                </p>
-            </div>
+            
 
             <div class="faq-item">
                 <h4>What happens when my tokens unlock?</h4>
                 <p>
-                    Unlocks are settled through <strong>convergent netting</strong> inside each buy transaction. When the next buyer calls <code>buyPBDirect()</code>:
+                    Unlocks are settled through <a href="#hardcore-gas" style="color: var(--primary-color);"><strong>convergent netting</strong></a> inside each buy transaction. When the next buyer calls <code>buyPBDirect()</code>:
                 </p>
                 <ul>
                     <li>Vault scans positions whose trigger price &le; post-buy price (sequential scan, up to 500 per tx)</li>
@@ -661,6 +575,7 @@
                     <li>The buyer's USDL pays you directly, no AMM sell, no slippage on your unlock</li>
                     <li>USDL arrives in your payout address automatically</li>
                 </ul>
+                <p><strong>Settlements are automatic and claimless:</strong> you do not need to submit a transaction or pay gas to receive USDL, proceeds are transferred directly to your payout address when an unlock is settled.</p>
                 <p>
                     <strong>What if a buy is smaller than the unlock?</strong> The vault handles this with a <strong>NET SELL</strong> path: 
                     it reduces to a single unlock (K=1), uses the buyer's USDL for part of the payout, and sells vault PB on the 
@@ -693,7 +608,7 @@
                 </p>
                 <ul>
                     <li><strong>Deepens the pool:</strong> More liquidity = less slippage on every trade (buys and sells)</li>
-                    <li><strong>Distributes excess PB:</strong> The vault starts with millions of excess PB above 1:1 backing, LP contributions gradually move that surplus into the market as real, tradeable liquidity</li>
+                    <li><strong>Distributes excess PB:</strong> The vault starts with millions of excess PB above <a href="#hardcore-backing" style="color: var(--primary-color);">1:1 backing</a>, and LP contributions gradually move that surplus into the market as real, tradeable liquidity</li>
                 </ul>
             </div>
 
@@ -708,7 +623,7 @@
                         If you could buy PB directly on PulseX, you'd skip that split entirely and get 100% liquid PB, 
                         an unfair advantage over everyone who participated through the proper channel.</li>
                     <li><strong>Gas efficiency:</strong> The vault batches up to 500 pending unlocks into a single buyer's transaction 
-                        via convergent netting. Trying to enforce the split, LP contribution, and unlock settlement 
+                        via <a href="#hardcore-gas" style="color: var(--primary-color);">convergent netting</a>. Trying to enforce the split, LP contribution, and unlock settlement 
                         through a raw AMM callback would be extremely gas-heavy and fragile. Routing through <code>buyPBDirect()</code> 
                         keeps the entire flow in one clean, predictable call.</li>
                 </ul>
@@ -729,8 +644,13 @@
             <div class="faq-item">
                 <h4>How much of the vault's supply is locked?</h4>
                 <p>
-                    <strong>~14.1 million PB</strong> (67.15% of total supply) is held by the vault at genesis. 
-                    ~6.9 million PB (32.85%) is allocated through presale. Only 3.69% of all purchases are released immediately; 96.31% remains locked pending unlocks (PBc).
+                    <strong>At genesis, effectively all of it.</strong> The full 21 million PB starts under immutable vault control, not in any human wallet.
+                    No person has a key to a private treasury or team allocation.
+                </p>
+                <p>
+                    As users buy in, only <strong>3.69%</strong> of each allocation becomes immediately liquid.
+                    The other <strong>96.31%</strong> stays locked as PBc until future price checkpoints trigger settlement.
+                    So even after distribution begins, most of the system's supply remains contract-governed rather than freely circulating.
                 </p>
             </div>
 
@@ -747,8 +667,27 @@
                 <p>
                     Completely. All vault operations are on-chain and auditable. You can see every unlock, every swap, 
                     every LP addition in real time using a blockchain explorer.
+                    <span id="vault-explorer-link-wrap" style="display: inline-block; margin-left: 0.35rem;"></span>
                 </p>
             </div>
+            <script>
+                (function () {
+                    const wrap = document.getElementById('vault-explorer-link-wrap');
+                    if (!wrap) return;
+                    try {
+                        const hasMainnet = typeof NETWORKS !== 'undefined' && typeof ADDRESSES_MAINNET !== 'undefined';
+                        const explorer = hasMainnet && NETWORKS.mainnet ? NETWORKS.mainnet.explorer : '';
+                        const vaultAddress = hasMainnet && ADDRESSES_MAINNET ? ADDRESSES_MAINNET.Vault : '';
+
+                        if (explorer && vaultAddress) {
+                            const href = explorer.replace(/\/$/, '') + '/address/' + vaultAddress;
+                            wrap.innerHTML = '<a href="' + href + '" target="_blank" rel="noopener" style="color: var(--primary-color);">View mainnet Vault on explorer</a>';
+                        } else {
+                            wrap.innerHTML = '<span style="color: #aaa;">Mainnet Vault: Pending publication</span>';
+                        }
+                    } catch (e) {}
+                })();
+            </script>
 
             <div class="faq-item">
                 <h4>What if slippage is high when I sell?</h4>
@@ -761,19 +700,17 @@
             <div class="faq-item">
                 <h4>Can I timelock my PBc to force-hold?</h4>
                 <p>
-                    <strong>PBc is already force-held by the contract.</strong> It's non-transferable,  only the vault 
-                    can move PBc, and only during unlocks. You can't sell it, send it, or trade it. There is no additional 
-                    timelock needed because PBc literally cannot leave your wallet until a price checkpoint is reached.
+                    <strong>No.</strong> PB is not a time-lock protocol, it is a <strong>value-lock protocol</strong>.
+                    PBc is already force-held by the contract: it is non-transferable, only the vault can move it, and that only happens when a price checkpoint is reached.
                 </p>
                 <p>
                     One thing to know: <code>executeUnlock()</code> is <strong>permissionless</strong>. Once price hits your trigger, 
-                    <em>anyone</em> can call it,  and during normal buys the vault batches up to 500 unlocks automatically. 
+                    <em>anyone</em> can call it, and during normal buys the vault batches up to 500 unlocks automatically. 
                     You cannot opt out or delay an eligible unlock. When it fires, your PBc is converted to USDL and sent to your 
-                    payout address. This is by design,  the protocol doesn't let you hoard locked positions past their trigger.
+                    payout address. This is by design: the protocol does not let you keep a value-locked position past its trigger.
                 </p>
                 <p>
-                    <strong>But what if you want to re-lock?</strong> You can't, your PBc was sold on the AMM 
-                    and you received USDL. But you <em>can</em> reinvest that USDL into a fresh buy 
+                    <strong>If you want to re-lock later,</strong> you can reinvest that USDL into a fresh buy 
                     (via <code>buyPBDirect()</code>) or VLock any liquid PB you hold to get a new locked position. 
                     See the VLock question below.
                 </p>
@@ -872,7 +809,7 @@
                 <h4>What if I lose my private keys?</h4>
                 <p>
                     If you lose access to your wallet <strong>and</strong> haven't configured recovery or inheritance, 
-                    your PBC's and unlocked PB are permanently inaccessible. 
+                    your PBc and unlocked PB are permanently inaccessible.
                     <strong>Always secure your private keys.</strong>
                 </p>
                 <p>
@@ -925,82 +862,190 @@
         </section>
 
         <section class="faq-section">
-            <h2>Vault Mechanics & Gas</h2>
+            <h2>What Do I Get? - Calculator</h2>
 
-            <div class="faq-item">
+            <div class="faq-item" id="calc-collapse">
+                <h4>Estimate your split and unlock ladder</h4>
+                <div>
+                    <p style="color:#aaa;margin-bottom:1rem">Enter a dollar amount to see the estimated PB split, locked PBc, and unlock ladder. Prices come from the presale entry curve.</p>
+
+                    <div style="display:flex;gap:1rem;flex-wrap:wrap;align-items:end;margin-bottom:1.5rem">
+                        <div style="flex:1;min-width:160px">
+                            <label style="display:block;color:#F39004;font-weight:600;margin-bottom:0.3rem;font-size:0.85rem">Investment (USDL)</label>
+                            <input id="calc-usdl" type="number" min="1" step="any" value="500"
+                                   style="width:100%;padding:0.6rem;background:#1a1a2e;border:1px solid rgba(255,165,0,0.3);color:#fff;border-radius:6px;font-size:1rem"
+                                   oninput="calcUpdate()">
+                        </div>
+                        <div style="flex:1;min-width:160px">
+                            <label style="display:block;color:#F39004;font-weight:600;margin-bottom:0.3rem;font-size:0.85rem">Entry Price (USDL/PB)</label>
+                            <input id="calc-price" type="number" min="0.0001" step="any" value="0.05555"
+                                   style="width:100%;padding:0.6rem;background:#1a1a2e;border:1px solid rgba(255,165,0,0.3);color:#fff;border-radius:6px;font-size:1rem"
+                                   oninput="calcUpdate()">
+                        </div>
+                        <div style="flex:1;min-width:120px">
+                            <label style="display:block;color:#F39004;font-weight:600;margin-bottom:0.3rem;font-size:0.85rem">Tiers to Show</label>
+                            <input id="calc-tiers" type="number" min="1" max="100" step="1" value="13"
+                                   style="width:100%;padding:0.6rem;background:#1a1a2e;border:1px solid rgba(255,165,0,0.3);color:#fff;border-radius:6px;font-size:1rem"
+                                   oninput="calcUpdate()">
+                        </div>
+                        <div style="flex:0 0 auto">
+                            <button onclick="calcReset()" style="padding:0.6rem 1rem;background:transparent;border:1px solid rgba(255,165,0,0.3);color:#F39004;border-radius:6px;cursor:pointer;font-size:0.85rem">Reset</button>
+                        </div>
+                    </div>
+
+                    <div id="calc-summary" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:0.8rem;margin-bottom:1.5rem"></div>
+
+                    <div style="overflow-x:auto">
+                        <table id="calc-table" style="font-size:0.9rem">
+                            <thead>
+                                <tr>
+                                    <th>Tier</th>
+                                    <th>Trigger Price</th>
+                                    <th>Multiplier</th>
+                                    <th>PBc Unlocked</th>
+                                    <th>USDL Payout</th>
+                                    <th>Remaining PBc</th>
+                                </tr>
+                            </thead>
+                            <tbody id="calc-tbody"></tbody>
+                        </table>
+                    </div>
+
+                    <p id="calc-footnote" style="color:#888;font-size:1rem;margin-top:0.8rem;line-height:1.6"></p>
+                </div>
+            </div>
+        </section>
+
+        <script>
+        /* ── Calculator Logic ── */
+        const CALC_MULT   = 1.5555;
+        const CALC_SPLIT  = 0.0369;
+
+        function fmtPB(v) {
+            if (v >= 1)       return v.toFixed(2);
+            if (v >= 0.001)   return v.toFixed(6);
+            if (v >= 1e-8)    return v.toFixed(10);
+            if (v >= 1e-14)   return v.toFixed(16);
+            return v.toExponential(4);
+        }
+
+        function calcUpdate() {
+            const usdl  = parseFloat(document.getElementById('calc-usdl').value) || 0;
+            const price = parseFloat(document.getElementById('calc-price').value) || 0;
+            const tiers = Math.max(1, Math.min(100, parseInt(document.getElementById('calc-tiers').value) || 13));
+            if (usdl <= 0 || price <= 0) return;
+
+            const totalPB  = usdl / price;
+            const liquidPB = totalPB * CALC_SPLIT;
+            const lockedPBc = totalPB - liquidPB;
+
+            const summary = document.getElementById('calc-summary');
+            summary.innerHTML = [
+                ['Total PB', fmtPB(totalPB)],
+                ['Liquid PB (3.69%)', fmtPB(liquidPB)],
+                ['Locked PBc (96.31%)', fmtPB(lockedPBc)],
+            ].map(([label, val]) =>
+                `<div style="background:rgba(255,165,0,0.06);border:1px solid rgba(255,165,0,0.15);border-radius:8px;padding:0.7rem 1rem">
+                    <div style="color:#888;font-size:0.75rem">${label}</div>
+                    <div style="color:#F39004;font-size:1.15rem;font-weight:700">${val}</div>
+                </div>`
+            ).join('');
+
+            const tbody = document.getElementById('calc-tbody');
+            tbody.innerHTML = '';
+            let remaining = lockedPBc;
+            let cumPayout = 0;
+            let lastTrigger = 0;
+
+            for (let t = 1; t <= tiers; t++) {
+                const trigger = price * Math.pow(CALC_MULT, t);
+                const mult    = Math.pow(CALC_MULT, t);
+                const unlock  = remaining / 3;
+                const payout  = unlock * trigger;
+                remaining    -= unlock;
+                cumPayout    += payout;
+                lastTrigger   = trigger;
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="color:#F39004;font-weight:600">${t}</td>
+                    <td>$${trigger < 1 ? trigger.toFixed(5) : trigger < 100 ? trigger.toFixed(4) : trigger.toFixed(2)}</td>
+                    <td>&times;${mult.toFixed(2)}</td>
+                    <td>${fmtPB(unlock)} PB</td>
+                    <td style="color:#4CAF50;font-weight:600">$${payout.toFixed(2)}</td>
+                    <td>${fmtPB(remaining)} PBc</td>
+                `;
+                tbody.appendChild(tr);
+            }
+
+            const totalUnlocked = lockedPBc - remaining;
+            const trTotal = document.createElement('tr');
+            trTotal.className = 'total-row';
+            trTotal.innerHTML = `
+                <td colspan="3" style="color:#F39004;font-weight:700;text-align:right">Totals through Tier ${tiers}:</td>
+                <td style="font-weight:700">${fmtPB(totalUnlocked)} PB</td>
+                <td style="color:#4CAF50;font-weight:700">$${cumPayout.toFixed(2)}</td>
+                <td>${fmtPB(remaining)} PBc</td>
+            `;
+            tbody.appendChild(trTotal);
+
+            const pctUnlocked = ((totalUnlocked / lockedPBc) * 100).toFixed(1);
+            const liquidVal   = liquidPB * lastTrigger;
+            const remainVal   = remaining * lastTrigger;
+            const totalValue  = cumPayout + liquidVal + remainVal;
+            document.getElementById('calc-footnote').innerHTML =
+                `After ${tiers} tiers: <strong>${pctUnlocked}%</strong> of your PBc unlocked for <strong>$${cumPayout.toFixed(2)}</strong> in USDL payouts. <br>` +
+                `Remaining <strong>${fmtPB(remaining)} PBc</strong> continues unlocking forever (&frac13; per tier, &times;1.5555 each).<br>` +
+                ` Entry: $${usdl.toFixed(2)} invested &rarr; ${(cumPayout / usdl).toFixed(1)}&times; returned so far, plus ${fmtPB(liquidPB)} liquid PB you still hold` +
+                ` (worth <strong>$${liquidVal.toFixed(2)}</strong> at tier ${tiers} price of $${lastTrigger < 1 ? lastTrigger.toFixed(5) : lastTrigger.toFixed(2)})` +
+                ` + remaining PBc worth <strong>$${remainVal.toFixed(2)}</strong>.<br>` +
+                `<span style="color:#F39004;font-weight:700;font-size:1.1em">Total Value: <span style="color:#4CAF50">$${totalValue.toFixed(2)}</span></span>` +
+                ` (payouts $${cumPayout.toFixed(2)} + liquid PB $${liquidVal.toFixed(2)} + remaining PBc $${remainVal.toFixed(2)})` +
+                ` ; <strong>${(totalValue / usdl).toFixed(1)}&times;</strong> on $${usdl.toFixed(2)} invested.`;
+        }
+
+        function calcReset() {
+            document.getElementById('calc-usdl').value  = '555.5';
+            document.getElementById('calc-price').value = '0.0369';
+            document.getElementById('calc-tiers').value = '13';
+            calcUpdate();
+        }
+
+        calcUpdate();
+        </script>
+
+        <section class="faq-section">
+            <h2>Technical Details &amp; Integration</h2>
+
+            <div class="faq-item" id="hardcore-backing">
                 <h4>How does the vault ensure 1:1 backing for all PBc tokens?</h4>
                 <p>
-                    The vault maintains <strong>exact 1:1 collateralization</strong> through precise accounting. Let's trace through the complete lifecycle:
+                    The core rule is simple: <strong>outstanding PBc can never exceed the PB held by the vault.</strong>
+                    In other words, the backing condition is always <code>vaultPBBalance &ge; totalOutstandingPBc</code>.
                 </p>
-                
-                <p><strong>Genesis State (After Phase 3):</strong></p>
                 <ul>
-                    <li>Vault starts with: <strong>21M PB + 21M PBc</strong></li>
+                    <li><strong>Outstanding PBc</strong> is the vault's backing obligation</li>
+                    <li><strong>Vault PB</strong> is the asset pool that backs that obligation</li>
+                    <li><strong>Excess PB</strong> is only the amount above 1:1 backing</li>
+                    <li>Only <strong>excess PB</strong> can be used for LP contribution or distribution logic</li>
+                    <li><strong>Backing PB is never used</strong> for LP or other optional flows</li>
                 </ul>
-
-                <p><strong>After Presale Allocation (555 blocks, variable PB per block):</strong></p>
-                <ul>
-                    <li>~6,898,026 PB allocated (3.69% liquid + 96.31% as PBc)</li>
-                    <li>Vault PB remaining: <strong>20,745,463 PB</strong></li>
-                    <li>Vault PBc remaining: <strong>14,356,511 PBc</strong></li>
-                    <li>Outstanding PBc (held by users): <strong>6,643,489 PBc</strong></li>
-                    <li><strong>Excess PB:</strong> 20,745,463 &minus; 6,643,489 = <strong>14,101,974 PB</strong> &#x2705;</li>
-                </ul>
-
-                <p><strong>After Initial LP Seed (presale USDL at 0.05555):</strong></p>
-                <ul>
-                    <li>Presale USDL paired with vault PB at launch price</li>
-                    <li>Vault PB decreases by the PB contributed to LP</li>
-                    <li>Outstanding PBc unchanged</li>
-                    <li><strong>Excess PB reduced</strong> by the amount added to LP &#x2705;</li>
-                </ul>
-
-                <p><strong>When Someone Buys PB (example: 1,000 USDL via <code>buyPBDirect</code>):</strong></p>
-                <ul>
-                    <li>Buyer sends 1,000 USDL to the vault</li>
-                    <li>Vault scans the min-heap, finds 3 eligible unlocks worth 400 USDL total</li>
-                    <li><strong>Convergent netting:</strong> 400 USDL paid directly to those unlock holders, vault keeps their PB (burns PBc)</li>
-                    <li>Buyer credited with nettedPBc (the PB freed from those settled positions)</li>
-                    <li>Net USDL = 1,000 &minus; 400 = <strong>600 USDL</strong> remaining</li>
-                    <li>36.9% of 600 = 221.4 USDL paired with vault excess PB &rarr; LP</li>
-                    <li>Buyer compensated with equal PB (compensationPB)</li>
-                    <li>63.1% of 600 = 378.6 USDL &rarr; AMM buy &rarr; ammPB</li>
-                    <li>Total PB = nettedPBc + compensationPB + ammPB</li>
-                    <li>Split: <strong>3.69% liquid PB</strong> + <strong>96.31% locked PBc</strong> (new PBt minted)</li>
-                    <li><strong>Excess unchanged!</strong> Netting is neutral, vault keeps PB it already held</li>
-                </ul>
-
-                <p><strong>The 36.9% LP Rule (during distribution phase):</strong></p>
-                <ul>
-                    <li>36.9% of <strong>net USDL</strong> (after netting) is paired with vault <strong>excess PB</strong> &rarr; addLiquidity</li>
-                    <li>Vault needs 2&times; the PB: 1&times; for the LP pool, 1&times; as buyer compensation</li>
-                    <li>If excess &lt; 2&times; needed, LP contribution is capped proportionally</li>
-                    <li>Only excess PB is used, <strong>backing PB is never touched</strong></li>
-                    <li>The remaining 63.1% of net USDL goes to AMM buy, pushing price up</li>
-                    <li><strong>Backing still 1:1!</strong> Vault PB always &ge; Outstanding PBc</li>
-                </ul>
-
-                <p><strong>Distribution Phase Ends When:</strong></p>
-                <ul>
-                    <li>Formula: <code>vaultPBBalance &le; totalOutstandingPBc</code></li>
-                    <li>Meaning: <strong>Excess = 0</strong> (no more surplus to add to LP)</li>
-                    <li>System reaches <strong>minimum 1:1 collateralization</strong></li>
-                    <li>Phase transitions to <strong>Final Phase</strong> (no more LP contributions)</li>
-                </ul>
-
                 <p>
-                    <strong>Safety Check:</strong> Before every 36.9% LP contribution, the vault verifies 
-                    <code>vaultPBBalance > totalOutstandingPBc</code>. If not, the LP contribution is skipped. 
-                    This ensures the vault <strong>never</strong> becomes undercollateralized, all PBc tokens 
-                    remain 1:1 redeemable at all times.
+                    During the distribution phase, LP additions only happen if there is still PB above the backing line.
+                    If excess PB falls to zero, LP contributions stop automatically and the system remains at minimum 1:1 collateralization.
+                </p>
+                <p>
+                    So the backing logic does not depend on presale math or a specific launch scenario. It depends on one invariant enforced by the vault:
+                    <strong>PBc outstanding can never be greater than PB held in reserve.</strong>
                 </p>
             </div>
 
-            <div class="faq-item">
+            <div class="faq-item" id="hardcore-gas">
                 <h4>Who pays for the gas when automatic unlocks happen?</h4>
                 <p>
-                    PB uses <strong>convergent netting</strong>, every call to <code>buyPBDirect()</code> automatically settles
-                    eligible unlocks for other users. The buyer pays the gas for the entire transaction.
+                    PB uses <strong>convergent netting</strong>, so every call to <code>buyPBDirect()</code> automatically settles
+                    eligible unlocks for other users. The buyer pays the gas for the entire transaction. The easiest way to think about it is
+                    <strong>Pay It Forward</strong>: your buy settles older unlocks, and future buys later settle yours.
                 </p>
 
                 <p><strong>The Gas Flow:</strong></p>
@@ -1009,7 +1054,7 @@
                     <li>The vault scans up to <strong>500 positions</strong> (MAX_UNLOCK_PER_BUY) sequentially to find eligible unlocks at current price</li>
                     <li>Convergent netting settles them internally: buyer's USDL pays holders directly, no AMM sell needed</li>
                     <li><strong>You (the buyer) pay the gas</strong> for the netting + LP + AMM buy in one transaction</li>
-                    <li><strong>Pay It Forward:</strong> Your buy just settled someone else's unlock. When YOUR tokens unlock later, a future buyer's transaction settles them, and they pay that gas. Everyone pays it forward.</li>
+                    <li><strong>Pay It Forward:</strong> Your buy just settled someone else's unlock. When your tokens unlock later, a future buyer's transaction settles them, and they pay that gas. Everyone pays it forward.</li>
                     <li><strong>Small buy?</strong> If buyer USDL &lt; unlock USDL, the vault does a <strong>NET SELL</strong> (max 1 position): buyer's USDL covers part, vault sells PB on AMM for the rest</li>
                     <li><strong>Final fallback:</strong> Anyone can call <code>executeUnlock(pbtId)</code> permissionlessly to force-settle via AMM sell</li>
                 </ul>
@@ -1071,20 +1116,14 @@
                 </p>
             </div>
 
-        </section>
-
-        <section class="faq-section">
-            <h2>Technical Questions</h2>
-
             <div class="faq-item">
-                <h4>What standard are PBC's built on?</h4>
+                <h4>What standard is PBc built on?</h4>
                 <p>
-                    PBC's are ERC-20 non-transferable tokens. Each PBc is tied to your wallet and entry price, allowing precise tracking 
-                    of unlock checkpoints and redemption logic.
+                    PBc is a non-transferable ERC-20 token. Each PBc balance is tied to your wallet and tracked alongside PBt entry prices, allowing precise checkpoint and redemption logic.
                 </p>
             </div>
 
-            <div class="faq-item">
+            <div class="faq-item" id="hardcore-price">
                 <h4>How is price determined for checkpoints?</h4>
                 <p>
                     Price is derived from the on-chain AMM spot price of the PB/USDL canonical pair via <code>getReserves()</code>. 
@@ -1093,89 +1132,58 @@
                 </p>
             </div>
 
-            <div class="faq-item">
+            <div class="faq-item" id="hardcore-manipulation">
                 <h4>How does PB protect against price manipulation?</h4>
                 <p>
-                    The protocol's <strong>96.31% lock ratio</strong> makes multiple attack vectors economically impossible.
-                    Every buy, regardless of size, goes through the same <code>buyPBDirect()</code> rules:
-                    convergent netting, 3.69% liquid / 96.31% locked split, and LP contribution. There are no special
-                    tiers, no buy caps, and no whale lists. Everyone plays by the same rules.
-                </p>
-
-                <p><strong>&#x1F6E1;&#xFE0F; Front-Running &amp; Sandwich Attack Protection:</strong></p>
-                <ul>
-                    <li><strong>Traditional attack:</strong> Attacker sees victim's pending buy, front-runs with own buy, victim pays inflated price, attacker sells everything for profit</li>
-                    <li><strong>Why it fails in PB:</strong> When attacker buys, only 3.69% is "liquid PB” the other 96.31% is locked as PBc</li>
-                    <li><strong>Attack breakdown:</strong>
-                        <ul>
-                            <li>Victim plans to buy $100K of PB</li>
-                            <li>Attacker front-runs with $200K buy to pump price</li>
-                            <li>Attacker receives only $7,380 liquid (3.69%)</li>
-                            <li>Attacker has $192,620 locked as PBc (96.31%)</li>
-                            <li>Can't sell enough to profit””capital is stuck until unlocks trigger</li>
-                            <li><strong>Result: Attack loses money &#x274C;</strong></li>
-                        </ul>
-                    </li>
-                </ul>
-
-                <p><strong>&#x1F4CA; Price Pump / TWAP Manipulation:</strong></p>
-                <ul>
-                    <li><strong>Traditional attack:</strong> Pump price with large buys, then dump for profit</li>
-                    <li><strong>What happens in PB:</strong> The price pump is <em>real</em>, the AMM reserves shift and price stays elevated. But the attacker is <strong>locked in</strong>:</li>
-                    <li><strong>Attack breakdown:</strong>
-                        <ul>
-                            <li>Buy #1: $100K invested &rarr; only $3,690 liquid (3.69%)</li>
-                            <li>Buy #2: Another $100K &rarr; only $3,690 more liquid</li>
-                            <li>Buy #3: Another $100K &rarr; only $3,690 more liquid</li>
-                            <li>Total: $300K invested, only $11,070 can be sold immediately</li>
-                            <li>Remaining: $288,930 locked as PBc, unlocks only at price checkpoints, just like everyone else</li>
-                            <li><strong>Result: Price stays up, but the attacker can't dump, they're locked in &#x274C;</strong></li>
-                        </ul>
-                    </li>
-                </ul>
-
-                <p><strong>&#x1F512; The Core Security Mechanism:</strong></p>
-                <p>
-                    The <strong>96.31% lock ratio</strong> is PB's security superpower. It prevents:
+                    PB's main defense is the <strong>96.31% lock ratio</strong>. Any attacker trying to move price with a large buy gets only 3.69% liquid PB immediately, while the other 96.31% is locked as PBc under the same rules as everyone else.
                 </p>
                 <ul>
-                    <li>&#x2705; Front-running attacks (can't profit with only 3.69% liquid)</li>
-                    <li>&#x2705; Sandwich attacks (same mechanics as front-running)</li>
-                    <li>&#x2705; Pump-and-dump (price pumps are real but attacker is locked in, can't dump)</li>
-                    <li>&#x2705; Flash loan exploits (all attacks require sustained capital that gets locked)</li>
+                    <li><strong>Front-running / sandwich attacks:</strong> an attacker can push price, but they cannot get enough immediately liquid PB to perform a normal fast exit.</li>
+                    <li><strong>Pump-and-dump attempts:</strong> price can move up, but most of the attacker's position remains locked and cannot be dumped immediately.</li>
+                    <li><strong>Flash-loan style attacks:</strong> they require temporary capital, but PB forces that capital into a mostly locked position instead of a quick round-trip trade.</li>
                 </ul>
-
-                <p><strong>&#x1F4A1; Key Insight:</strong></p>
                 <p>
-                    All price manipulation attacks require the attacker to buy large amounts of PB. But every buy locks 96.31% 
-                    as PBc, making it impossible to liquidate enough tokens to profit. The attacker's own capital becomes trapped 
-                    in the protocol, waiting for price thresholds to trigger unlocks just like everyone else.
+                    Example: a $300K attacker buy would leave only about $11,070 immediately liquid and about $288,930 locked as PBc. That does not stop price from moving, but it does break the normal short-term extraction path.
                 </p>
-
-                <p><strong>&#x1F4C8; Initial Liquidity Protection:</strong></p>
                 <p>
-                    With the presale-funded LP pool, even attempting to manipulate TWAP would require hundreds of thousands 
-                    of dollars, and 96.31% of that capital would be immediately locked, making the attack unprofitable.
+                    The key point is simple: attacking PB with buy-side capital means voluntarily locking most of your own capital inside the protocol.
                 </p>
             </div>
 
             <div class="faq-item">
-                <h4>Can I integrate PB into my DeFi app?</h4>
+                <h4>Can I integrate PB into my own app, bot, or frontend?</h4>
                 <p>
-                    Yes! PB is a standard ERC-20 token (with custom unlock logic). Once deployed, the contract address and ABI 
-                    will be public. You can integrate freely.
+                    Yes. PB can be integrated into wallets, dashboards, bots, portfolio tools, and custom frontends.
+                    Once deployed, the contract address and ABI will be public.
+                </p>
+                <p>
+                    The key rule is that <strong>buys must still route through <code>buyPBDirect()</code></strong> on the Vault.
+                    That is where the protocol enforces the PB / PBc split, unlock settlement, LP contribution, and netting logic.
+                    Your app can change the user experience, but it must not bypass the vault buy path.
+                </p>
+                <p>
+                    In practice:
+                </p>
+                <ul>
+                    <li><strong>Buying PB:</strong> use <code>buyPBDirect()</code></li>
+                    <li><strong>Selling liquid PB:</strong> direct AMM / DEX sells are fine</li>
+                    <li><strong>Portfolio views:</strong> read PB, PBc, and PBt state directly or through an indexer</li>
+                </ul>
+                <p>
+                    So yes, custom integrations are fully compatible with the protocol, as long as the buy path respects the vault rules.
                 </p>
             </div>
 
             <div class="faq-item">
                 <h4>Is the source code open?</h4>
                 <p>
-                    All contracts are verified on PulseChain Scan. Source code is publicly readable and auditable by anyone.
+                    Yes. After mainnet launch, the contracts will be publicly readable and auditable by anyone.
+                    They will be visible on PulseChain Scan and available for independent review.
                 </p>
             </div>
         </section>
 
-        <section class="faq-section">
+        <section class="faq-section" id="investment-strategy">
             <h2>Investment & Strategy</h2>
 
             <div class="faq-item">
@@ -1189,9 +1197,19 @@
             <div class="faq-item">
                 <h4>What's a good strategy for large buyers?</h4>
                 <p>
-                    Spread purchases across multiple early blocks to lower average entry price. This staggers your unlocks 
-                    and reduces slippage risk. Large single buys trigger extreme AMM slippage, so splitting into smaller buys 
-                    gives a better average entry price. Or make a Ladder.
+                    The main reason to split any larger allocation is to build a <strong>ladder</strong> instead of relying on one single entry.
+                </p>
+                <p>
+                    A ladder matters because separate entries create separate unlock profiles. Instead of concentrating everything into one line item, you create a more flexible payout structure over time.
+                    In practice, a ladder lets you combine:
+                </p>
+                <ul>
+                    <li><strong>Lower-trigger blocks:</strong> earlier unlocks and earlier USDL realization</li>
+                    <li><strong>Higher-trigger blocks:</strong> later unlocks and more exposure to bigger upside moves</li>
+                    <li><strong>Less concentration risk:</strong> you are not relying on one single entry price for your whole bag</li>
+                </ul>
+                <p>
+                    The strongest reason to do this is not cosmetic, it is structural: laddering gives you staggered checkpoints, staggered unlocks, and less dependence on one exact entry level.
                 </p>
             </div>
 
@@ -1207,7 +1225,7 @@
             </div>
 
             <div class="faq-item">
-                <h4>Is Perpetual Bitcoin designed with a DCA out?</h4>
+                <h4>Is Perpetual Bitcoin designed as a DCA out?</h4>
                 <p>
                     <strong>Yes, but automated, on-chain, and you never have to decide when to sell.</strong>
                 </p>
@@ -1222,9 +1240,9 @@
                 <ul>
                     <li>Every 55.55% price increase (&times;1.5555), &frac13; of your remaining locked PBc is automatically settled</li>
                     <li>You receive USDL directly, no AMM sell, no slippage on your payout</li>
-                    <li>It happens <strong>without you doing anything, No need to pay a gas fee</strong>, the next buyer's transaction settles it</li>
-                    <li>The remaining &frac23; stays locked, compounding into higher-value unlocks as price climbs</li>
-                    <li>This continues <strong>forever</strong>, there is no end date. Each unlock pays more USDL than the last</li>
+                    <li>It happens <strong>without you doing anything and without you paying the gas</strong>, the next buyer's transaction settles it</li>
+                    <li>The remaining &frac23; stays locked and continues following the same price-triggered rules</li>
+                    <li>This continues <strong>forever</strong>, there is no end date</li>
                 </ul>
                 <p>
                     The key difference: traditional DCA out reduces your position and you're done. PB's unlock decay 
@@ -1232,9 +1250,53 @@
                     fully out. You take profits at every milestone while your remaining position keeps growing in value.
                 </p>
                 <p>
-                    Think of it as <strong>perpetual profit-taking with enforced diamond hands</strong>. The protocol 
-                    does the selling for you, at mathematically optimal intervals, and you can't second-guess it.
+                    Think of it as <strong>rule-based, perpetual profit-taking with enforced diamond hands</strong>. The protocol 
+                    handles the sell-side settlement for you at predefined price checkpoints, so emotion and timing discretion are removed.
                 </p>
+            </div>
+        </section>
+
+        <section class="faq-section" id="official-addresses">
+            <h2>Official Contract Addresses</h2>
+            <div class="faq-item">
+                <h4>Where can I verify the official PB contracts?</h4>
+                <p>
+                    Use the cards below to click any published address to copy it, open it on the official block explorer,
+                    add the correct PulseChain network to MetaMask, and import PB or PBc directly into your wallet.
+                </p>
+                <div class="address-panels">
+                    <div class="address-panel">
+                        <div class="address-panel-header">
+                            <div>
+                                <h5>PulseChain Mainnet</h5>
+                                <p>Chain ID 369 • Production network</p>
+                            </div>
+                            <div class="address-panel-actions">
+                                <button type="button" class="address-btn secondary" onclick="addNetworkToWallet('mainnet')">Add Network</button>
+                                <a class="address-btn secondary" href="https://scan.pulsechain.com" target="_blank" rel="noopener noreferrer">Open Explorer</a>
+                            </div>
+                        </div>
+                        <div id="mainnet-address-list" class="address-list"></div>
+                        <div id="mainnet-address-status" class="address-status"></div>
+                        <p class="address-note">Only published addresses are shown as copyable. Empty slots remain clearly marked until the deployment is finalized and verified.</p>
+                    </div>
+
+                    <div class="address-panel">
+                        <div class="address-panel-header">
+                            <div>
+                                <h5>PulseChain Testnet v4</h5>
+                                <p>Chain ID 943 • Public testing network</p>
+                            </div>
+                            <div class="address-panel-actions">
+                                <button type="button" class="address-btn secondary" onclick="addNetworkToWallet('testnet')">Add Network</button>
+                                <a class="address-btn secondary" href="https://scan.v4.testnet.pulsechain.com" target="_blank" rel="noopener noreferrer">Open Explorer</a>
+                            </div>
+                        </div>
+                        <div id="testnet-address-list" class="address-list"></div>
+                        <div id="testnet-address-status" class="address-status"></div>
+                        <p class="address-note">These values come from the live site config used by the test dapp and are intended for wallet import, explorer verification, and manual contract interaction.</p>
+                    </div>
+                </div>
             </div>
         </section>
 
@@ -1260,6 +1322,174 @@
     </footer>
 
     <script>
+        const ADDRESS_ORDER = [
+            'PRESALE_IOU',
+            'USDL',
+            'PB',
+            'PBc',
+            'PBt',
+            'PBr',
+            'PBi',
+            'Vault',
+            'PB_USDL_PAIR'
+        ];
+
+        const ADDRESS_LABELS = {
+            PRESALE_IOU: 'Presale IOU NFT',
+            USDL: 'USDL',
+            PB: 'PB',
+            PBc: 'PBc',
+            PBt: 'PBt',
+            PBr: 'PBr',
+            PBi: 'PBi',
+            Vault: 'Vault',
+            LaunchConverter: 'LaunchConverter',
+            PulseXInterface: 'PulseXInterface',
+            PB_USDL_PAIR: 'PB / USDL Pair',
+            PULSEX_ROUTER: 'PulseX Router',
+            PULSEX_FACTORY: 'PulseX Factory'
+        };
+
+        const TOKEN_METADATA = {
+            PB: { symbol: 'PB', decimals: 18 },
+            PBc: { symbol: 'PBc', decimals: 18 },
+            USDL: { symbol: 'USDL', decimals: 18, testnetLabel: 'FakeUSDL', testnetSymbol: 'FakeUSDL' }
+        };
+
+        function getAddressLabel(key, networkKey) {
+            if (key === 'USDL' && networkKey === 'testnet') {
+                return 'FakeUSDL';
+            }
+            return ADDRESS_LABELS[key] || key;
+        }
+
+        function getFoxIconSvg() {
+            return '🦊';
+        }
+
+        function setAddressStatus(networkKey, message, isError = false) {
+            const status = document.getElementById(`${networkKey}-address-status`);
+            if (!status) return;
+            status.textContent = message;
+            status.style.color = isError ? '#ff7a7a' : '#F39004';
+        }
+
+        async function copyAddress(address, networkKey, label) {
+            try {
+                if (navigator.clipboard && window.isSecureContext) {
+                    await navigator.clipboard.writeText(address);
+                } else {
+                    const textArea = document.createElement('textarea');
+                    textArea.value = address;
+                    textArea.style.position = 'fixed';
+                    textArea.style.left = '-9999px';
+                    document.body.appendChild(textArea);
+                    textArea.focus();
+                    textArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                }
+                setAddressStatus(networkKey, `${label} copied.`);
+            } catch (error) {
+                setAddressStatus(networkKey, `Copy failed for ${label}.`, true);
+            }
+        }
+
+        async function addNetworkToWallet(networkKey) {
+            if (!window.ethereum) {
+                setAddressStatus(networkKey, 'MetaMask is not available in this browser.', true);
+                return;
+            }
+
+            const network = NETWORKS[networkKey];
+            try {
+                await window.ethereum.request({
+                    method: 'wallet_addEthereumChain',
+                    params: [{
+                        chainId: `0x${network.chainId.toString(16)}`,
+                        chainName: network.name,
+                        nativeCurrency: {
+                            name: 'Pulse',
+                            symbol: 'PLS',
+                            decimals: 18
+                        },
+                        rpcUrls: [network.rpc],
+                        blockExplorerUrls: [network.explorer]
+                    }]
+                });
+                setAddressStatus(networkKey, `${network.name} added to MetaMask.`);
+            } catch (error) {
+                setAddressStatus(networkKey, error?.message || `Could not add ${network.name}.`, true);
+            }
+        }
+
+        async function addTokenToWallet(networkKey, tokenKey) {
+            if (!window.ethereum) {
+                setAddressStatus(networkKey, 'MetaMask is not available in this browser.', true);
+                return;
+            }
+
+            const addressBook = networkKey === 'mainnet' ? ADDRESSES_MAINNET : ADDRESSES_TESTNET;
+            const tokenAddress = addressBook[tokenKey];
+            const token = TOKEN_METADATA[tokenKey];
+
+            if (!tokenAddress || !token) {
+                setAddressStatus(networkKey, `${tokenKey} is not published for this network yet.`, true);
+                return;
+            }
+
+            const tokenName = networkKey === 'testnet' && token.testnetLabel ? token.testnetLabel : token.symbol;
+            const tokenSymbol = networkKey === 'testnet' && token.testnetSymbol ? token.testnetSymbol : token.symbol;
+
+            try {
+                await window.ethereum.request({
+                    method: 'wallet_watchAsset',
+                    params: {
+                        type: 'ERC20',
+                        options: {
+                            address: tokenAddress,
+                            symbol: tokenSymbol,
+                            decimals: token.decimals
+                        }
+                    }
+                });
+                setAddressStatus(networkKey, `${tokenName} import request sent to MetaMask.`);
+            } catch (error) {
+                setAddressStatus(networkKey, error?.message || `Could not import ${tokenName}.`, true);
+            }
+        }
+
+        function renderAddressPanel(networkKey, containerId, addresses) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+
+            container.innerHTML = ADDRESS_ORDER.map((key) => {
+                const label = getAddressLabel(key, networkKey);
+                const value = addresses[key];
+                const hasAddress = Boolean(value);
+                const safeLabel = label.replace(/'/g, '&#39;').replace(/"/g, '&quot;');
+                const foxAction = hasAddress && TOKEN_METADATA[key]
+                    ? `<button type="button" class="fox-icon-btn" onclick="addTokenToWallet('${networkKey}', '${key}')" title="Add ${safeLabel} to MetaMask" aria-label="Add ${safeLabel} to MetaMask">${getFoxIconSvg()}</button>`
+                    : '';
+
+                return `
+                    <div class="address-row">
+                        <div class="address-row-header">
+                            <div class="address-name">${label}</div>
+                            <div class="address-state">${hasAddress ? 'LIVE' : 'SOON'}</div>
+                        </div>
+                        <div class="address-value-wrap">
+                            <div class="address-value${hasAddress ? ' copyable' : ' unpublished'}"${hasAddress ? ` onclick="copyAddress('${value}', '${networkKey}', '${safeLabel}')" title="Click to copy ${safeLabel}"` : ''}>${hasAddress ? value : 'Pending publication'}</div>
+                            ${foxAction}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        renderAddressPanel('mainnet', 'mainnet-address-list', ADDRESSES_MAINNET);
+        renderAddressPanel('testnet', 'testnet-address-list', ADDRESSES_TESTNET);
+
         // Build accordion: wrap all content after h4 into .faq-answer > .faq-answer-inner
         document.querySelectorAll('.faq-item').forEach((item, idx) => {
             const h4 = item.querySelector('h4');

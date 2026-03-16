@@ -26,6 +26,7 @@
     <script src="https://unpkg.com/lightweight-charts@4.1.1/dist/lightweight-charts.standalone.production.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/ethers@6/dist/ethers.umd.js"></script>
     <script src="config.js"></script>
+    <script src="disclaimer.js"></script>
     <script defer src="ticker.js"></script>
 
         <!-- Google tag (gtag.js) -->
@@ -52,12 +53,9 @@
                 <li><a href="PBManifesto.html" class="nav-link">PB Manifesto</a></li>
                 <li><a href="presale-dapp.html" class="nav-link">Presale 🎉</a></li>
                 <li><a href="testDapp.html" class="nav-link" style="color: #F39004; font-weight:600;">✨ Full testDapp</a></li>
+                <li><a href="portfolio.html" class="nav-link">Portfolio</a></li>
             </ul>
             <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">
-                <select id="network-toggle" style="padding: 3px 6px; font-size: 0.7rem; background: #1a1a1a; color: #F39004; border: 1px solid #F39004; border-radius: 4px; cursor: pointer;">
-                    <option value="943">🧪 Testnet 943</option>
-                    <option value="369">🔴 Mainnet 369</option>
-                </select>
                 <button class="btn btn-primary" id="nav-connect-btn" style="padding: 4px 10px; font-size: 0.8rem; white-space: nowrap;">Connect</button>
                 <label style="font-size:0.75rem;color:#999;font-family:monospace;white-space:nowrap">Vault: <span id="nav-vault-addr">-</span></label>
             </div>
@@ -68,6 +66,15 @@
         <h1><br>⚡ Phase A TESTNET Dapp </h1>
         <p>Trade, manage positions, perpetual unlocks, and earn LP rewards. ONE PROTOCOL. FOREVER.<br><span style="font-weight: 700; font-size: 1.1rem; color: #ddd;">TIP: CREATE A VIRGIN <a href="https://www.okx.com/en-us/download?pageSource=nav" target="_blank" style="color: #ddd; text-decoration: underline; cursor: pointer;">WALLET</a>, and SEED that <a href="https://www.okx.com/en-us/download?pageSource=nav" target="_blank" style="color: #ddd; text-decoration: underline; cursor: pointer;">wallet</a> to interact with the presale.</span></p>
         <p style="color: #F39004; font-weight: 600; margin-top: 10px;">🧪 TESTNET ONLY - USE tPLS faucet to get gas - use USDL faucet to interact</p>
+        <div style="margin-top:12px;display:inline-flex;align-items:center;gap:10px;background:rgba(0,0,0,0.3);padding:6px 16px;border-radius:20px;">
+            <span id="label-testnet-hero" style="font-size:0.85rem;font-weight:700;color:#F39004;">Testnet 943</span>
+            <label style="position:relative;display:inline-block;width:48px;height:26px;cursor:pointer;">
+                <input type="checkbox" id="network-toggle-hero" style="opacity:0;width:0;height:0;">
+                <span style="position:absolute;inset:0;background:#555;border-radius:26px;transition:0.3s;"></span>
+                <span id="toggle-knob-hero" style="position:absolute;left:3px;top:3px;width:20px;height:20px;background:#fff;border-radius:50%;transition:0.3s;"></span>
+            </label>
+            <span id="label-mainnet-hero" style="font-size:0.85rem;font-weight:700;color:#666;">Mainnet 369</span>
+        </div>
     </div>
 
     <div class="dapp-container">
@@ -167,6 +174,11 @@
                             <div style="font-size: 0.8rem; color: #aaa;">(<span id="quote-liquid" style="color: #4CAF50;">-</span> + <span id="quote-locked" style="color: #ff9800;">-</span>)</div>
                         </div>
                     </div>
+                    <div style="display:flex; gap:5px; margin-top:7px;">
+                        <button class="btn" id="buy-33" style="padding: 1px 6px; font-size: 0.66rem; min-height: 18px; line-height: 1;">33%</button>
+                        <button class="btn" id="buy-66" style="padding: 1px 6px; font-size: 0.66rem; min-height: 18px; line-height: 1;">66%</button>
+                        <button class="btn" id="buy-100" style="padding: 1px 6px; font-size: 0.66rem; min-height: 18px; line-height: 1;">100%</button>
+                    </div>
                 </div>
 
                 <div style="margin-top: 12px; padding: 8px; background: rgba(156, 39, 176, 0.05); border-radius: 4px; border: 1px solid rgba(156, 39, 176, 0.15);">
@@ -197,6 +209,11 @@
                             <div style="font-size: 0.8rem; color: #aaa;">You get:</div>
                             <div id="quote-usdl" style="font-size: 1.1rem; font-weight: bold; color: #FFD700;">-</div>
                         </div>
+                    </div>
+                    <div style="display:flex; gap:6px; margin-top:8px;">
+                        <button class="btn" id="sell-33" style="padding: 1px 6px; font-size: 0.66rem; min-height: 18px; line-height: 1;">33%</button>
+                        <button class="btn" id="sell-66" style="padding: 1px 6px; font-size: 0.66rem; min-height: 18px; line-height: 1;">66%</button>
+                        <button class="btn" id="sell-100" style="padding: 1px 6px; font-size: 0.66rem; min-height: 18px; line-height: 1;">100%</button>
                     </div>
                 </div>
                 <button class="btn btn-primary" id="btn-sell" style="width: 100%; margin-top: 20px; padding: 12px;">Execute Sell</button>
@@ -501,6 +518,7 @@
         let chartType = 'candle';
         let currentTimeframeMin = 5;  // Default 5-minute candles
         let tickHistory = [];  // Raw price ticks: [{time, price}]
+        let latestTusdlBalance = 0;
 
         // Load tick history: fetch from DB first, then merge any localStorage ticks
         async function loadPriceHistory() {
@@ -713,9 +731,21 @@
                 document.getElementById('connect-btn').addEventListener('click', connectWallet);
                 document.getElementById('nav-connect-btn').addEventListener('click', connectWallet);
                 document.getElementById('btn-quote').addEventListener('click', getQuote);
+                document.getElementById('buy-amount').addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        getQuote();
+                    }
+                });
                 document.getElementById('btn-buy').addEventListener('click', executeBuy);
                 document.getElementById('gift-buy-checkbox').addEventListener('change', function() {
                     document.getElementById('gift-buy-field').style.display = this.checked ? 'block' : 'none';
+                });
+                document.getElementById('sell-amount').addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        getSellQuote();
+                    }
                 });
                 document.getElementById('btn-sell-quote').addEventListener('click', getSellQuote);
                 document.getElementById('btn-sell').addEventListener('click', executeSell);
@@ -728,6 +758,39 @@
                     const bal = parseFloat(balText.replace(/[^\d\.]/g, '')) || 0;
                     return bal;
                 }
+                function getUSDLInputBalance() {
+                    return latestTusdlBalance > 0 ? latestTusdlBalance : 0;
+                }
+                document.getElementById('buy-33').addEventListener('click', () => {
+                    const usdlBalance = getUSDLInputBalance();
+                    document.getElementById('buy-amount').value = (usdlBalance * 0.33).toFixed(2);
+                    getQuote();
+                });
+                document.getElementById('buy-66').addEventListener('click', () => {
+                    const usdlBalance = getUSDLInputBalance();
+                    document.getElementById('buy-amount').value = (usdlBalance * 0.66).toFixed(2);
+                    getQuote();
+                });
+                document.getElementById('buy-100').addEventListener('click', () => {
+                    const usdlBalance = getUSDLInputBalance();
+                    document.getElementById('buy-amount').value = usdlBalance.toFixed(2);
+                    getQuote();
+                });
+                document.getElementById('sell-33').addEventListener('click', () => {
+                    const pbBalance = getPBInputBalance();
+                    document.getElementById('sell-amount').value = (pbBalance * 0.33).toFixed(2);
+                    getSellQuote();
+                });
+                document.getElementById('sell-66').addEventListener('click', () => {
+                    const pbBalance = getPBInputBalance();
+                    document.getElementById('sell-amount').value = (pbBalance * 0.66).toFixed(2);
+                    getSellQuote();
+                });
+                document.getElementById('sell-100').addEventListener('click', () => {
+                    const pbBalance = getPBInputBalance();
+                    document.getElementById('sell-amount').value = pbBalance.toFixed(2);
+                    getSellQuote();
+                });
                 document.getElementById('vlock-25').addEventListener('click', () => {
                     const pbBalance = getPBInputBalance();
                     document.getElementById('vlock-amount').value = (pbBalance * 0.25).toFixed(0);
@@ -1033,6 +1096,46 @@
             });
         }
 
+        // Sync hero toggle (if present) with nav select or existing network toggle
+        (function(){
+            const hero = document.getElementById('network-toggle-hero');
+            const navToggle = document.getElementById('network-toggle');
+            if(!hero || !navToggle) return;
+
+            function initHero(){
+                // if navToggle is a select, read its value (chain id), otherwise if checkbox use checked
+                if(navToggle.tagName === 'SELECT'){
+                    const v = navToggle.value || '';
+                    const isMain = v.toString().includes('171');
+                    hero.checked = isMain;
+                } else if(navToggle.type === 'checkbox'){
+                    hero.checked = navToggle.checked;
+                }
+                document.getElementById('toggle-knob-hero').style.left = hero.checked ? '25px' : '3px';
+                document.getElementById('label-testnet-hero').style.color = hero.checked ? '#666' : '#F39004';
+                document.getElementById('label-mainnet-hero').style.color = hero.checked ? '#F39004' : '#666';
+            }
+
+            initHero();
+            hero.addEventListener('change', ()=>{
+                if(navToggle.tagName === 'SELECT'){
+                    const mainOpt = Array.from(navToggle.options).find(o=>o.text && o.text.includes('Mainnet'));
+                    const testOpt = Array.from(navToggle.options).find(o=>o.text && o.text.includes('Testnet'));
+                    if(hero.checked && mainOpt) navToggle.value = mainOpt.value;
+                    if(!hero.checked && testOpt) navToggle.value = testOpt.value;
+                    navToggle.dispatchEvent(new Event('change', { bubbles: true }));
+                } else if(navToggle.type === 'checkbox'){
+                    navToggle.checked = hero.checked;
+                    navToggle.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+                document.getElementById('toggle-knob-hero').style.left = hero.checked ? '25px' : '3px';
+                document.getElementById('label-testnet-hero').style.color = hero.checked ? '#666' : '#F39004';
+                document.getElementById('label-mainnet-hero').style.color = hero.checked ? '#F39004' : '#666';
+            });
+
+            navToggle.addEventListener('change', initHero);
+        })();
+
         function copyWalletAddress() {
             if (!account) {
                 alert('Connect wallet first');
@@ -1128,6 +1231,7 @@
                 
                 const pbBal = Number(ethers.formatEther(pbBalance));
                 const pbcBal = Number(ethers.formatEther(pbcBalance));
+                latestTusdlBalance = Number(ethers.formatEther(tusdlBalance));
                 const totalValue = (pbBal * price) + (pbcBal * price);
                 
                 document.getElementById('balance-pb').innerText = formatNumber(pbBal, 2);
@@ -1260,6 +1364,11 @@
             return (aif * reserveOut) / (reserveIn * 1000n + aif);
         }
 
+        function getAmountIn(amountOut, reserveIn, reserveOut) {
+            if (amountOut <= 0n || amountOut >= reserveOut) return 0n;
+            return ((reserveIn * amountOut * 1000n) / ((reserveOut - amountOut) * 997n)) + 1n;
+        }
+
         // How much USDL to push AMM price from current to targetPrice (18-dec)?
         // Returns 0n if already at or above target. Matches Vault._computeUSDLForPrice exactly.
         function computeUSDLForPrice(reservePB, reserveUSDL, targetPrice) {
@@ -1271,6 +1380,43 @@
             const disc = b * b + 4n * 997n * absC;
             const sqrtDisc = bigIntSqrt(disc);
             return (sqrtDisc - b) / (2n * 997n) + 1n;
+        }
+
+        function getErrorData(err) {
+            if (!err) return null;
+            if (typeof err.data === 'string' && err.data.startsWith('0x')) return err.data;
+            if (typeof err?.info?.error?.data === 'string' && err.info.error.data.startsWith('0x')) return err.info.error.data;
+            if (typeof err?.error?.data === 'string' && err.error.data.startsWith('0x')) return err.error.data;
+            return null;
+        }
+
+        function decodeVaultCustomError(err) {
+            const data = getErrorData(err);
+            if (!data || data.length < 10) return null;
+
+            const selector = data.slice(0, 10).toLowerCase();
+            const known = {
+                '0x2c5211c6': 'InvalidAmount',
+                '0x00bfc921': 'InvalidPrice',
+                '0x82b42900': 'Unauthorized',
+                '0xc0e7c301': 'InsufficientBalance',
+                '0xf4d678b8': 'TransferFailed',
+                '0x1ea663b5': 'NotExist'
+            };
+
+            return known[selector] || null;
+        }
+
+        async function submitVaultBuy(vaultContract, usdlWei, recipient, unlockIds) {
+            const pairContract = new ethers.Contract(PULSEX_PAIR, PAIR_ABI, web3);
+            const [r0, r1] = await pairContract.getReserves();
+            const t0 = await pairContract.token0();
+            const rUSDL = t0.toLowerCase() === TPB.toLowerCase() ? r1 : r0;
+            const rPB = t0.toLowerCase() === TPB.toLowerCase() ? r0 : r1;
+            const rawPB = getAmountOut(usdlWei, rUSDL, rPB);
+            const minPBOut = rawPB * 50n / 100n;
+
+            return vaultContract.buyPBDirect(usdlWei, minPBOut, recipient, unlockIds);
         }
 
         async function getQuote() {
@@ -1298,12 +1444,14 @@
                 // 2. Fetch active positions from indexer DB (fast, no RPC scanning)
                 let positions = [];
                 try {
-                    const resp = await fetch(`${INDEXER_URL}/netting-positions`);
+                    const resp = await fetch(`${INDEXER_URL}/netting-positions?usdl=${usdlWei.toString()}`);
                     if (resp.ok) {
                         const data = await resp.json();
                         positions = (data.positions || []).map(p => ({
                             id: p.id,
                             triggerPrice: BigInt(p.triggerPrice),
+                            nextTriggerUSDL: BigInt(p.nextTriggerUSDL || '0'),
+                            nextTriggerPBc: BigInt(p.nextTriggerPBc || '0'),
                             pbcRemaining: BigInt(p.pbcLocked),
                         }));
                     } else {
@@ -1336,9 +1484,9 @@
                     // vBuy: cost to push virtual price to trigger
                     const vBuy = computeUSDLForPrice(vReservePB, vReserveUSDL, triggerPrice);
 
-                    // Settlement: tranche * triggerPrice / 1e18
-                    const tranche = pbcLocked / TRANCHE_FRACTION;
-                    const settlement = (tranche * triggerPrice) / E18;
+                    // Settlement: use exact next-trigger tranche from indexer when available.
+                    const tranche = pos.nextTriggerPBc > 0n ? pos.nextTriggerPBc : (pbcLocked / TRANCHE_FRACTION);
+                    const settlement = pos.nextTriggerUSDL > 0n ? pos.nextTriggerUSDL : ((tranche * triggerPrice) / E18);
 
                     // Can afford both?
                     if (budget < vBuy + settlement) {
@@ -1381,6 +1529,7 @@
                 // 4. After scan: ammBuyAmount & internal settlement
                 let ammBuyAmount = usdlWei - totalNettedSettlement;
                 let internalPBc = 0n;
+                let ammSellPB = 0n;
 
                 if (hasPartial && unsettledOwed > 0n && ammBuyAmount > 0n) {
                     const internalUSDL = ammBuyAmount < unsettledOwed ? ammBuyAmount : unsettledOwed;
@@ -1391,7 +1540,10 @@
 
                 // 5. Net AMM direction
                 let ammPBOut = 0n;
+                let ammDetailText = 'AMM Buy: 0 PB';
+                let ammDetailType = 'buy';
                 const isNetBuy = ammBuyAmount > unsettledOwed;
+                const isNetSell = ammBuyAmount < unsettledOwed;
 
                 if (isNetBuy) {
                     let netAMM = ammBuyAmount - unsettledOwed;
@@ -1406,6 +1558,13 @@
                     if (usdlForLP > 0n) {
                         ammPBOut += (usdlForLP * reservePB) / reserveUSDL;
                     }
+                    ammDetailText = `AMM Buy: ${formatNumber(ethers.formatEther(ammPBOut), 2)} PB`;
+                    ammDetailType = 'buy';
+                } else if (isNetSell) {
+                    const netSellUSDL = unsettledOwed - ammBuyAmount;
+                    ammSellPB = getAmountIn(netSellUSDL, reservePB, reserveUSDL);
+                    ammDetailText = `AMM Sell: ${formatNumber(ethers.formatEther(ammSellPB), 2)} PB`;
+                    ammDetailType = 'sell';
                 }
                 // NET SELL or perfect net: ammPBOut stays 0
 
@@ -1423,17 +1582,11 @@
                 document.getElementById('quote-pb').innerText = '~' + totalFormatted;
                 document.getElementById('quote-liquid').innerText = liquidFormatted + ' PB';
                 document.getElementById('quote-locked').innerText = lockedFormatted + ' PBc';
-
-                // Show netting breakdown in status
-                if (nettedCount > 0) {
-                    const nettedStr = formatNumber(ethers.formatEther(totalNettedPBc), 2);
-                    const ammStr = formatNumber(ethers.formatEther(ammPBOut), 2);
-                    showStatus('buy-status',
-                        `📊 Netting ${nettedCount} trigger${nettedCount > 1 ? 's' : ''}: ~${nettedStr} PBc netted + ~${ammStr} PB from AMM`,
-                        'info');
-                } else {
-                    showStatus('buy-status', '📊 No triggers in range - pure AMM buy', 'info');
-                }
+                showQuoteStatus(
+                    `Netting (${nettedCount}) trigger${nettedCount === 1 ? '' : 's'}`,
+                    ammDetailText,
+                    ammDetailType
+                );
 
             } catch (err) {
                 console.error('Quote failed:', err);
@@ -1484,7 +1637,7 @@
                 let unlockIds = [];
                 try {
                     showStatus('buy-status', '⏳ Fetching eligible unlock positions from indexer...', 'info');
-                    const resp = await fetch(`${INDEXER_URL}/unlock-ids?usdl=${usdlWei.toString()}`);
+                    const resp = await fetch(`${INDEXER_URL}/unlock-ids?usdl=${usdlWei.toString()}&limit=150`);
                     if (resp.ok) {
                         const data = await resp.json();
                         unlockIds = data.unlockIds || [];
@@ -1526,24 +1679,46 @@
                 showStatus('buy-status', `⏳ Executing buy: $${usdlAmountNum.toFixed(2)} USDL with ${unlockIds.length} netting hints...`, 'info');
 
                 try {
-                    // Slippage protection: raw AMM estimate at 50% tolerance
-                    // (netting gives more PB, so this is a safe conservative floor)
-                    const pairContract = new ethers.Contract(PULSEX_PAIR, PAIR_ABI, web3);
-                    const [r0, r1] = await pairContract.getReserves();
-                    const t0 = await pairContract.token0();
-                    const rUSDL = t0.toLowerCase() === TPB.toLowerCase() ? r1 : r0;
-                    const rPB = t0.toLowerCase() === TPB.toLowerCase() ? r0 : r1;
-                    const rawPB = getAmountOut(usdlWei, rUSDL, rPB);
-                    const minPBOut = rawPB * 50n / 100n;
+                    let buyTx;
+                    let usedFallback = false;
 
-                    let buyTx = await vaultContract.buyPBDirect(usdlWei, minPBOut, giftRecipient, unlockIds);
+                    try {
+                        buyTx = await submitVaultBuy(vaultContract, usdlWei, giftRecipient, unlockIds);
+                    } catch (buyErr) {
+                        const decodedError = decodeVaultCustomError(buyErr);
+                        const canRetryWithoutHints = decodedError === 'InvalidAmount' && unlockIds.length > 0;
+
+                        if (!canRetryWithoutHints) {
+                            throw buyErr;
+                        }
+
+                        console.warn('Retrying buy without netting hints after InvalidAmount:', buyErr);
+                        showStatus(
+                            'buy-status',
+                            '⚠️ Netting hints were stale or out of order. Retrying without netting hints...',
+                            'info'
+                        );
+                        buyTx = await submitVaultBuy(vaultContract, usdlWei, giftRecipient, []);
+                        usedFallback = true;
+                    }
+
                     let receipt = await buyTx.wait();
                     
-                    showStatus('buy-status', `✅ Buy success! Tx: ${receipt.hash.substring(0, 10)}...`, 'success');
+                    showStatus(
+                        'buy-status',
+                        usedFallback
+                            ? `✅ Buy success (plain AMM fallback)! Tx: ${receipt.hash.substring(0, 10)}...`
+                            : `✅ Buy success! Tx: ${receipt.hash.substring(0, 10)}...`,
+                        'success'
+                    );
                     
                 } catch (buyErr) {
+                    const decodedError = decodeVaultCustomError(buyErr);
+                    const friendlyMessage = decodedError === 'InvalidAmount'
+                        ? 'Vault rejected the amount or netting hints. This usually means stale unlockIds from the indexer.'
+                        : (buyErr.reason || buyErr.message);
                     showStatus('buy-status', 
-                        `❌ Transaction failed: ${buyErr.reason || buyErr.message}`,
+                        `❌ Transaction failed: ${friendlyMessage}`,
                         'error'
                     );
                     throw buyErr;
@@ -2699,6 +2874,13 @@
                 el.innerText = message;
                 el.style.color = type === 'success' ? '#4CAF50' : type === 'error' ? '#F44336' : type === 'warning' ? '#FFC107' : '#2196F3';
             }
+        }
+
+        function showQuoteStatus(nettingMessage, ammMessage, ammType = 'neutral') {
+            const el = document.getElementById('buy-status');
+            if (!el) return;
+            const ammColor = ammType === 'buy' ? '#4CAF50' : ammType === 'sell' ? '#F44336' : '#aaa';
+            el.innerHTML = `<span style="color:#8ad1ff;">${nettingMessage}</span><span style="color:#777;"> + </span><span style="color:${ammColor};">${ammMessage}</span>`;
         }
 
         // ================================================================

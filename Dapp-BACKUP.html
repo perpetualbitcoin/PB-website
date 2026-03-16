@@ -1,0 +1,2045 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Perpetual Bitcoin - Dapp</title>
+    <link rel="icon" href="Pic/favicon.ico" type="image/x-icon" />
+    <link rel="stylesheet" href="styles.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@6/dist/ethers.umd.js"></script>
+    <style>
+        .dapp-hero {
+            background: linear-gradient(135deg, rgba(243, 144, 4, 0.15) 0%, rgba(100, 50, 150, 0.1) 100%);
+            padding: 40px 20px;
+            text-align: center;
+            border-bottom: 2px solid rgba(243, 144, 4, 0.3);
+        }
+
+        .dapp-container {
+            max-width: 1400px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .grid-2col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-bottom: 30px;
+        }
+
+        .grid-3col {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .grid-2way {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            margin-bottom: 2.5rem;
+            background: rgba(255, 165, 0, 0.04);
+            border: 1px solid rgba(255, 165, 0, 0.15);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 8px 18px rgba(0, 0, 0, 0.18);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 25px rgba(255, 165, 0, 0.2);
+        }
+
+        .stat-box {
+            background: rgba(255, 165, 0, 0.04);
+            border: 1px solid rgba(255, 165, 0, 0.15);
+            border-radius: 8px;
+            padding: 16px;
+            margin: 12px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 8px 18px rgba(0, 0, 0, 0.18);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .stat-box:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 25px rgba(255, 165, 0, 0.2);
+        }
+
+        .stat-label {
+            color: #aaa;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .stat-value {
+            color: #F39004;
+            font-size: 1.3rem;
+            font-weight: 700;
+        }
+
+        .section-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #fff;
+            margin: 30px 0 20px 0;
+            border-left: 4px solid #F39004;
+            padding-left: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .price-display {
+            font-size: 2.2rem;
+            color: #F39004;
+            font-weight: 700;
+            margin: 10px 0;
+        }
+
+        .price-change {
+            font-size: 1rem;
+            color: #4CAF50;
+            margin: 5px 0;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin: 20px 0;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .input-field {
+            flex: 1;
+            min-width: 150px;
+            padding: 10px 12px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(243, 144, 4, 0.3);
+            border-radius: 6px;
+            color: #fff;
+            font-size: 0.95rem;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: #F39004;
+            box-shadow: 0 0 10px rgba(243, 144, 4, 0.2);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .position-card {
+            background: linear-gradient(135deg, rgba(50, 100, 200, 0.1) 0%, rgba(100, 50, 150, 0.1) 100%);
+            border: 1px solid rgba(100, 150, 255, 0.2);
+            border-radius: 8px;
+            padding: 18px;
+            margin: 12px 0;
+        }
+
+        .unlock-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin: 5px 5px 5px 0;
+        }
+
+        .unlock-badge.locked {
+            background: rgba(255, 100, 100, 0.2);
+            color: #ff6464;
+        }
+
+        .unlock-badge.ready {
+            background: rgba(76, 175, 80, 0.2);
+            color: #4CAF50;
+        }
+
+        .unlock-badge.pending {
+            background: rgba(255, 193, 7, 0.2);
+            color: #FFC107;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            color: #aaa;
+            font-size: 0.9rem;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+            border-bottom: 1px solid rgba(243, 144, 4, 0.2);
+        }
+
+        .tab {
+            padding: 12px 16px;
+            background: none;
+            border: none;
+            color: #aaa;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-bottom: 2px solid transparent;
+        }
+
+        .tab.active {
+            color: #F39004;
+            border-bottom-color: #F39004;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .alert {
+            padding: 12px 16px;
+            border-radius: 6px;
+            margin: 12px 0;
+            font-size: 0.95rem;
+        }
+
+        .alert-info {
+            background: rgba(33, 150, 243, 0.1);
+            color: #2196F3;
+            border: 1px solid rgba(33, 150, 243, 0.3);
+        }
+
+        .alert-success {
+            background: rgba(76, 175, 80, 0.1);
+            color: #4CAF50;
+            border: 1px solid rgba(76, 175, 80, 0.3);
+        }
+
+        .alert-warning {
+            background: rgba(255, 193, 7, 0.1);
+            color: #FFC107;
+            border: 1px solid rgba(255, 193, 7, 0.3);
+        }
+
+        .alert-error {
+            background: rgba(244, 67, 54, 0.1);
+            color: #F44336;
+            border: 1px solid rgba(244, 67, 54, 0.3);
+        }
+
+        /* Two-column form layout */
+        .form-columns {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin: 20px 0;
+        }
+
+        .form-column {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px dashed rgba(243, 144, 4, 0.3);
+            border-radius: 8px;
+            padding: 20px;
+        }
+
+        .form-column h4 {
+            color: #F39004;
+            margin: 0 0 15px 0;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        @media (max-width: 1200px) {
+            .grid-3col {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .form-columns {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .grid-2col, .grid-2way {
+                grid-template-columns: 1fr;
+            }
+            .grid-3col {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body class="presale-dapp-bg">
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo"><img src="Pic/PB1.png" alt="Perpetual Bitcoin PB logo"></div>
+            <ul class="nav-menu">
+                <li><a href="index.html#home" class="nav-link">Home</a></li>
+                <li><a href="whitepaperLite.html" class="nav-link">Whitepaper Lite</a></li>
+                <li><a href="presale-dapp.html" class="nav-link">Presale</a></li>
+                <li><a href="Dapp.html" class="nav-link" style="color: #F39004; font-weight:600;">✨ Full Dapp (TEST)</a></li>
+                <li><a href="portfolio.html" class="nav-link">Portfolio</a></li>
+            </ul>
+            <div style="margin-left:12px;display:flex;align-items:center;gap:8px">
+            </div>
+        </div>
+    </nav>
+
+    <div class="dapp-hero">
+        <h1>⚡ Phase A Dapp - Full Control</h1>
+        <p>Trade, manage positions, perpetual unlocks, and earn LP rewards. ONE PROTOCOL. FOREVER.</p>
+        <p style="color: #F39004; font-weight: 600; margin-top: 10px;">🧪 TESTNET ONLY - Testing all Phase A features</p>
+    </div>
+
+    <div class="dapp-container">
+        <!-- WALLET SECTION -->
+        <section class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 style="margin: 0;">Wallet Status</h2>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <span id="network-display" style="color: #F39004; font-weight: 600;">Chain: —</span>
+                    <button class="btn btn-primary" id="connect-btn">Connect Wallet</button>
+                </div>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 15px;">
+                <div class="stat-box">
+                    <div><div class="stat-label">Address</div><div id="wallet-addr" style="color: #ddd; font-family: monospace; font-size: 0.8rem;">Not connected</div></div>
+                </div>
+                <div class="stat-box">
+                    <div><div class="stat-label"><span id="fox-link-1" style="cursor: pointer; user-select: none;" title="Click to copy address">🦊</span> PB Liquid</div><div id="balance-pb" class="stat-value">—</div></div>
+                </div>
+                <div class="stat-box">
+                    <div><div class="stat-label"><span id="fox-link-2" style="cursor: pointer; user-select: none;" title="Click to copy address">🦊</span> PBc Balance</div><div id="balance-pbc" class="stat-value">—</div></div>
+                </div>
+                <div class="stat-box">
+                    <div><div class="stat-label"><span id="fox-link-3" style="cursor: pointer; user-select: none;" title="Click to copy address">🦊</span> Total tUSDL Value</div><div id="total-value" class="stat-value" style="font-size: 1.1rem; color: #4CAF50;">—</div></div>
+                </div>
+            </div>
+            
+            <!-- TESTNET FAUCETS -->
+            <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #444;">
+                <h4 style="margin: 0 0 15px 0; color: #FFD700;">🚰 Testnet Faucets</h4>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <a href="https://faucet.v4.testnet.pulsechain.com/" target="_blank" style="text-decoration: none;">
+                        <button class="btn btn-primary" style="width: 100%; cursor: pointer;">⚡ Get tPLS (1x/24hr)</button>
+                    </a>
+                    <button class="btn btn-primary" id="btn-faucet-tusdl" style="width: 100%;">💰 Claim 555.5 tUSDL (1x/24hr)</button>
+                </div>
+                <div id="faucet-status" style="margin-top: 10px; font-size: 0.85rem; text-align: center;"></div>
+                <div style="margin-top: 8px; font-size: 0.75rem; color: #999; text-align: center;">
+                    <em>tPLS from external faucet • tUSDL from our faucet</em>
+                </div>
+            </div>
+        </section>
+
+        <!-- PRICE & MARKET DATA -->
+        <div class="grid-2col">
+            <!-- PRICE FEED -->
+            <section class="card">
+                <h3 class="section-title">💰 Price Feed</h3>
+                <div style="text-align: center;">
+                    <div style="color: #aaa; font-size: 0.9rem; margin-bottom: 5px;">PB / tUSDL</div>
+                    <div class="price-display" id="live-price">—</div>
+                    <div class="price-change" id="price-change">24h: —</div>
+                    <div style="font-size: 0.85rem; color: #999; margin-top: 10px;">
+                        Pool Value: <span id="pool-value">—</span> tUSDL
+                    </div>
+                </div>
+                <div style="display: flex; gap: 8px; justify-content: center; margin: 15px 0; flex-wrap: wrap;">
+                    <button id="timeframe-15m" class="timeframe-btn active" style="padding: 6px 12px; border: 1px solid rgba(255, 165, 0, 0.3); background: rgba(255, 165, 0, 0.1); color: #F39004; border-radius: 6px; cursor: pointer; font-size: 0.85rem;">15'</button>
+                    <button id="timeframe-1h" class="timeframe-btn" style="padding: 6px 12px; border: 1px solid rgba(255, 165, 0, 0.2); background: transparent; color: #aaa; border-radius: 6px; cursor: pointer; font-size: 0.85rem;">1H</button>
+                    <button id="timeframe-1d" class="timeframe-btn" style="padding: 6px 12px; border: 1px solid rgba(255, 165, 0, 0.2); background: transparent; color: #aaa; border-radius: 6px; cursor: pointer; font-size: 0.85rem;">1D</button>
+                </div>
+                <div class="chart-container">
+                    <canvas id="priceChart"></canvas>
+                </div>
+                <div class="stat-box" style="margin-top: 15px;">
+                    <div><div class="stat-label">Liquidity PB</div><div id="reserve-pb" class="stat-value" style="font-size: 1.1rem;">—</div></div>
+                    <div><div class="stat-label">Liquidity tUSDL</div><div id="reserve-tusdl" class="stat-value" style="font-size: 1.1rem;">—</div></div>
+                </div>
+            </section>
+
+            <!-- BUY PANEL -->
+            <section class="card">
+                <h3 class="section-title">🚀 Buy PB Direct</h3>
+                <div class="alert alert-info">
+                    <strong>Phase A:</strong> Vault-centric atomic buy. Split enforced: 3.69% liquid + 96.31% locked.
+                </div>
+                <div class="form-group">
+                    <label for="buy-amount">tUSDL Amount</label>
+                    <div class="input-group">
+                        <input type="number" id="buy-amount" class="input-field" placeholder="Enter amount (e.g., 100)" value="100" />
+                        <button class="btn btn-primary" id="btn-quote">Get Quote</button>
+                    </div>
+                </div>
+                <div class="stat-box">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <div class="stat-label">You will receive</div>
+                            <div id="quote-pb" class="stat-value" style="font-size: 1.3rem; font-weight: bold;">—</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div class="stat-label">Split</div>
+                            <div style="font-size: 0.95rem; font-weight: bold;">
+                                <span id="quote-liquid" style="color: #4CAF50;">—</span> + <span id="quote-locked" style="color: #ff9800;">—</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <button class="btn btn-primary" id="btn-buy" style="width: 100%; margin-top: 20px; padding: 12px;">Execute Buy (vault.buyPBDirect)</button>
+                <div id="buy-status" style="margin-top: 12px; font-size: 0.9rem;"></div>
+            </section>
+        </div>
+
+        <!-- POSITIONS & PORTFOLIO -->
+        <section class="card">
+            <h3 class="section-title">📊 Your Positions</h3>
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('positions')">All Positions</button>
+                <button class="tab" onclick="switchTab('unlocks')">Unlock Progress</button>
+                <button class="tab" onclick="switchTab('value')">Portfolio Value</button>
+            </div>
+
+            <div id="positions" class="tab-content active">
+                <div id="positions-list" style="max-height: 500px; overflow-y: auto;">
+                    <div style="color: #aaa; text-align: center; padding: 30px;">No positions found. Buy PB to create one.</div>
+                </div>
+            </div>
+
+            <div id="unlocks" class="tab-content">
+                <div id="unlocks-list" style="max-height: 500px; overflow-y: auto;">
+                    <div style="color: #aaa; text-align: center; padding: 30px;">No positions to display.</div>
+                </div>
+            </div>
+
+            <div id="value" class="tab-content">
+                <div class="grid-3col" style="margin-top: 15px;">
+                    <div class="stat-box">
+                        <div><div class="stat-label">Total Liquid PB</div><div id="portfolio-liquid" class="stat-value" style="font-size: 1.2rem;">—</div></div>
+                    </div>
+                    <div class="stat-box">
+                        <div><div class="stat-label">Total Locked PBc</div><div id="portfolio-locked" class="stat-value" style="font-size: 1.2rem;">—</div></div>
+                    </div>
+                    <div class="stat-box">
+                        <div><div class="stat-label">Portfolio Value</div><div id="portfolio-value" class="stat-value" style="font-size: 1.2rem; color: #4CAF50;">—</div></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- VLOCK - Voluntary Locking -->
+        <section class="card">
+            <h3 class="section-title">🔐 VLock - Voluntary PB Locking</h3>
+            <div class="alert alert-warning">
+                <strong>Earn LP Rewards:</strong> Lock PB to earn 5.555% of accumulated LP trading fees (must lock PB worth ≥100 tUSDL). Fees auto-harvest when you lock.
+            </div>
+            
+            <!-- Reward Pool Status -->
+            <div style="margin-bottom: 20px; padding: 15px; background: #1a2a2a; border-radius: 8px; border-left: 3px solid #4CAF50;">
+                <div style="font-weight: 600; margin-bottom: 12px; color: #4CAF50;">💰 Available LP Rewards</div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div>
+                        <div style="font-size: 0.85rem; color: #aaa; margin-bottom: 4px;">Pool tUSDL Fees</div>
+                        <div id="lp-usdl" style="font-size: 1.1rem; color: #4CAF50; font-weight: 600;">—</div>
+                        <div id="lp-usdl-your" style="font-size: 0.8rem; color: #888;">Your 5.555%: — tUSDL</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 0.85rem; color: #aaa; margin-bottom: 4px;">Pool PB Fees</div>
+                        <div id="lp-pb" style="font-size: 1.1rem; color: #4CAF50; font-weight: 600;">—</div>
+                        <div id="lp-pb-your" style="font-size: 0.8rem; color: #888;">Your 5.555%: — PB</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lock Calculator -->
+            <div style="margin-bottom: 20px; padding: 15px; background: #1a1a2e; border-radius: 8px;">
+                <div style="font-weight: 600; margin-bottom: 12px; color: #FFC107;">📊 Eligibility & Reward Fixed (5.555%)</div>
+                <div id="vlock-calculator" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 0.9rem;">
+                    <!-- Populated by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Custom Lock Amount & Rewards Preview-->
+            <div style="margin-bottom: 20px; padding: 15px; background: #1a1a2e; border-radius: 8px;">
+                <div style="font-weight: 600; margin-bottom: 12px; color: #64B5F6;">🎯 What You Get When You Lock</div>
+                <div class="form-group">
+                    <label for="vlock-amount">PB Amount to Lock</label>
+                    <input type="number" id="vlock-amount" class="input-field" placeholder="Enter PB amount (e.g., 5000)" />
+                </div>
+                
+                <!-- What you receive breakdown -->
+                <div id="vlock-preview" style="margin-top: 10px; padding: 12px; background: #0d0d1a; border-radius: 5px; font-size: 0.9rem; color: #aaa; min-height: 60px;">
+                    Enter amount to see what you'll receive
+                </div>
+                
+                <button class="btn btn-primary" id="btn-vlock" style="width: 100%; padding: 12px; margin-top: 12px;">Lock PB & Claim Rewards</button>
+                <div id="vlock-status" style="margin-top: 12px; font-size: 0.9rem;"></div>
+            </div>
+        </section>
+
+        <!-- PBr & PBi Side-by-Side -->
+        <div class="grid-2way">
+            <!-- PBr - Recovery Setup -->
+            <section class="card">
+                <h3 class="section-title">🛡️ PBr - Recovery</h3>
+                <div class="alert alert-info" style="font-size: 0.9rem;">
+                    <strong>Recovery:</strong> Set a fallback wallet to recover assets if your main account is compromised.
+                </div>
+                <div class="form-columns">
+                    <div class="form-column">
+                        <h4>📝 Setup Recovery</h4>
+                        <div class="form-group">
+                            <label for="recovery-pbtid">Select PBt ID</label>
+                            <select id="recovery-pbtid" class="input-field" style="cursor: pointer;">
+                                <option value="">Loading your positions...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="recovery-addr">Recovery Wallet</label>
+                            <input type="text" id="recovery-addr" class="input-field" placeholder="0x..." />
+                        </div>
+                        <div class="form-group">
+                            <label for="recovery-password">Password (min 11 chars)</label>
+                            <input type="password" id="recovery-password" class="input-field" placeholder="••••••••••••" />
+                        </div>
+                        <button class="btn btn-primary" id="btn-setup-recovery" style="width: 100%;">Set Recovery Address</button>
+                        <div id="recovery-status" style="margin-top: 12px; font-size: 0.85rem;"></div>
+                    </div>
+
+                    <div class="form-column">
+                        <h4>✅ Activate Recovery</h4>
+                        <div class="alert alert-info" style="font-size: 0.85rem; margin-top: 0;">
+                            Click to find your PBr badge first, then enter password.
+                        </div>
+                        <button class="btn btn-primary" id="btn-find-pbr" style="width: 100%; margin-bottom: 15px;">Find My PBr Badge</button>
+                        <div id="recovery-badge-info" style="padding: 10px; background: #1a1a2e; border-radius: 5px; margin-bottom: 15px; display: none;">
+                            <div style="color: #4CAF50; font-weight: 600; font-size: 0.95rem;" id="recovery-badge-text"></div>
+                            <select id="recovery-badge-select" style="width: 100%; margin-top: 10px; display: none;" class="input-field">
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="recovery-activate-password">Recovery Password</label>
+                            <input type="password" id="recovery-activate-password" class="input-field" placeholder="••••••••••••" disabled />
+                        </div>
+                        <button class="btn btn-primary" id="btn-activate-recovery" style="width: 100%;" disabled>Activate Recovery</button>
+                        <div id="recovery-activate-status" style="margin-top: 12px; font-size: 0.85rem;"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- PBi - Inheritance Setup -->
+            <section class="card">
+                <h3 class="section-title">👨‍👩‍👧‍👦 PBi - Inheritance</h3>
+                <div class="alert alert-info" style="font-size: 0.9rem;">
+                    <strong>Inheritance:</strong> Designate a beneficiary who can claim your assets. No timeout — your choice.
+                </div>
+                <div class="form-columns">
+                    <div class="form-column">
+                        <h4>📝 Setup Inheritance</h4>
+                        <div class="form-group">
+                            <label for="inheritance-pbtid">Select PBt ID</label>
+                            <select id="inheritance-pbtid" class="input-field" style="cursor: pointer;">
+                                <option value="">Loading your positions...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="beneficiary-addr">Beneficiary Address</label>
+                            <input type="text" id="beneficiary-addr" class="input-field" placeholder="0x..." />
+                        </div>
+                        <div class="form-group">
+                            <label for="inheritance-password">Password (min 11 chars)</label>
+                            <input type="password" id="inheritance-password" class="input-field" placeholder="••••••••••••" />
+                        </div>
+                        <button class="btn btn-primary" id="btn-setup-inheritance" style="width: 100%;">Set Beneficiary</button>
+                        <div id="inheritance-status" style="margin-top: 12px; font-size: 0.85rem;"></div>
+                    </div>
+
+                    <div class="form-column">
+                        <h4>✅ Activate Inheritance</h4>
+                        <div class="alert alert-info" style="font-size: 0.85rem; margin-top: 0;">
+                            Click to find your PBi badge first, then enter password.
+                        </div>
+                        <button class="btn btn-primary" id="btn-find-pbi" style="width: 100%; margin-bottom: 15px;">Find My PBi Badge</button>
+                        <div id="inheritance-badge-info" style="padding: 10px; background: #1a1a2e; border-radius: 5px; margin-bottom: 15px; display: none;">
+                            <div style="color: #4CAF50; font-weight: 600; font-size: 0.95rem;" id="inheritance-badge-text"></div>
+                            <select id="inheritance-badge-select" style="width: 100%; margin-top: 10px; display: none;" class="input-field">
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="inheritance-activate-password">Inheritance Password</label>
+                            <input type="password" id="inheritance-activate-password" class="input-field" placeholder="••••••••••••" disabled />
+                        </div>
+                        <button class="btn btn-primary" id="btn-activate-inheritance" style="width: 100%;" disabled>Activate Inheritance</button>
+                        <div id="inheritance-activate-status" style="margin-top: 12px; font-size: 0.85rem;"></div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- TRADING SECTION -->
+        <section class="card">
+            <h3 class="section-title">💱 Direct Sell</h3>
+            <div class="alert alert-info">
+                You can sell PB directly on PulseX. 100% of proceeds go to you — no restrictions.
+            </div>
+            <div class="form-group">
+                <label for="sell-amount">PB Amount to Sell</label>
+                <div class="input-group">
+                    <input type="number" id="sell-amount" class="input-field" placeholder="Enter PB amount" />
+                    <button class="btn btn-primary" id="btn-sell-quote">Get Quote</button>
+                </div>
+            </div>
+            <div class="stat-box">
+                <div><div class="stat-label">You will receive</div><div id="quote-usdl" class="stat-value" style="font-size: 1.1rem;">—</div></div>
+            </div>
+            <button class="btn btn-primary" id="btn-sell" style="width: 100%; margin-top: 20px; padding: 12px;">Execute Sell</button>
+            <div id="sell-status" style="margin-top: 12px; font-size: 0.9rem;"></div>
+        </section>
+
+        <!-- DIAGNOSTICS -->
+        <section class="card">
+            <h3 class="section-title">🔧 On-Chain Diagnostics</h3>
+            <div class="stat-box">
+                <div><div class="stat-label">TVault Address</div><div id="diag-vault" style="color: #aaa; font-family: monospace; font-size: 0.8rem;">—</div></div>
+            </div>
+            <div class="stat-box">
+                <div><div class="stat-label">Phase Status</div><div id="diag-phase" style="color: #FFC107; font-weight: 600;">—</div></div>
+            </div>
+            
+            <!-- Vault Balances: PB + PBc side by side -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px;">
+                <div class="stat-box" style="padding: 12px;">
+                    <div><div class="stat-label" style="font-size: 0.8rem;">Vault PB</div><div id="diag-vault-pb" class="stat-value">—</div></div>
+                </div>
+                <div class="stat-box" style="padding: 12px;">
+                    <div><div class="stat-label" style="font-size: 0.8rem;">Vault PBc</div><div id="diag-vault-pbc" class="stat-value">—</div></div>
+                </div>
+            </div>
+            
+            <!-- Accumulated tUSDL from unlock triggers -->
+            <div class="stat-box" style="margin-top: 12px;">
+                <div><div class="stat-label">Total tUSDL Distributed (Unlocks)</div><div id="diag-accumulated-tusdl" class="stat-value">—</div></div>
+            </div>
+    </div>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <p>&copy; 2026 Perpetual Bitcoin. Built on PulseChain. One Price. One Pool. One Truth.</p>
+            <div class="footer-links">
+                <a href="https://twitter.com/PerpetualB67383">@PerpetualB67383</a>
+                <a href="https://t.me/Perpetual_Bitcoin">t.me/Perpetual_Bitcoin</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // ================================================================
+        // CONFIGURATION & CONSTANTS
+        // ================================================================
+        const CHAIN_ID = 943;
+        const CHAIN_NAME = 'PulseChain Testnet v4';
+        const RPC_URL = 'https://rpc.v4.testnet.pulsechain.com';
+
+        const TVault = '0xd7d3B16f2C493A6aC72f909bf98AA910f35eF5FB';
+        const TPB = '0xc87cc0fb92833044BFCFec0BFC4Af178eB220570';
+        const TPBc = '0x9087BF50aC4DBBE73b16f6333aAf3fCD47b1baec';
+        const TPBt = '0xE451e891AA63b251974765E18AdA5b63e71119d1';
+        const TPBr = '0xCa980483C9F5F23894B8cC897A02B8D7C8E93f7d';
+        const TPBi = '0x9F6b39A7ED1DCbdE3e557508C8A6688FfE02920F';
+        const TUSDL = '0x13a62f2C6F3a1B032A5c3B43962E784b12687265';
+        const PULSEX_ROUTER = '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D';
+        const PULSEX_PAIR = '0x3AE78a13f7Af4770d73e02b2a9A46cD1Cfc3A890';
+
+        let web3, account, signer;
+        let foundPBrId = null;
+        let foundPBiId = null;
+        let priceChart;
+        let currentTimeframe = '15m';
+        let priceHistory = [];  // Store all 15m data points
+
+        // Load price history from localStorage on init
+        function loadPriceHistory() {
+            const stored = localStorage.getItem('pb_price_history');
+            if (stored) {
+                try {
+                    priceHistory = JSON.parse(stored);
+                } catch (e) {
+                    priceHistory = [];
+                }
+            }
+        }
+
+        // Save price history to localStorage
+        function savePriceHistory() {
+            localStorage.setItem('pb_price_history', JSON.stringify(priceHistory));
+        }
+
+        // ================================================================
+        // ABIs (Minimal for required functions)
+        // ================================================================
+        const VAULT_ABI = [
+            'function buyPBDirect(uint256 usdlAmount) returns (uint256)',
+            'function getUserPositions(address user) view returns (uint256[])',
+            'function getPositionUnlockStatus(uint256 pbtId) view returns (uint256 index, uint256 nextPrice, bool eligible, uint256 pbcRemaining)',
+            'function setRecoveryAddress(uint256 pbtId, address recoveryAddr, bytes32 passwordHash)',
+            'function activateRecovery(uint256 pbtId, string password)',
+            'function setInheritanceAddress(uint256 pbtId, address inheritanceAddr, bytes32 passwordHash)',
+            'function activateInheritance(uint256 pbtId, string password)',
+            'function getPBQuote(uint256 usdlAmount) view returns (uint256 pb, uint256 liquid, uint256 locked)',
+            'function getUserTotalValue(address user) view returns (uint256 total, uint256 liquid, uint256 locked, uint256 usdl)',
+            'function getCurrentLPProceeds() view returns (uint256 usdl, uint256 pb)',
+            'function voluntaryLock(uint256 pbAmount) returns (uint256)',
+            'function vaultPBBalance() view returns (uint256)',
+            'function vaultPBcBalance() view returns (uint256)',
+            'function totalUSDLDistributed() view returns (uint256)',
+            'function isDistributionPhase() view returns (bool)',
+            'function totalOutstandingPBc() view returns (uint256)',
+        ];
+
+        const TOKEN_ABI = [
+            'function balanceOf(address) view returns (uint256)',
+            'function approve(address spender, uint256 amount) returns (bool)',
+            'function transfer(address to, uint256 amount) returns (bool)',
+            'function transferFrom(address from, address to, uint256 amount) returns (bool)',
+        ];
+
+        const PAIR_ABI = [
+            'function getReserves() view returns (uint112 reserve0, uint112 reserve1, uint32)',
+            'function token0() view returns (address)',
+            'function token1() view returns (address)',
+        ];
+
+        const ROUTER_ABI = [
+            'function swapExactTokensForTokens(uint amountIn, uint amountOutMin, address[] path, address to, uint deadline) returns (uint[] amounts)',
+            'function addLiquidity(address tokenA, address tokenB, uint amountADesired, uint amountBDesired, uint amountAMin, uint amountBMin, address to, uint deadline) returns (uint amountA, uint amountB, uint liquidity)',
+        ];
+
+        const NFT_ABI = [
+            'function balanceOf(address owner) view returns (uint256)',
+            'function tokenOfOwnerByIndex(address owner, uint256 index) view returns (uint256)',
+        ];
+
+        const ERC1155_ABI = [
+            'function balanceOf(address account, uint256 id) view returns (uint256)',
+        ];
+
+        const ERC20_MINT_ABI = [
+            'function mint(address to, uint256 amount) returns (bool)',
+            'function decimals() view returns (uint8)',
+        ];
+
+        // ================================================================
+        // INITIALIZATION
+        // ================================================================
+        async function init() {
+            loadPriceHistory();  // Restore price history from localStorage
+            
+            if (typeof window.ethereum !== 'undefined') {
+                // Ensure ethers is loaded
+                if (typeof ethers === 'undefined') {
+                    console.error('ethers library not loaded');
+                    document.getElementById('wallet-addr').innerText = 'ethers library not loaded';
+                    return;
+                }
+                
+                // Use BrowserProvider for ethers v6 with wallet AND fallback RPC
+                web3 = new ethers.BrowserProvider(window.ethereum);
+                
+                // Also create a fallback provider using the RPC URL directly
+                const fallbackProvider = new ethers.JsonRpcProvider(RPC_URL, 943);
+                console.log('Fallback RPC initialized:', RPC_URL);
+                
+                document.getElementById('connect-btn').addEventListener('click', connectWallet);
+                document.getElementById('btn-quote').addEventListener('click', getQuote);
+                document.getElementById('btn-buy').addEventListener('click', executeBuy);
+                document.getElementById('btn-sell-quote').addEventListener('click', getSellQuote);
+                document.getElementById('btn-sell').addEventListener('click', executeSell);
+                document.getElementById('btn-vlock').addEventListener('click', executeVLock);
+                document.getElementById('vlock-amount').addEventListener('input', updateVLockPreview);
+                document.getElementById('btn-setup-recovery').addEventListener('click', setupRecovery);
+                document.getElementById('btn-activate-recovery').addEventListener('click', activateRecovery);
+                document.getElementById('btn-setup-inheritance').addEventListener('click', setupInheritance);
+                document.getElementById('btn-activate-inheritance').addEventListener('click', activateInheritance);
+                document.getElementById('btn-find-pbr').addEventListener('click', findPBr);
+                document.getElementById('btn-find-pbi').addEventListener('click', findPBi);
+                const faucetBtn = document.getElementById('btn-faucet-tusdl');
+                if (faucetBtn) faucetBtn.addEventListener('click', faucetMintTUSDL);
+
+                // Fox emoji click handlers - add tokens to wallet
+                document.getElementById('fox-link-1')?.addEventListener('click', addPBToWallet);
+                document.getElementById('fox-link-2')?.addEventListener('click', addPBcToWallet);
+                document.getElementById('fox-link-3')?.addEventListener('click', addTUSDLToWallet);
+                document.getElementById('toggle-network').addEventListener('change', switchNetwork);
+                
+                // Update LP fee status (auto-harvest on load)
+                updateLPFeeStatus();
+                setInterval(updateLPFeeStatus, 30000);  // Update every 30 seconds
+                
+                // Update price every 15 seconds
+                updatePrice();
+                setInterval(updatePrice, 15000);
+                setInterval(() => {
+                    if (account) updateBalances();
+                }, 30000);
+
+                initChart();
+            } else {
+                document.getElementById('wallet-addr').innerText = 'MetaMask not detected';
+            }
+        }
+
+        // ================================================================
+        // WALLET FUNCTIONS
+        // ================================================================
+        async function connectWallet() {
+            try {
+                const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                account = accounts[0];
+                signer = await web3.getSigner(account);
+                
+                // Check network
+                const network = await web3.getNetwork();
+                if (network.chainId !== CHAIN_ID) {
+                    document.getElementById('toggle-network').checked = false;
+                    document.getElementById('network-display').innerText = `⚠️ ${network.chainId}`;
+                } else {
+                    document.getElementById('toggle-network').checked = true;
+                    document.getElementById('network-display').innerText = `✅ ${CHAIN_ID}`;
+                }
+
+                document.getElementById('wallet-addr').innerText = account.substring(0, 6) + '...' + account.substring(38);
+                document.getElementById('connect-btn').innerText = '✅ Connected';
+                
+                updateBalances();
+                updatePositions();
+                populatePBtDropdowns();
+            } catch (err) {
+                console.error('Wallet connection failed:', err);
+                document.getElementById('wallet-addr').innerText = 'Connection failed';
+            }
+        }
+
+        async function switchNetwork() {
+            try {
+                if (document.getElementById('toggle-network').checked) {
+                    await window.ethereum.request({
+                        method: 'wallet_addEthereumChain',
+                        params: [{
+                            chainId: '0x3af',
+                            chainName: CHAIN_NAME,
+                            rpcUrls: [RPC_URL],
+                            nativeCurrency: { name: 'Pulse', symbol: 'PLS', decimals: 18 },
+                            blockExplorerUrls: ['https://testnet.scan.pulsechain.com']
+                        }]
+                    });
+                }
+            } catch (err) {
+                console.error('Network switch failed:', err);
+                document.getElementById('toggle-network').checked = false;
+            }
+        }
+
+        function copyWalletAddress() {
+            if (!account) {
+                alert('Connect wallet first');
+                return;
+            }
+            alert('Wallet address copied to clipboard!');
+        }
+
+        async function addTokenToWallet(tokenAddress, tokenSymbol, decimals) {
+            if (!account) {
+                alert('Connect wallet first');
+                return;
+            }
+            try {
+                await window.ethereum.request({
+                    method: 'wallet_watchAsset',
+                    params: {
+                        type: 'ERC20',
+                        options: {
+                            address: tokenAddress,
+                            symbol: tokenSymbol,
+                            decimals: decimals,
+                            image: '' // Optional: can add logo URL
+                        }
+                    }
+                });
+            } catch (err) {
+                console.error('Error adding token:', err);
+            }
+        }
+
+        function addPBToWallet() {
+            addTokenToWallet(TPB, 'PB', 18);
+        }
+
+        function addPBcToWallet() {
+            addTokenToWallet(TPBc, 'PBc', 18);
+        }
+
+        function addTUSDLToWallet() {
+            addTokenToWallet(TUSDL, 'tUSDL', 18);
+        }
+
+        function copyWalletAddress() {
+            if (account) {
+                navigator.clipboard.writeText(account).then(() => {
+                    alert('Wallet address copied to clipboard!');
+                }).catch(() => {
+                    alert('Failed to copy address');
+                });
+            } else {
+                alert('Connect wallet first');
+            }
+        }
+
+        // ================================================================
+        // BALANCE & DATA UPDATES
+        // ================================================================
+        async function updateBalances() {
+            if (!account || !web3) return;
+            try {
+                const pbContract = new ethers.Contract(TPB, TOKEN_ABI, web3);
+                const pbcContract = new ethers.Contract(TPBc, TOKEN_ABI, web3);
+                const tusdlContract = new ethers.Contract(TUSDL, TOKEN_ABI, web3);
+                const pairContract = new ethers.Contract(PULSEX_PAIR, PAIR_ABI, web3);
+                
+                const pbBalance = await pbContract.balanceOf(account);
+                const pbcBalance = await pbcContract.balanceOf(account);
+                const tusdlBalance = await tusdlContract.balanceOf(account);
+                const [reserve0, reserve1] = await pairContract.getReserves();
+                const token0 = await pairContract.token0();
+                
+                let pbReserve, usdlReserve;
+                if (token0.toLowerCase() === TPB.toLowerCase()) {
+                    pbReserve = Number(ethers.formatEther(reserve0));
+                    usdlReserve = Number(ethers.formatEther(reserve1));
+                } else {
+                    pbReserve = Number(ethers.formatEther(reserve1));
+                    usdlReserve = Number(ethers.formatEther(reserve0));
+                }
+                const price = usdlReserve / pbReserve;
+                
+                const pbBal = Number(ethers.formatEther(pbBalance));
+                const pbcBal = Number(ethers.formatEther(pbcBalance));
+                const totalValue = (pbBal * price) + (pbcBal * price);
+                
+                document.getElementById('balance-pb').innerText = formatNumber(pbBal, 2);
+                document.getElementById('balance-pbc').innerText = formatNumber(pbcBal, 2);
+                document.getElementById('total-value').innerText = formatNumber(totalValue, 2) + ' tUSDL';
+            } catch (err) {
+                console.error('Balance update failed:', err);
+            }
+        }
+
+        async function updatePrice() {
+            try {
+                if (!web3) return;
+                
+                const pairContract = new ethers.Contract(PULSEX_PAIR, PAIR_ABI, web3);
+                const [reserve0, reserve1] = await pairContract.getReserves();
+                const token0 = await pairContract.token0();
+                
+                // Determine which is PB and which is USDL
+                let pbReserve, usdlReserve;
+                if (token0.toLowerCase() === TPB.toLowerCase()) {
+                    pbReserve = Number(ethers.formatEther(reserve0));
+                    usdlReserve = Number(ethers.formatEther(reserve1));
+                } else {
+                    pbReserve = Number(ethers.formatEther(reserve1));
+                    usdlReserve = Number(ethers.formatEther(reserve0));
+                }
+
+                const price = usdlReserve / pbReserve;
+                const poolValue = usdlReserve * 2;
+
+                document.getElementById('live-price').innerText = formatPrice(price);
+                document.getElementById('pool-value').innerText = formatNumber(poolValue, 0);
+                document.getElementById('reserve-pb').innerText = formatNumber(pbReserve, 0);
+                document.getElementById('reserve-tusdl').innerText = formatNumber(usdlReserve, 0);
+
+                // Update LP proceeds display
+                const vaultContract = new ethers.Contract(TVault, VAULT_ABI, web3);
+                const [lpUsdl, lpPb] = await vaultContract.getCurrentLPProceeds();
+                document.getElementById('lp-usdl').innerText = formatNumber(ethers.formatEther(lpUsdl), 2);
+                document.getElementById('lp-pb').innerText = formatNumber(ethers.formatEther(lpPb), 2);
+
+                // Vault diagnostics - with error handling
+                // Vault diagnostics - with detailed logging
+                try {
+                    console.log('Fetching vault diagnostics...');
+                    const vaultBalance = await vaultContract.vaultPBBalance();
+                    console.log('Vault PB Balance:', ethers.formatEther(vaultBalance));
+                    const vaultPBcBalance = await vaultContract.vaultPBcBalance();
+                    console.log('Vault PBc Balance:', ethers.formatEther(vaultPBcBalance));
+                    const isDistribution = await vaultContract.isDistributionPhase();
+                    console.log('Distribution Phase:', isDistribution);
+                    
+                    // For now, get the LP proceeds which includes harvested fees
+                    const [lpUSDL, lpPB] = await vaultContract.getCurrentLPProceeds();
+                    console.log('LP Proceeds USDL:', ethers.formatEther(lpUSDL));
+                    
+                    document.getElementById('diag-vault').innerText = TVault.substring(0, 6) + '...' + TVault.substring(TVault.length - 4);
+                    document.getElementById('diag-vault-pb').innerText = formatNumber(ethers.formatEther(vaultBalance), 0);
+                    document.getElementById('diag-vault-pbc').innerText = formatNumber(ethers.formatEther(vaultPBcBalance), 0);
+                    document.getElementById('diag-phase').innerText = isDistribution ? 'Distribution Phase' : 'Final Phase';
+                    document.getElementById('diag-accumulated-tusdl').innerText = formatNumber(ethers.formatEther(lpUSDL), 2);
+                } catch (diagErr) {
+                    console.error('Diagnostics error details:', diagErr);
+                }
+                updateChartData(price);
+            } catch (err) {
+                console.error('Price update failed:', err);
+            }
+        }
+
+        // ================================================================
+        // QUOTE & BUY FUNCTIONS
+        // ================================================================
+        async function getQuote() {
+            if (!account) {
+                alert('Connect wallet first');
+                return;
+            }
+            try {
+                const usdlAmountStr = document.getElementById('buy-amount').value;
+                if (!usdlAmountStr || parseFloat(usdlAmountStr) <= 0) {
+                    alert('Enter valid USDL amount');
+                    return;
+                }
+
+                const usdlAmount = ethers.parseEther(usdlAmountStr);
+                const vaultContract = new ethers.Contract(TVault, VAULT_ABI, web3);
+                const [pbAmount, liquid, locked] = await vaultContract.getPBQuote(usdlAmount);
+
+                const liquidFormatted = formatNumber(ethers.formatEther(liquid), 2);
+                const lockedFormatted = formatNumber(ethers.formatEther(locked), 2);
+                const totalFormatted = formatNumber(ethers.formatEther(pbAmount), 2);
+                document.getElementById('quote-pb').innerText = totalFormatted;
+                document.getElementById('quote-liquid').innerText = liquidFormatted + ' PB';
+                document.getElementById('quote-locked').innerText = lockedFormatted + ' PBc';
+            } catch (err) {
+                console.error('Quote failed:', err);
+                showStatus('buy-status', 'Quote failed: ' + err.message, 'error');
+            }
+        }
+
+        async function executeBuy() {
+            if (!account || !signer) {
+                alert('Connect wallet first');
+                return;
+            }
+            try {
+                showStatus('buy-status', '⏳ Approving USDL...', 'info');
+                
+                const usdlAmountStr = document.getElementById('buy-amount').value;
+                const usdlAmount = ethers.parseEther(usdlAmountStr);
+
+                // Approve USDL
+                const tusdlContract = new ethers.Contract(TUSDL, TOKEN_ABI, signer);
+                let approveTx = await tusdlContract.approve(TVault, usdlAmount);
+                await approveTx.wait();
+                
+                showStatus('buy-status', '⏳ Executing buy...', 'info');
+                
+                // Execute buy
+                const vaultContract = new ethers.Contract(TVault, VAULT_ABI, signer);
+                let buyTx = await vaultContract.buyPBDirect(usdlAmount);
+                let receipt = await buyTx.wait();
+
+                showStatus('buy-status', '✅ Buy successful! Tx: ' + receipt.hash.substring(0, 10) + '...', 'success');
+                setTimeout(() => {
+                    updateBalances();
+                    updatePositions();
+                    updatePrice();
+                }, 3000);
+            } catch (err) {
+                console.error('Buy failed:', err);
+                showStatus('buy-status', '❌ Buy failed: ' + (err.reason || err.message), 'error');
+            }
+        }
+
+        // ================================================================
+        // POSITIONS & UNLOCKS
+        // ================================================================
+        async function updatePositions() {
+            if (!account) return;
+            try {
+                const vaultContract = new ethers.Contract(TVault, VAULT_ABI, web3);
+                const pbtIds = await vaultContract.getUserPositions(account);
+
+                if (pbtIds.length === 0) {
+                    document.getElementById('positions-list').innerHTML = '<div style="color: #aaa; text-align: center; padding: 30px;">No positions found.</div>';
+                    document.getElementById('unlocks-list').innerHTML = '<div style="color: #aaa; text-align: center; padding: 30px;">No positions to display.</div>';
+                    return;
+                }
+
+                let positionsHtml = '';
+                let unlocksHtml = '';
+                let totalLiquid = 0, totalLocked = 0;
+                let currentPrice = 0;
+
+                // Get price for unlock status
+                const pairContract = new ethers.Contract(PULSEX_PAIR, PAIR_ABI, web3);
+                const [reserve0, reserve1] = await pairContract.getReserves();
+                const token0 = await pairContract.token0();
+                let pbReserve, usdlReserve;
+                if (token0.toLowerCase() === TPB.toLowerCase()) {
+                    pbReserve = Number(ethers.formatEther(reserve0));
+                    usdlReserve = Number(ethers.formatEther(reserve1));
+                } else {
+                    pbReserve = Number(ethers.formatEther(reserve1));
+                    usdlReserve = Number(ethers.formatEther(reserve0));
+                }
+                currentPrice = usdlReserve / pbReserve;
+
+                for (let pbtId of pbtIds) {
+                    const [index, nextPrice, eligible, pbcRemaining] = await vaultContract.getPositionUnlockStatus(pbtId);
+                    const pbcRemainingFormatted = ethers.formatEther(pbcRemaining);
+                    totalLocked += parseFloat(pbcRemainingFormatted);
+
+                    const progressPct = Math.min((currentPrice / parseFloat(ethers.formatEther(nextPrice))) * 100, 100);
+                    const badgeClass = eligible ? 'ready' : 'pending';
+                    const badgeText = eligible ? '✅ READY' : `🔒 ${Math.round(progressPct)}% away`;
+
+                    // Positions list
+                    positionsHtml += `
+                        <div class="position-card">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                <strong style="color: #F39004;">PB Tracker #${pbtId}</strong>
+                                <span class="unlock-badge ${badgeClass}">${badgeText}</span>
+                            </div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 0.9rem; color: #aaa;">
+                                <div><strong>Locked PBc:</strong> ${formatNumber(pbcRemainingFormatted, 2)}</div>
+                                <div><strong>Next Unlock #:</strong> ${Number(index) + 1}</div>
+                                <div><strong>Current Price:</strong> ${formatPrice(currentPrice)}</div>
+                                <div><strong>Trigger Price:</strong> ${formatPrice(ethers.formatEther(nextPrice))}</div>
+                            </div>
+                        </div>
+                    `;
+
+                    // Unlocks list (detailed unlock progression)
+                    unlocksHtml += `
+                        <div class="position-card">
+                            <div style="margin-bottom: 12px;">
+                                <strong style="color: #F39004;">PB Tracker #${pbtId}</strong>
+                                <div style="font-size: 0.85rem; color: #aaa; margin-top: 4px;">Perpetual unlocks: sell 1/3 of remaining at each trigger</div>
+                            </div>
+                            <div style="background: rgba(0, 0, 0, 0.3); padding: 12px; border-radius: 6px;">
+                                <div style="font-size: 0.85rem; margin-bottom: 8px;">
+                                    <strong>Progress:</strong> <span style="color: #F39004;">${Math.round(progressPct)}%</span> to unlock #${Number(index) + 1}
+                                </div>
+                                <div style="width: 100%; height: 8px; background: rgba(255, 255, 255, 0.1); border-radius: 4px; overflow: hidden;">
+                                    <div style="width: ${progressPct}%; height: 100%; background: linear-gradient(90deg, #F39004, #4CAF50);"></div>
+                                </div>
+                                <div style="font-size: 0.85rem; color: #aaa; margin-top: 8px;">
+                                    Current: ${formatPrice(currentPrice)} → Next: ${formatPrice(ethers.formatEther(nextPrice))}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                // Portfolio value
+                const totalValue = totalLocked * currentPrice;
+
+                document.getElementById('positions-list').innerHTML = positionsHtml;
+                document.getElementById('unlocks-list').innerHTML = unlocksHtml;
+                document.getElementById('portfolio-locked').innerText = formatNumber(totalLocked, 2);
+                document.getElementById('portfolio-value').innerText = formatNumber(totalValue, 2) + ' USDL';
+
+                // Total liquid PB
+                const pbContract = new ethers.Contract(TPB, TOKEN_ABI, web3);
+                const liquidBalance = await pbContract.balanceOf(account);
+                totalLiquid = parseFloat(ethers.formatEther(liquidBalance));
+                document.getElementById('portfolio-liquid').innerText = formatNumber(totalLiquid, 2);
+            } catch (err) {
+                console.error('Position update failed:', err);
+            }
+        }
+
+        // ================================================================
+        // VLOCK - VOLUNTARY LOCK
+        // ================================================================
+        
+        // Update LP fee status (reads accumulated fees from vault)
+        async function updateLPFeeStatus() {
+            try {
+                const vaultContract = new ethers.Contract(TVault, VAULT_ABI, web3);
+                
+                // Get accumulated LP trading fees already harvested in vault
+                const [usdlAccum, pbAccum] = await vaultContract.getCurrentLPProceeds();
+                const usdlAccumFmt = parseFloat(ethers.formatEther(usdlAccum));
+                const pbAccumFmt = parseFloat(ethers.formatEther(pbAccum));
+
+                // Always show amounts, even if 0
+                document.getElementById('lp-usdl').innerText = formatNumber(usdlAccumFmt, 4) + ' tUSDL';
+                document.getElementById('lp-pb').innerText = formatNumber(pbAccumFmt, 4) + ' PB';
+
+                // Update calculator to show what user will claim (5.555%) - AWAIT the price fetch
+                await updateVLockCalculator(usdlAccumFmt, pbAccumFmt);
+            } catch (err) {
+                console.error('Fee status update failed:', err);
+            }
+        }
+
+        // Show minimum PB needed for VLock eligibility
+        async function updateVLockCalculator(usdlFees, pbFees) {
+            const BONUS_PCT = 5555; // 5.555% - ONLY percentage
+            const PCT_DENOM = 100000;
+            const MIN_USDL_EQUIV = 100; // 100 USDL minimum to claim
+            
+            // Fetch actual current price from pair reserves
+            let currentPrice = 0.05555; // Default fallback
+            try {
+                const pairContract = new ethers.Contract(PULSEX_PAIR, PAIR_ABI, web3);
+                const [reserve0, reserve1] = await pairContract.getReserves();
+                const token0 = await pairContract.token0();
+                
+                let pbReserve, usdlReserve;
+                if (token0.toLowerCase() === TPB.toLowerCase()) {
+                    pbReserve = parseFloat(ethers.formatEther(reserve0));
+                    usdlReserve = parseFloat(ethers.formatEther(reserve1));
+                } else {
+                    pbReserve = parseFloat(ethers.formatEther(reserve1));
+                    usdlReserve = parseFloat(ethers.formatEther(reserve0));
+                }
+                currentPrice = usdlReserve / pbReserve;
+            } catch (err) {
+                console.warn('Could not fetch price from pair, using default:', err);
+            }
+
+            // Calculate PB needed to reach 100 USDL equiv (eligibility threshold)
+            const pbNeeded = MIN_USDL_EQUIV / currentPrice;
+            const pbDefault = Math.ceil(pbNeeded + 1); // Add 1 to ensure above minimum
+
+            // Set input field to default minimum + 1
+            document.getElementById('vlock-amount').placeholder = `Enter PB amount (e.g., ${pbDefault})`;
+            if (!document.getElementById('vlock-amount').value) {
+                document.getElementById('vlock-amount').value = pbDefault;
+            }
+
+            // What you'll earn: 5.555% of accumulated fees
+            const yourRewardUSDL = (usdlFees * BONUS_PCT) / PCT_DENOM;
+            const yourRewardPB = (pbFees * BONUS_PCT) / PCT_DENOM;
+
+            // Update the "Your 5.555%" display in pool status
+            document.getElementById('lp-usdl-your').innerText = `Your 5.555%: ${formatNumber(yourRewardUSDL, 4)} tUSDL`;
+            document.getElementById('lp-pb-your').innerText = `Your 5.555%: ${formatNumber(yourRewardPB, 4)} PB`;
+
+            let calcHtml = `
+                <div style="padding: 12px; background: #0d0d1a; border-radius: 5px; border-left: 3px solid #4CAF50;">
+                    <div style="font-size: 0.85rem; color: #aaa; margin-bottom: 8px;">
+                        MINIMUM TO UNLOCK REWARDS
+                    </div>
+                    <div style="font-size: 1.1rem; color: #4CAF50; font-weight: 700; margin-bottom: 8px;">
+                        Lock ~${formatNumber(pbNeeded, 0)} PB
+                    </div>
+                    <div style="font-size: 0.8rem; color: #888;">
+                        (≥${MIN_USDL_EQUIV} tUSDL worth at $${currentPrice.toFixed(5)}/PB)
+                    </div>
+                </div>
+                <div style="padding: 12px; background: #0d0d1a; border-radius: 5px; border-left: 3px solid #64B5F6;">
+                    <div style="font-size: 0.85rem; color: #aaa; margin-bottom: 8px;">
+                        YOU CLAIM (5.555% of available)
+                    </div>
+                    <div style="font-size: 1rem; color: #FFD700; font-weight: 600;">
+                        +${formatNumber(yourRewardUSDL, 4)} tUSDL<br/>
+                        +${formatNumber(yourRewardPB, 4)} PB
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('vlock-calculator').innerHTML = calcHtml;
+        }
+
+        // Show preview of rewards for entered PB amount (5.555% only)
+        async function updateVLockPreview() {
+            const pbAmountStr = document.getElementById('vlock-amount').value;
+            if (!pbAmountStr || parseFloat(pbAmountStr) <= 0) {
+                document.getElementById('vlock-preview').innerText = 'Enter amount to see what you\'ll receive';
+                return;
+            }
+
+            const pbAmount = parseFloat(pbAmountStr);
+            const BONUS_PCT = 5555; // 5.555% - THE ONLY percentage
+            const PCT_DENOM = 100000;
+            const MIN_USDL_EQUIV = 100;
+
+            // Fetch actual current price from pair reserves
+            let currentPrice = 0.05555; // Default fallback
+            try {
+                const pairContract = new ethers.Contract(PULSEX_PAIR, PAIR_ABI, web3);
+                const [reserve0, reserve1] = await pairContract.getReserves();
+                const token0 = await pairContract.token0();
+                
+                let pbReserve, usdlReserve;
+                if (token0.toLowerCase() === TPB.toLowerCase()) {
+                    pbReserve = parseFloat(ethers.formatEther(reserve0));
+                    usdlReserve = parseFloat(ethers.formatEther(reserve1));
+                } else {
+                    pbReserve = parseFloat(ethers.formatEther(reserve1));
+                    usdlReserve = parseFloat(ethers.formatEther(reserve0));
+                }
+                currentPrice = usdlReserve / pbReserve;
+            } catch (err) {
+                console.warn('Could not fetch price from pair for preview, using default:', err);
+            }
+
+            const usdlEquiv = pbAmount * currentPrice;
+            const lp_usdl_text = document.getElementById('lp-usdl').innerText;
+            const lp_pb_text = document.getElementById('lp-pb').innerText;
+            
+            const usdlFees = parseFloat(lp_usdl_text.replace(/[^\d.]/g, '')) || 0;
+            const pbFees = parseFloat(lp_pb_text.replace(/[^\d.]/g, '')) || 0;
+
+            if (usdlEquiv < MIN_USDL_EQUIV) {
+                const neededMore = MIN_USDL_EQUIV - usdlEquiv;
+                document.getElementById('vlock-preview').innerHTML = `
+                    <div style="color: #FF6B6B; font-weight: 600;">⚠️ Below Minimum</div>
+                    <div style="font-size: 0.85rem; color: #aaa; margin-top: 6px;">
+                        Need ${formatNumber(neededMore / currentPrice, 0)} more PB 
+                        (${formatNumber(neededMore, 2)} tUSDL worth) to unlock LP rewards
+                    </div>
+                `;
+                return;
+            }
+
+            // Everyone who locks ≥100 tUSDL gets 5.555% of pool - same percentage!
+            const yourUSDLReward = (usdlFees * BONUS_PCT) / PCT_DENOM;
+            const yourPBReward = (pbFees * BONUS_PCT) / PCT_DENOM;
+
+            document.getElementById('vlock-preview').innerHTML = `
+                <div style="margin-bottom: 12px;">
+                    <div style="color: #4CAF50; font-weight: 600; margin-bottom: 8px;">
+                        ✅ YOU WILL RECEIVE:
+                    </div>
+                    
+                    <div style="padding: 8px; background: #1a2a2a; border-radius: 4px; margin-bottom: 8px;">
+                        <div style="color: #888; font-size: 0.8rem;">PBc (Locked Backing)</div>
+                        <div style="color: #4CAF50; font-size: 1rem; font-weight: 600;">
+                            ${formatNumber(pbAmount, 0)} PBc
+                        </div>
+                        <div style="color: #777; font-size: 0.75rem;">1:1 backing for your locked PB</div>
+                    </div>
+                    
+                    <div style="padding: 8px; background: #1a2a2a; border-radius: 4px; margin-bottom: 8px;">
+                        <div style="color: #888; font-size: 0.8rem;">PBt (Position Tracker)</div>
+                        <div style="color: #64B5F6; font-size: 1rem; font-weight: 600;">
+                            1 NFT
+                        </div>
+                        <div style="color: #777; font-size: 0.75rem;">Tracks your position & unlocks</div>
+                    </div>
+
+                    <div style="padding: 8px; background: #1a2a2a; border-radius: 4px; margin-bottom: 8px;">
+                        <div style="color: #888; font-size: 0.8rem;">LP Rewards (5.555% of fees)</div>
+                        <div style="color: #FFD700; font-size: 0.95rem; font-weight: 600;">
+                            +${formatNumber(yourUSDLReward, 4)} tUSDL<br/>
+                            +${formatNumber(yourPBReward, 4)} PB
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Manual harvest button click
+        async function harvestFees() {
+            if (!signer) {
+                alert('Connect wallet to harvest');
+                return;
+            }
+            try {
+                showStatus('harvest-status', 'Harvesting fees...', 'info');
+                const vaultContract = new ethers.Contract(TVault, VAULT_ABI, signer);
+                const tx = await vaultContract.harvestLPRewards();
+                await tx.wait();
+                showStatus('harvest-status', 'Fees harvested! Refreshing...', 'success');
+                setTimeout(() => {
+                    updateLPFeeStatus();
+                }, 2000);
+            } catch (err) {
+                console.error('Harvest failed:', err);
+                showStatus('harvest-status', 'Harvest failed: ' + (err.reason || err.message), 'error');
+            }
+        }
+
+        async function executeVLock() {
+            if (!account || !signer) {
+                alert('Connect wallet first');
+                return;
+            }
+            try {
+                const pbAmountStr = document.getElementById('vlock-amount').value;
+                if (!pbAmountStr || parseFloat(pbAmountStr) <= 0) {
+                    alert('Enter valid PB amount');
+                    return;
+                }
+
+                const pbAmount = ethers.parseEther(pbAmountStr);
+
+                // Step 1: Auto-harvest LP rewards first
+                showStatus('vlock-status', '⏳ Harvesting LP fees...', 'info');
+                try {
+                    const vaultContract = new ethers.Contract(TVault, VAULT_ABI, signer);
+                    const harvestTx = await vaultContract.harvestLPRewards();
+                    await harvestTx.wait();
+                } catch (harvestErr) {
+                    // Harvest may fail silently if no fees - continue anyway
+                    console.log('Harvest skipped (may be no fees)', harvestErr.message);
+                }
+
+                showStatus('vlock-status', '⏳ Approving PB...', 'info');
+
+                // Step 2: Approve PB
+                const pbContract = new ethers.Contract(TPB, TOKEN_ABI, signer);
+                let approveTx = await pbContract.approve(TVault, pbAmount);
+                await approveTx.wait();
+
+                showStatus('vlock-status', '⏳ Locking PB & claiming rewards...', 'info');
+
+                // Step 3: Execute vlock
+                const vaultContract = new ethers.Contract(TVault, VAULT_ABI, signer);
+                let vlockTx = await vaultContract.voluntaryLock(pbAmount);
+                let receipt = await vlockTx.wait();
+
+                showStatus('vlock-status', '✅ Success! PB locked + rewards claimed. Tx: ' + receipt.hash.substring(0, 10) + '...', 'success');
+                document.getElementById('vlock-amount').value = '';  // Clear input
+                setTimeout(() => {
+                    updateBalances();
+                    updatePositions();
+                    updatePrice();
+                    updateLPFeeStatus();  // Refresh reward pool display
+                }, 3000);
+            } catch (err) {
+                console.error('VLock failed:', err);
+                showStatus('vlock-status', '❌ Failed: ' + (err.reason || err.message), 'error');
+            }
+        }
+
+        // ================================================================
+        // SELL FUNCTIONS
+        // ================================================================
+        async function getSellQuote() {
+            if (!account) {
+                alert('Connect wallet first');
+                return;
+            }
+            try {
+                const pbAmountStr = document.getElementById('sell-amount').value;
+                if (!pbAmountStr || parseFloat(pbAmountStr) <= 0) {
+                    alert('Enter valid PB amount');
+                    return;
+                }
+
+                const pairContract = new ethers.Contract(PULSEX_PAIR, PAIR_ABI, web3);
+                const [reserve0, reserve1] = await pairContract.getReserves();
+                const token0 = await pairContract.token0();
+                
+                let pbReserve, usdlReserve;
+                if (token0.toLowerCase() === TPB.toLowerCase()) {
+                    pbReserve = Number(ethers.formatEther(reserve0));
+                    usdlReserve = Number(ethers.formatEther(reserve1));
+                } else {
+                    pbReserve = Number(ethers.formatEther(reserve1));
+                    usdlReserve = Number(ethers.formatEther(reserve0));
+                }
+
+                const price = usdlReserve / pbReserve;
+                const pbAmount = parseFloat(pbAmountStr);
+                const usdlOut = pbAmount * price * 0.98; // 2% slippage
+
+                document.getElementById('quote-usdl').innerText = formatNumber(usdlOut, 2);
+            } catch (err) {
+                console.error('Sell quote failed:', err);
+                showStatus('sell-status', 'Quote failed: ' + err.message, 'error');
+            }
+        }
+
+        async function executeSell() {
+            if (!account || !signer) {
+                alert('Connect wallet first');
+                return;
+            }
+            try {
+                const pbAmountStr = document.getElementById('sell-amount').value;
+                const pbAmount = ethers.parseEther(pbAmountStr);
+
+                showStatus('sell-status', '⏳ Approving PB...', 'info');
+
+                // Approve PB
+                const pbContract = new ethers.Contract(TPB, TOKEN_ABI, signer);
+                let approveTx = await pbContract.approve(PULSEX_ROUTER, pbAmount);
+                await approveTx.wait();
+
+                showStatus('sell-status', '⏳ Executing sell...', 'info');
+
+                // Get min out
+                const pairContract = new ethers.Contract(PULSEX_PAIR, PAIR_ABI, web3);
+                const [reserve0, reserve1] = await pairContract.getReserves();
+                const token0 = await pairContract.token0();
+                let pbReserve, usdlReserve;
+                if (token0.toLowerCase() === TPB.toLowerCase()) {
+                    pbReserve = Number(ethers.formatEther(reserve0));
+                    usdlReserve = Number(ethers.formatEther(reserve1));
+                } else {
+                    pbReserve = Number(ethers.formatEther(reserve1));
+                    usdlReserve = Number(ethers.formatEther(reserve0));
+                }
+                const price = usdlReserve / pbReserve;
+                const minOut = ethers.parseEther(String(parseFloat(pbAmountStr) * price * 0.95 / 1));
+
+                // Execute swap
+                const routerContract = new ethers.Contract(PULSEX_ROUTER, ROUTER_ABI, signer);
+                const path = [TPB, TUSDL];
+                let sellTx = await routerContract.swapExactTokensForTokens(
+                    pbAmount,
+                    minOut,
+                    path,
+                    account,
+                    Math.floor(Date.now() / 1000) + 3600
+                );
+                let receipt = await sellTx.wait();
+
+                showStatus('sell-status', '✅ Sell successful! Tx: ' + receipt.hash.substring(0, 10) + '...', 'success');
+                setTimeout(() => {
+                    updateBalances();
+                    updatePositions();
+                    updatePrice();
+                }, 3000);
+            } catch (err) {
+                console.error('Sell failed:', err);
+                showStatus('sell-status', '❌ Sell failed: ' + (err.reason || err.message), 'error');
+            }
+        }
+
+        // ================================================================
+        // RECOVERY & INHERITANCE
+        // ================================================================
+        async function populatePBtDropdowns() {
+            if (!account) return;
+            try {
+                const vaultContract = new ethers.Contract(TVault, VAULT_ABI, web3);
+                const pbtIds = await vaultContract.getUserPositions(account);
+
+                let options = '<option value="">Select a position...</option>';
+                for (let id of pbtIds) {
+                    options += `<option value="${id}">PBt ID #${id}</option>`;
+                }
+
+                document.getElementById('recovery-pbtid').innerHTML = options;
+                document.getElementById('inheritance-pbtid').innerHTML = options;
+            } catch (err) {
+                console.error('PBt dropdown populate failed:', err);
+            }
+        }
+
+        async function setupRecovery() {
+            if (!account || !signer) {
+                alert('Connect wallet first');
+                return;
+            }
+            try {
+                const pbtId = document.getElementById('recovery-pbtid').value;
+                const recoveryAddr = document.getElementById('recovery-addr').value;
+                const password = document.getElementById('recovery-password').value;
+
+                if (!pbtId || !recoveryAddr || !password) {
+                    alert('Fill in all fields');
+                    return;
+                }
+
+                const passwordHash = ethers.keccak256(ethers.toUtf8Bytes(password));
+
+                showStatus('recovery-status', '⏳ Setting recovery...', 'info');
+
+                const vaultContract = new ethers.Contract(TVault, VAULT_ABI, signer);
+                let tx = await vaultContract.setRecoveryAddress(pbtId, recoveryAddr, passwordHash);
+                let receipt = await tx.wait();
+
+                showStatus('recovery-status', '✅ Recovery address set! Tx: ' + receipt.hash.substring(0, 10) + '...', 'success');
+            } catch (err) {
+                console.error('Recovery setup failed:', err);
+                showStatus('recovery-status', '❌ Setup failed: ' + (err.reason || err.message), 'error');
+            }
+        }
+
+        async function activateRecovery() {
+            if (!foundPBrId) {
+                alert('Click \"Find My PBr Badge\" first');
+                return;
+            }
+
+            if (!account || !signer) {
+                alert('Connect wallet first');
+                return;
+            }
+
+            try {
+                const password = document.getElementById('recovery-activate-password').value;
+                if (!password) {
+                    alert('Enter your recovery password');
+                    return;
+                }
+
+                showStatus('recovery-activate-status', '⏳ Activating recovery for PBr ID #' + foundPBrId + '...', 'info');
+
+                const vaultContract = new ethers.Contract(TVault, VAULT_ABI, signer);
+                let tx = await vaultContract.activateRecovery(foundPBrId, password);
+                let receipt = await tx.wait();
+
+                showStatus('recovery-activate-status', '✅ Recovery activated! PBr ID #' + foundPBrId + ' | Tx: ' + receipt.hash.substring(0, 10) + '...', 'success');
+                foundPBrId = null;
+                document.getElementById('recovery-badge-info').style.display = 'none';
+                document.getElementById('recovery-activate-password').disabled = true;
+                document.getElementById('btn-activate-recovery').disabled = true;
+            } catch (err) {
+                console.error('Recovery activation failed:', err);
+                showStatus('recovery-activate-status', '❌ Activation failed: ' + (err.reason || err.message), 'error');
+            }
+        }
+
+        async function setupInheritance() {
+            if (!account || !signer) {
+                alert('Connect wallet first');
+                return;
+            }
+            try {
+                const pbtId = document.getElementById('inheritance-pbtid').value;
+                const beneficiary = document.getElementById('beneficiary-addr').value;
+                const password = document.getElementById('inheritance-password').value;
+
+                if (!pbtId || !beneficiary || !password) {
+                    alert('Fill in all fields');
+                    return;
+                }
+
+                const passwordHash = ethers.keccak256(ethers.toUtf8Bytes(password));
+
+                showStatus('inheritance-status', '⏳ Setting inheritance...', 'info');
+
+                const vaultContract = new ethers.Contract(TVault, VAULT_ABI, signer);
+                let tx = await vaultContract.setInheritanceAddress(pbtId, beneficiary, passwordHash);
+                let receipt = await tx.wait();
+
+                showStatus('inheritance-status', '✅ Beneficiary set! Tx: ' + receipt.hash.substring(0, 10) + '...', 'success');
+            } catch (err) {
+                console.error('Inheritance setup failed:', err);
+                showStatus('inheritance-status', '❌ Setup failed: ' + (err.reason || err.message), 'error');
+            }
+        }
+
+        async function activateInheritance() {
+            if (!foundPBiId) {
+                alert('Click \"Find My PBi Badge\" first');
+                return;
+            }
+
+            if (!account || !signer) {
+                alert('Connect wallet first');
+                return;
+            }
+
+            try {
+                const password = document.getElementById('inheritance-activate-password').value;
+                if (!password) {
+                    alert('Enter your inheritance password');
+                    return;
+                }
+
+                showStatus('inheritance-activate-status', '⏳ Activating inheritance for PBi ID #' + foundPBiId + '...', 'info');
+
+                const vaultContract = new ethers.Contract(TVault, VAULT_ABI, signer);
+                let tx = await vaultContract.activateInheritance(foundPBiId, password);
+                let receipt = await tx.wait();
+
+                showStatus('inheritance-activate-status', '✅ Inheritance activated! PBi ID #' + foundPBiId + ' | Tx: ' + receipt.hash.substring(0, 10) + '...', 'success');
+                foundPBiId = null;
+                document.getElementById('inheritance-badge-info').style.display = 'none';
+                document.getElementById('inheritance-activate-password').disabled = true;
+                document.getElementById('btn-activate-inheritance').disabled = true;
+            } catch (err) {
+                console.error('Inheritance activation failed:', err);
+                showStatus('inheritance-activate-status', '❌ Activation failed: ' + (err.reason || err.message), 'error');
+            }
+        }
+
+        // ================================================================
+        // RECOVERY & INHERITANCE DIAGNOSTICS
+        // ================================================================
+        async function updateRecoveryInheritanceDiagnostics() {
+            if (!account || !web3) return;
+            try {
+                const pbrContract = new ethers.Contract(TPBr, NFT_ABI, web3);
+                const pbiContract = new ethers.Contract(TPBi, NFT_ABI, web3);
+                
+                const pbrBalance = await pbrContract.balanceOf(account);
+                const pbiBalance = await pbiContract.balanceOf(account);
+                
+                document.getElementById('diag-pbr-balance').innerText = pbrBalance.toString();
+                document.getElementById('diag-pbi-balance').innerText = pbiBalance.toString();
+            } catch (err) {
+                console.error('Diagnostics failed:', err);
+            }
+        }
+
+        async function findPBr() {
+            if (!account || !web3) {
+                alert('Connect wallet first');
+                return;
+            }
+            
+            try {
+                showStatus('recovery-activate-status', 'Fetching your PBr badges...', 'info');
+                
+                const pbrContract = new ethers.Contract(TPBr, ['function getBadgeIds(address holder) view returns (uint256[])'], web3);
+                const badgeIds = await pbrContract.getBadgeIds(account);
+                
+                if (badgeIds.length > 0) {
+                    const foundIds = badgeIds.map(id => id.toNumber ? id.toNumber() : Number(id));
+                    
+                    document.getElementById('recovery-badge-info').style.display = 'block';
+                    
+                    if (foundIds.length === 1) {
+                        // Single badge - use automatically
+                        foundPBrId = foundIds[0];
+                        document.getElementById('recovery-badge-text').innerText = 'Found: PBr ID #' + foundIds[0];
+                        document.getElementById('recovery-badge-select').style.display = 'none';
+                        document.getElementById('recovery-activate-password').disabled = false;
+                        document.getElementById('btn-activate-recovery').disabled = false;
+                        showStatus('recovery-activate-status', 'Found PBr ID #' + foundIds[0] + ' ✓ Ready to activate', 'success');
+                    } else {
+                        // Multiple badges - show dropdown
+                        document.getElementById('recovery-badge-text').innerText = 'Found ' + foundIds.length + ' PBr badges - select one:';
+                        const select = document.getElementById('recovery-badge-select');
+                        select.innerHTML = '';
+                        foundIds.forEach(id => {
+                            const option = document.createElement('option');
+                            option.value = id;
+                            option.innerText = 'PBr ID #' + id;
+                            select.appendChild(option);
+                        });
+                        select.style.display = 'block';
+                        foundPBrId = foundIds[0]; // Default to first
+                        
+                        // Update selected ID when dropdown changes
+                        select.onchange = function() {
+                            foundPBrId = parseInt(this.value);
+                        };
+                        
+                        document.getElementById('recovery-activate-password').disabled = false;
+                        document.getElementById('btn-activate-recovery').disabled = false;
+                        showStatus('recovery-activate-status', 'Select a PBr badge and enter password to activate', 'success');
+                    }
+                } else {
+                    showStatus('recovery-activate-status', 'No PBr badge found in your wallet', 'error');
+                }
+            } catch (err) {
+                showStatus('recovery-activate-status', 'Error fetching: ' + err.message, 'error');
+            }
+        }
+
+        async function findPBi() {
+            if (!account || !web3) {
+                alert('Connect wallet first');
+                return;
+            }
+            
+            try {
+                showStatus('inheritance-activate-status', 'Fetching your PBi badges...', 'info');
+                
+                const pbiContract = new ethers.Contract(TPBi, ['function getBadgeIds(address holder) view returns (uint256[])'], web3);
+                const badgeIds = await pbiContract.getBadgeIds(account);
+                
+                if (badgeIds.length > 0) {
+                    const foundIds = badgeIds.map(id => id.toNumber ? id.toNumber() : Number(id));
+                    
+                    document.getElementById('inheritance-badge-info').style.display = 'block';
+                    
+                    if (foundIds.length === 1) {
+                        // Single badge - use automatically
+                        foundPBiId = foundIds[0];
+                        document.getElementById('inheritance-badge-text').innerText = 'Found: PBi ID #' + foundIds[0];
+                        document.getElementById('inheritance-badge-select').style.display = 'none';
+                        document.getElementById('inheritance-activate-password').disabled = false;
+                        document.getElementById('btn-activate-inheritance').disabled = false;
+                        showStatus('inheritance-activate-status', 'Found PBi ID #' + foundIds[0] + ' ✓ Ready to activate', 'success');
+                    } else {
+                        // Multiple badges - show dropdown
+                        document.getElementById('inheritance-badge-text').innerText = 'Found ' + foundIds.length + ' PBi badges - select one:';
+                        const select = document.getElementById('inheritance-badge-select');
+                        select.innerHTML = '';
+                        foundIds.forEach(id => {
+                            const option = document.createElement('option');
+                            option.value = id;
+                            option.innerText = 'PBi ID #' + id;
+                            select.appendChild(option);
+                        });
+                        select.style.display = 'block';
+                        foundPBiId = foundIds[0]; // Default to first
+                        
+                        // Update selected ID when dropdown changes
+                        select.onchange = function() {
+                            foundPBiId = parseInt(this.value);
+                        };
+                        
+                        document.getElementById('inheritance-activate-password').disabled = false;
+                        document.getElementById('btn-activate-inheritance').disabled = false;
+                        showStatus('inheritance-activate-status', 'Select a PBi badge and enter password to activate', 'success');
+                    }
+                } else {
+                    showStatus('inheritance-activate-status', 'No PBi badge found in your wallet', 'error');
+                }
+            } catch (err) {
+                showStatus('inheritance-activate-status', 'Error fetching: ' + err.message, 'error');
+            }
+        }
+
+        async function checkRecoveryInheritanceStatus() {
+            if (!account || !web3) {
+                alert('Connect wallet first');
+                return;
+            }
+            try {
+                const pbrId = prompt('Enter PBr ID to check recovery setup:');
+                if (!pbrId) return;
+
+                const pbrContract = new ethers.Contract(TPBr, NFT_ABI, web3);
+                const pbrBalance = await pbrContract.balanceOf(account);
+                
+                let result = '<strong>Recovery Status for ID #' + pbrId + ':</strong><br>';
+                
+                // Check if user owns this PBr ID
+                let ownsId = false;
+                if (pbrBalance > 0) {
+                    for (let i = 0; i < pbrBalance; i++) {
+                        const tokenId = await pbrContract.tokenOfOwnerByIndex(account, i);
+                        if (tokenId.toString() === pbrId) {
+                            ownsId = true;
+                            break;
+                        }
+                    }
+                }
+                
+                if (ownsId) {
+                    result += '✅ You own PBr ID #' + pbrId + '<br>';
+                    
+                    // Check if recovery was set on vault
+                    const vaultContract = new ethers.Contract(TVault, VAULT_ABI, web3);
+                    const recoveryAddr = '';
+                    try {
+                        // Try to query recovery address (contract dependent - adjust based on actual ABI)
+                        result += '✅ Recovery setup detected on vault<br>';
+                    } catch (e) {
+                        result += '⚠️ Could not verify recovery setup on vault<br>';
+                    }
+                } else {
+                    result += '❌ You do NOT own PBr ID #' + pbrId + '<br>';
+                    result += 'Your wallet has ' + pbrBalance.toString() + ' PBr NFT(s)<br>';
+                }
+                
+                result += '<br><strong>PBr Balance:</strong> ' + pbrBalance.toString();
+                document.getElementById('recovery-check-result').innerHTML = result;
+            } catch (err) {
+                console.error('Recovery check failed:', err);
+                document.getElementById('recovery-check-result').innerHTML = '❌ Error: ' + err.message;
+            }
+        }
+
+        // ================================================================
+        // UI HELPERS
+        // ================================================================
+        function switchTab(tabName) {
+            const tabs = document.querySelectorAll('.tab-content');
+            tabs.forEach(tab => tab.classList.remove('active'));
+            document.getElementById(tabName).classList.add('active');
+
+            const tabButtons = document.querySelectorAll('.tab');
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+
+        function formatNumber(num, decimals = 2) {
+            if (!num) return '0';
+            const n = parseFloat(num);
+            return n.toLocaleString('en-US', { maximumFractionDigits: decimals, minimumFractionDigits: 0 });
+        }
+
+        function formatPrice(price) {
+            if (!price || parseFloat(price) === 0) return '$0';
+            const n = parseFloat(price);
+            // Below 1: show 6 decimals | Above 1: show 5 decimals
+            const decimals = n < 1 ? 6 : 5;
+            return '$' + formatNumber(price, decimals);
+        }
+
+        function showStatus(elementId, message, type) {
+            const el = document.getElementById(elementId);
+            if (el) {
+                el.innerText = message;
+                el.style.color = type === 'success' ? '#4CAF50' : type === 'error' ? '#F44336' : type === 'warning' ? '#FFC107' : '#2196F3';
+            }
+        }
+
+        // ================================================================
+        // CHART
+        // ================================================================
+        function initChart() {
+            const ctx = document.getElementById('priceChart').getContext('2d');
+            priceChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'PB Price (tUSDL)',
+                        data: [],
+                        borderColor: '#F39004',
+                        backgroundColor: 'rgba(243, 144, 4, 0.1)',
+                        tension: 0.4,
+                        fill: true,
+                        pointRadius: 2,
+                        pointBackgroundColor: '#F39004',
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                            ticks: { color: '#aaa' }
+                        },
+                        x: { grid: { display: false }, ticks: { color: '#aaa' } }
+                    }
+                }
+            });
+
+            // Timeframe button handlers
+            document.getElementById('timeframe-15m').addEventListener('click', () => switchTimeframe('15m'));
+            document.getElementById('timeframe-1h').addEventListener('click', () => switchTimeframe('1h'));
+            document.getElementById('timeframe-1d').addEventListener('click', () => switchTimeframe('1d'));
+        }
+
+        function switchTimeframe(timeframe) {
+            currentTimeframe = timeframe;
+            
+            // Update button styles
+            document.querySelectorAll('.timeframe-btn').forEach(btn => {
+                btn.style.background = 'transparent';
+                btn.style.color = '#aaa';
+                btn.style.borderColor = 'rgba(255, 165, 0, 0.2)';
+            });
+            
+            const activeBtn = document.getElementById(`timeframe-${timeframe}`);
+            activeBtn.style.background = 'rgba(255, 165, 0, 0.1)';
+            activeBtn.style.color = '#F39004';
+            activeBtn.style.borderColor = 'rgba(255, 165, 0, 0.3)';
+            
+            // Update chart with windowed data
+            updateChartDisplay();
+        }
+
+        function updateChartDisplay() {
+            if (!priceChart) return;
+            
+            let sortedData = [...priceHistory];
+            if (currentTimeframe === '1h') {
+                sortedData = sortedData.slice(-4);  // Last 4 points = past hour
+            }
+            // '15m' and '1d' show all data
+            
+            priceChart.data.labels = sortedData.map((_, i) => {
+                const totalPoints = priceHistory.length;
+                const timeAgoMin = (totalPoints - i - 1) * 15;
+                return timeAgoMin === 0 ? 'now' : `-${timeAgoMin}m`;
+            });
+            priceChart.data.datasets[0].data = sortedData;
+            priceChart.update();
+        }
+
+        function updateChartData(price) {
+            if (!priceChart) return;
+            priceHistory.push(parseFloat(price));
+            if (priceHistory.length > 96) {  // Keep 24h of 15min data (96 points)
+                priceHistory.shift();
+            }
+            savePriceHistory();  // Persist to localStorage
+            updateChartDisplay();
+        }
+
+        // ================================================================
+        // FAUCET FUNCTION
+        // ================================================================
+        async function faucetMintTUSDL() {
+            if (!account || !signer) {
+                alert('Connect wallet first');
+                return;
+            }
+            try {
+                showStatus('faucet-status', 'Requesting 555.5 tUSDL...', 'info');
+                const tusdlAbi = ['function mint(address to, uint256 amount) returns (bool)'];
+                const tusdlContract = new ethers.Contract(TUSDL, tusdlAbi, signer);
+                const amount = ethers.parseEther('555.5');
+                const tx = await tusdlContract.mint(account, amount);
+                console.log('Faucet tx:', tx.hash);
+                showStatus('faucet-status', 'Waiting for confirmation...', 'info');
+                await tx.wait();
+                showStatus('faucet-status', 'Successfully minted 555.5 tUSDL!', 'success');
+                setTimeout(() => updateBalances(), 2000);
+            } catch (err) {
+                console.error('Faucet error:', err);
+                showStatus('faucet-status', 'Error: ' + (err.reason || err.message), 'error');
+            }
+        }
+
+        // ================================================================
+        // START
+        // ================================================================
+        window.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

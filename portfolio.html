@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PB Portfolio - Track All Your Perpetual Bitcoin Positions</title>
+    <meta name="description" content="View all your Perpetual Bitcoin positions across multiple wallets. Track PB, PBc, unlocks, and portfolio value without connecting a wallet." />
+    <meta name="keywords" content="Perpetual Bitcoin portfolio, PB tracker, PBc positions, PulseChain portfolio, multi-wallet tracker" />
+    <meta name="robots" content="index, follow" />
+    <meta name="theme-color" content="#F39004" />
+    <link rel="canonical" href="https://perpetualbitcoin.io/portfolio.html" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://perpetualbitcoin.io/portfolio.html" />
+    <meta property="og:title" content="PB Portfolio - Track All Your Perpetual Bitcoin Positions" />
+    <meta property="og:description" content="View all your Perpetual Bitcoin positions across multiple wallets without connecting MetaMask." />
+    <meta property="og:image" content="https://perpetualbitcoin.io/Pic/PB_logo.jpg" />
+    <meta property="og:site_name" content="Perpetual Bitcoin" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="PB Portfolio - Track All Your Perpetual Bitcoin Positions" />
+    <meta name="twitter:description" content="View all your Perpetual Bitcoin positions across multiple wallets without connecting MetaMask." />
+    <meta name="twitter:image" content="https://perpetualbitcoin.io/Pic/PB_logo.jpg" />
+    <link rel="icon" href="Pic/favicon.ico" type="image/x-icon" />
+    <link rel="stylesheet" href="styles.css" />
+    <script src="https://cdn.jsdelivr.net/npm/ethers@6/dist/ethers.umd.js"></script>
+    <script src="config.js"></script>
+    <script defer src="ticker.js"></script>
+</head>
+<body class="presale-dapp-bg">
+    <nav class="navbar" style="padding: 0.4rem 0;">
+        <div class="nav-container" style="padding: 0 2rem;">
+            <div class="logo"><img src="Pic/PB1.png" alt="Perpetual Bitcoin PB logo" style="width:40px;height:40px;"></div>
+            <button class="hamburger" id="hamburger-btn" aria-label="Toggle menu">
+                <span></span><span></span><span></span>
+            </button>
+            <ul class="nav-menu" id="nav-menu">
+                <li><a href="index.html#home" class="nav-link">Home</a></li>
+                <li><a href="faq.html" class="nav-link">FAQ</a></li>
+                <li><a href="whitepaperLite.html" class="nav-link">Whitepaper Lite</a></li>
+                <li><a href="PBManifesto.html" class="nav-link">PB Manifesto</a></li>
+                <li><a href="presale-dapp.html" class="nav-link">Presale</a></li>
+                <li><a href="testDapp.html" class="nav-link">Full testDapp</a></li>
+                <li><a href="portfolio.html" class="nav-link" style="color: #F39004; font-weight:600;">Portfolio</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="dapp-hero">
+        <h1><br>📊 Portfolio Tracker</h1>
+        <p>View all your Perpetual Bitcoin positions across multiple wallets.<br>
+        <span style="font-weight: 600; color: #F39004;">No wallet connection required, read-only via RPC.</span></p>
+        <div style="margin-top:12px;display:inline-flex;align-items:center;gap:10px;background:rgba(0,0,0,0.3);padding:6px 16px;border-radius:20px;">
+            <span id="label-testnet" style="font-size:0.85rem;font-weight:700;color:#F39004;">Testnet 943</span>
+            <label style="position:relative;display:inline-block;width:48px;height:26px;cursor:pointer;">
+                <input type="checkbox" id="network-toggle" style="opacity:0;width:0;height:0;">
+                <span style="position:absolute;inset:0;background:#555;border-radius:26px;transition:0.3s;"></span>
+                <span id="toggle-knob" style="position:absolute;left:3px;top:3px;width:20px;height:20px;background:#fff;border-radius:50%;transition:0.3s;"></span>
+            </label>
+            <span id="label-mainnet" style="font-size:0.85rem;font-weight:700;color:#666;">Mainnet 369</span>
+        </div>
+    </div>
+
+    <div class="dapp-container">
+        <!-- ADDRESS INPUT -->
+        <section class="card">
+            <h3 class="section-title">🔍 Wallet Addresses</h3>
+            <div style="margin-bottom: 15px;">
+                <label style="color: #aaa; font-size: 0.85rem; display: block; margin-bottom: 8px;">
+                    Enter one or more wallet addresses (comma, space, or newline separated)
+                </label>
+                <textarea id="address-input" class="input-field" rows="3" placeholder="0xABC...123&#10;0xDEF...456&#10;0x789...012" style="width: 100%; resize: vertical; font-family: monospace; font-size: 0.85rem;"></textarea>
+            </div>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+                <button class="btn btn-primary" id="btn-load" style="padding: 10px 24px; font-size: 0.95rem;">Load Portfolio</button>
+                <button class="btn btn-secondary" id="btn-clear" style="padding: 10px 18px; font-size: 0.85rem;">Clear All</button>
+                <span id="load-status" style="font-size: 0.85rem; color: #aaa;"></span>
+            </div>
+            <div id="saved-addresses" style="margin-top: 15px;"></div>
+
+            <!-- EXPORT / IMPORT -->
+            <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid #333;">
+                <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+                    <button class="btn btn-primary" id="btn-export" style="padding:8px 16px;font-size:0.85rem;">📤 Get Share Code</button>
+                    <span style="color:#555;font-size:0.85rem;">or</span>
+                    <input type="text" id="import-code" class="input-field" placeholder="Enter code" style="width:100px;flex:none;font-size:1rem;text-transform:uppercase;letter-spacing:2px;text-align:center;font-weight:700;" maxlength="5" />
+                    <button class="btn btn-primary" id="btn-import" style="padding:8px 16px;font-size:0.85rem;">📥 Import</button>
+                </div>
+                <div id="share-status" style="font-size:0.85rem;margin-top:8px;"></div>
+                <div id="export-code-display" style="display:none;margin-top:10px;padding:12px;background:rgba(243,144,4,0.1);border:1px solid rgba(243,144,4,0.3);border-radius:8px;text-align:center;">
+                    <div style="font-size:0.75rem;color:#aaa;margin-bottom:4px;">Your share code:</div>
+                    <div id="export-code-value" style="font-size:2rem;font-weight:900;letter-spacing:6px;color:#F39004;font-family:monospace;cursor:pointer;" onclick="navigator.clipboard.writeText(this.textContent.trim());document.getElementById('share-status').innerHTML='<span style=color:#4CAF50>Copied!</span>'" title="Click to copy"></div>
+                    <div style="font-size:0.75rem;color:#888;margin-top:4px;">Enter this code on any device to load your portfolio</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="card">
+            <h3 class="section-title">🎫 PBt Tracker Lookup</h3>
+            <div style="margin-bottom: 15px;">
+                <label style="color: #aaa; font-size: 0.85rem; display: block; margin-bottom: 8px;">
+                    Enter a single PBt ID to inspect one tracker directly
+                </label>
+                <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+                    <input type="number" id="pbt-input" class="input-field" placeholder="122" min="1" step="1" style="width:140px;flex:none;" />
+                    <button class="btn btn-primary" id="btn-pbt-load" style="padding: 10px 24px; font-size: 0.95rem;">Load PBt</button>
+                    <span id="pbt-status" style="font-size:0.85rem;color:#aaa;"></span>
+                </div>
+            </div>
+            <div id="pbt-result"></div>
+        </section>
+
+        <!-- RESULTS TABLE -->
+        <section class="card" id="totals-section" style="display: none;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+                <h3 class="section-title" style="margin:0;">💰 Portfolio</h3>
+                <div style="font-size:0.9rem;color:#aaa;">PB Price: <span id="grand-price" style="color:#F39004;font-weight:700;">-</span></div>
+            </div>
+            <div style="overflow-x:auto;">
+                <table id="portfolio-table" style="width:100%;border-collapse:collapse;font-size:0.9rem;table-layout:fixed;">
+                    <colgroup>
+                        <col style="width:130px;">
+                        <col style="width:105px;">
+                        <col style="width:105px;">
+                        <col style="width:95px;">
+                        <col style="width:95px;">
+                        <col style="width:110px;">
+                        <col style="width:50px;">
+                        <col style="width:30px;">
+                    </colgroup>
+                    <thead>
+                        <tr style="border-bottom:2px solid #F39004;">
+                            <th style="padding:10px 8px;text-align:left;color:#F39004;white-space:nowrap;cursor:pointer;user-select:none;" onclick="sortTable('addr')">Address <span id="sort-addr" style="font-size:0.7rem;"></span></th>
+                            <th style="padding:10px 8px;text-align:right;color:#F39004;white-space:nowrap;cursor:pointer;user-select:none;" onclick="sortTable('in')">$ IN <span id="sort-in" style="font-size:0.7rem;"></span></th>
+                            <th style="padding:10px 8px;text-align:right;color:#F39004;white-space:nowrap;cursor:pointer;user-select:none;" onclick="sortTable('paid')">$ Paid <span id="sort-paid" style="font-size:0.7rem;"></span></th>
+                            <th style="padding:10px 8px;text-align:right;color:#F39004;white-space:nowrap;cursor:pointer;user-select:none;" onclick="sortTable('pb')">PB <span id="sort-pb" style="font-size:0.7rem;"></span></th>
+                            <th style="padding:10px 8px;text-align:right;color:#F39004;white-space:nowrap;cursor:pointer;user-select:none;" onclick="sortTable('pbc')">PBc <span id="sort-pbc" style="font-size:0.7rem;"></span></th>
+                            <th style="padding:10px 8px;text-align:right;color:#F39004;white-space:nowrap;cursor:pointer;user-select:none;" onclick="sortTable('val')">Total $ <span id="sort-val" style="font-size:0.7rem;"></span></th>
+                            <th style="padding:10px 8px;text-align:center;color:#F39004;white-space:nowrap;cursor:pointer;user-select:none;" onclick="sortTable('t')"># T <span id="sort-t" style="font-size:0.7rem;"></span></th>
+                            <th style="padding:10px 4px;text-align:center;color:#F39004;"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="portfolio-tbody"></tbody>
+                    <tfoot id="portfolio-tfoot" style="border-top:2px solid #F39004;"></tfoot>
+                </table>
+            </div>
+        </section>
+
+        <!-- EXPANDED POSITION DETAILS -->
+        <div id="wallet-results"></div>
+    </div>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <p>&copy; 2026 Perpetual Bitcoin. Built on PulseChain. One Price. One Pool. One Truth.</p>
+            <div class="footer-links">
+                <a href="https://twitter.com/PerpetualB67383">@PerpetualB67383</a>
+                <a href="https://t.me/Perpetual_Bitcoin">t.me/Perpetual_Bitcoin</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+    // ========================
+    // HAMBURGER MENU TOGGLE
+    // ========================
+    (function() {
+        const btn = document.getElementById('hamburger-btn');
+        const menu = document.getElementById('nav-menu');
+        if (btn && menu) {
+            btn.addEventListener('click', function() {
+                btn.classList.toggle('open');
+                menu.classList.toggle('open');
+            });
+            menu.querySelectorAll('.nav-link').forEach(function(link) {
+                link.addEventListener('click', function() {
+                    btn.classList.remove('open');
+                    menu.classList.remove('open');
+                });
+            });
+        }
+    })();
+
+    // ========================
+    // CONSTANTS & ABIs
+    // ========================
+    const VAULT_ABI = [
+        'function getUserPBtIds(address user) view returns (uint256[])',
+        'function getPositionUnlockStatus(uint256 pbtId) view returns (uint256 index, uint256 nextPrice, bool eligible, uint256 pbcRemaining)',
+        'function pbtRegistry(uint256 pbtId) view returns (uint256 buyPrice, uint256 pbAmount, uint256 pbcLocked, uint256 nextUnlockIndex, uint256 nextTriggerPrice, uint256 mintBlock, address holder, address payoutAddress)',
+        'event UnlockTriggered(uint256 indexed pbtId, uint256 unlockIndex, uint256 pbUnlocked, uint256 usdlProceeds, address payoutAddress, uint256 newTriggerPrice, uint256 remainingPBcLocked)',
+    ];
+
+    const TOKEN_ABI = [
+        'function balanceOf(address) view returns (uint256)',
+    ];
+
+    const PAIR_ABI = [
+        'function getReserves() view returns (uint112 reserve0, uint112 reserve1, uint32)',
+        'function token0() view returns (address)',
+    ];
+
+    // ── Dynamic network state ──
+    let activeNet = NETWORK; // 'testnet' or 'mainnet'
+    let provider, vault, pbToken, pbcToken, pair, TVault, TPB, TPBc, TUSDL, PAIR;
+
+    function initContracts(net) {
+        activeNet = net;
+        const netCfg = NETWORKS[net];
+        const addrs = net === 'mainnet' ? ADDRESSES_MAINNET : ADDRESSES_TESTNET;
+        provider = new ethers.JsonRpcProvider(netCfg.rpc, netCfg.chainId);
+        TVault = addrs.Vault;  TPB = addrs.PB;  TPBc = addrs.PBc;
+        TUSDL = addrs.USDL;   PAIR = addrs.PB_USDL_PAIR;
+        vault    = new ethers.Contract(TVault, VAULT_ABI, provider);
+        pbToken  = new ethers.Contract(TPB, TOKEN_ABI, provider);
+        pbcToken = new ethers.Contract(TPBc, TOKEN_ABI, provider);
+        pair     = new ethers.Contract(PAIR, PAIR_ABI, provider);
+    }
+    initContracts(activeNet);
+
+    const STORAGE_KEY = 'pb_portfolio_addresses';
+
+    // ── Network toggle ──
+    document.getElementById('network-toggle').addEventListener('change', function() {
+        const net = this.checked ? 'mainnet' : 'testnet';
+        const addrs = net === 'mainnet' ? ADDRESSES_MAINNET : ADDRESSES_TESTNET;
+        if (!addrs.Vault) {
+            this.checked = !this.checked;
+            document.getElementById('load-status').innerHTML = '<span style="color:#ff6b6b;">Mainnet not deployed yet.</span>';
+            return;
+        }
+        initContracts(net);
+        document.getElementById('label-testnet').style.color = net === 'testnet' ? '#F39004' : '#666';
+        document.getElementById('label-mainnet').style.color = net === 'mainnet' ? '#F39004' : '#666';
+        document.getElementById('toggle-knob').style.left = this.checked ? '25px' : '3px';
+        document.querySelector('#network-toggle + span').style.background = this.checked ? '#F39004' : '#555';
+        // Reload if addresses exist
+        if (loadSavedAddresses().length > 0) loadPortfolio();
+    });
+
+    // ========================
+    // HELPERS
+    // ========================
+    function fmt(n, d = 2) {
+        if (n === undefined || n === null || isNaN(n)) return '-';
+        return Number(n).toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d });
+    }
+
+    function fmtPB(n) {
+        if (n === undefined || n === null || isNaN(n)) return '-';
+        return Number(n).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+    }
+
+    function shortAddr(addr) {
+        return addr.slice(0, 6) + '...' + addr.slice(-4);
+    }
+
+    function localTriggerPrice(buyPrice, unlockIndex) {
+        let price = buyPrice;
+        for (let i = 0; i <= unlockIndex; i++) {
+            price = price * 1.5555;
+        }
+        return price;
+    }
+
+    function parseAddresses(text) {
+        return text
+            .split(/[\s,;]+/)
+            .map(s => s.trim())
+            .filter(s => /^0x[0-9a-fA-F]{40}$/.test(s))
+            .filter((v, i, a) => a.indexOf(v) === i); // dedupe
+    }
+
+    function saveAddresses(addrs) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(addrs));
+    }
+
+    function loadSavedAddresses() {
+        try {
+            return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+        } catch { return []; }
+    }
+
+    function getUnlockHistoryForPosition(pbAmountNum, nextUnlockIdx, buyPriceNum, eventMap) {
+        let usdlPaid = 0;
+        let rem = pbAmountNum;
+        const history = [];
+
+        for (let t = 0; t < nextUnlockIdx; t++) {
+            if (eventMap[t]) {
+                usdlPaid += eventMap[t].proceeds;
+                rem -= eventMap[t].pbcAmount;
+                history.push({
+                    unlockIndex: t,
+                    pbcAmount: eventMap[t].pbcAmount,
+                    proceeds: eventMap[t].proceeds,
+                    executionPrice: eventMap[t].executionPrice,
+                    estimated: false,
+                });
+            } else {
+                const pbcSold = rem / 3;
+                const proceeds = pbcSold * localTriggerPrice(buyPriceNum, t);
+                usdlPaid += proceeds;
+                rem -= pbcSold;
+                history.push({
+                    unlockIndex: t,
+                    pbcAmount: pbcSold,
+                    proceeds,
+                    executionPrice: pbcSold > 0 ? proceeds / pbcSold : 0,
+                    estimated: true,
+                });
+            }
+        }
+
+        return { usdlPaid, history };
+    }
+
+    // ========================
+    // CURRENT PRICE
+    // ========================
+    async function getCurrentPrice() {
+        const [reserves, token0] = await Promise.all([
+            pair.getReserves(),
+            pair.token0(),
+        ]);
+        let pbReserve, usdlReserve;
+        if (token0.toLowerCase() === TPB.toLowerCase()) {
+            pbReserve = Number(ethers.formatEther(reserves[0]));
+            usdlReserve = Number(ethers.formatEther(reserves[1]));
+        } else {
+            pbReserve = Number(ethers.formatEther(reserves[1]));
+            usdlReserve = Number(ethers.formatEther(reserves[0]));
+        }
+        return usdlReserve / pbReserve;
+    }
+
+    // ========================
+    // LOAD WALLET DATA
+    // ========================
+    async function loadWallet(addr, currentPrice, allEvents) {
+        const checksumAddr = ethers.getAddress(addr);
+
+        // Parallel: PBt IDs + PB balance + PBc balance
+        const [pbtIds, pbBal, pbcBal] = await Promise.all([
+            vault.getUserPBtIds(checksumAddr),
+            pbToken.balanceOf(checksumAddr),
+            pbcToken.balanceOf(checksumAddr),
+        ]);
+
+        const pbLiquid = Number(ethers.formatEther(pbBal));
+        const pbcBalance = Number(ethers.formatEther(pbcBal));
+
+        if (pbtIds.length === 0) {
+            return {
+                address: checksumAddr,
+                pbLiquid,
+                pbcBalance,
+                positions: [],
+                totalUsdlIn: 0,
+                totalUsdlPaid: 0,
+                totalPBc: 0,
+            };
+        }
+
+        // Fetch all position data in parallel
+        const positionResults = await Promise.all(
+            pbtIds.flatMap(id => [
+                vault.pbtRegistry(id),
+                vault.getPositionUnlockStatus(id),
+            ])
+        );
+
+        const positions = [];
+        let totalUsdlIn = 0;
+        let totalUsdlPaid = 0;
+        let totalPBc = 0;
+
+        for (let i = 0; i < pbtIds.length; i++) {
+            const pbtId = pbtIds[i];
+            const [buyPrice, pbAmount, pbcLocked, nextUnlockIndex, nextTriggerPrice, mintBlock, holder, payoutAddress] = positionResults[i * 2];
+            const [index, nextPrice, eligible, pbcRemaining] = positionResults[i * 2 + 1];
+
+            const buyPriceNum = Number(ethers.formatEther(buyPrice));
+            const pbAmountNum = Number(ethers.formatEther(pbAmount));
+            const pbcRemainingNum = Number(ethers.formatEther(pbcRemaining));
+            const nextUnlockIdx = Number(nextUnlockIndex);
+
+            const usdlIn = buyPriceNum * pbAmountNum;
+            totalUsdlIn += usdlIn;
+            totalPBc += pbcRemainingNum;
+
+            // Calculate USDL paid from events, fallback to estimates
+            const eventMap = allEvents[Number(pbtId)] || {};
+            const unlockHistory = getUnlockHistoryForPosition(pbAmountNum, nextUnlockIdx, buyPriceNum, eventMap);
+            const usdlPaid = unlockHistory.usdlPaid;
+            totalUsdlPaid += usdlPaid;
+
+            const progressPct = Number(ethers.formatEther(nextTriggerPrice)) > 0
+                ? Math.min((currentPrice / Number(ethers.formatEther(nextTriggerPrice))) * 100, 100)
+                : 0;
+
+            positions.push({
+                pbtId: Number(pbtId),
+                buyPrice: buyPriceNum,
+                pbAmount: pbAmountNum,
+                pbcRemaining: pbcRemainingNum,
+                nextUnlockIdx,
+                eligible,
+                usdlIn,
+                usdlPaid,
+                progressPct,
+                eventMap,
+                unlockHistory: unlockHistory.history,
+            });
+        }
+
+        return {
+            address: checksumAddr,
+            pbLiquid,
+            pbcBalance,
+            positions,
+            totalUsdlIn,
+            totalUsdlPaid,
+            totalPBc,
+        };
+    }
+
+    // ========================
+    // RENDER — summary table row
+    // ========================
+    function buildTableRow(wallet, currentPrice) {
+        const totalValue = (wallet.pbLiquid + wallet.totalPBc) * currentPrice;
+        const totalT = wallet.positions.reduce((s, p) => s + p.nextUnlockIdx, 0);
+        const rowId = 'detail-' + wallet.address.slice(2, 10);
+
+        return `<tr style="border-bottom:1px solid rgba(255,255,255,0.08);cursor:pointer;" onclick="toggleDetail('${rowId}','${wallet.address}')" title="Click to expand positions">
+            <td style="padding:10px 8px;font-family:monospace;color:#ddd;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                ${shortAddr(wallet.address)}
+                <span style="font-size:0.7rem;color:#555;margin-left:4px;cursor:pointer;" onclick="event.stopPropagation();navigator.clipboard.writeText('${wallet.address}')" title="Copy">📋</span>
+            </td>
+            <td style="padding:10px 8px;text-align:right;color:#ddd;white-space:nowrap;">$${fmt(wallet.totalUsdlIn)}</td>
+            <td style="padding:10px 8px;text-align:right;color:#4CAF50;font-weight:600;white-space:nowrap;">$${fmt(wallet.totalUsdlPaid)}</td>
+            <td style="padding:10px 8px;text-align:right;color:#ddd;white-space:nowrap;">${fmtPB(wallet.pbLiquid)}</td>
+            <td style="padding:10px 8px;text-align:right;color:#ff9800;white-space:nowrap;">${fmtPB(wallet.totalPBc)}</td>
+            <td style="padding:10px 8px;text-align:right;color:#4CAF50;font-weight:600;white-space:nowrap;">$${fmt(totalValue)}</td>
+            <td style="padding:10px 8px;text-align:center;color:${totalT > 0 ? '#4CAF50' : '#666'};font-weight:700;">${totalT}</td>
+            <td style="padding:10px 4px;text-align:center;"><span style="cursor:pointer;color:#ff6b6b;font-size:0.9rem;" onclick="event.stopPropagation();removeAddress('${wallet.address}')" title="Remove">✕</span></td>
+        </tr>
+        <tr id="${rowId}" style="display:none;"><td colspan="8" style="padding:0;"></td></tr>`;
+    }
+
+    function buildTotalsRow(wallets, currentPrice) {
+        let tIn = 0, tPaid = 0, tPB = 0, tPBc = 0, tT = 0;
+        for (const w of wallets) {
+            tIn += w.totalUsdlIn;
+            tPaid += w.totalUsdlPaid;
+            tPB += w.pbLiquid;
+            tPBc += w.totalPBc;
+            tT += w.positions.reduce((s, p) => s + p.nextUnlockIdx, 0);
+        }
+        const tVal = (tPB + tPBc) * currentPrice;
+        return `<tr style="font-weight:700;font-size:0.95rem;">
+            <td style="padding:12px 8px;color:#F39004;">TOTAL</td>
+            <td style="padding:12px 8px;text-align:right;color:#ddd;white-space:nowrap;">$${fmt(tIn)}</td>
+            <td style="padding:12px 8px;text-align:right;color:#4CAF50;white-space:nowrap;">$${fmt(tPaid)}</td>
+            <td style="padding:12px 8px;text-align:right;color:#ddd;white-space:nowrap;">${fmtPB(tPB)}</td>
+            <td style="padding:12px 8px;text-align:right;color:#ff9800;white-space:nowrap;">${fmtPB(tPBc)}</td>
+            <td style="padding:12px 8px;text-align:right;color:#4CAF50;white-space:nowrap;">$${fmt(tVal)}</td>
+            <td style="padding:12px 8px;text-align:center;color:#4CAF50;">${tT}</td>
+            <td></td>
+        </tr>`;
+    }
+
+    // ========================
+    // SORTING
+    // ========================
+    let lastWallets = [];
+    let lastPrice = 0;
+    let currentSortCol = null;
+    let currentSortDir = 1; // 1 = asc, -1 = desc
+
+    function getSortValue(wallet, col) {
+        const totalValue = (wallet.pbLiquid + wallet.totalPBc) * lastPrice;
+        const totalT = wallet.positions.reduce((s, p) => s + p.nextUnlockIdx, 0);
+        switch (col) {
+            case 'addr': return wallet.address.toLowerCase();
+            case 'in':   return wallet.totalUsdlIn;
+            case 'paid': return wallet.totalUsdlPaid;
+            case 'pb':   return wallet.pbLiquid;
+            case 'pbc':  return wallet.totalPBc;
+            case 'val':  return totalValue;
+            case 't':    return totalT;
+            default:     return 0;
+        }
+    }
+
+    function clearSortArrows() {
+        for (const id of ['sort-addr','sort-in','sort-paid','sort-pb','sort-pbc','sort-val','sort-t']) {
+            document.getElementById(id).textContent = '';
+        }
+    }
+
+    function sortTable(col) {
+        if (lastWallets.length === 0) return;
+        if (currentSortCol === col) {
+            currentSortDir *= -1; // toggle direction
+        } else {
+            currentSortCol = col;
+            currentSortDir = col === 'addr' ? 1 : -1; // numbers default desc, address asc
+        }
+        const sorted = [...lastWallets].sort((a, b) => {
+            const va = getSortValue(a, col), vb = getSortValue(b, col);
+            if (va < vb) return -1 * currentSortDir;
+            if (va > vb) return 1 * currentSortDir;
+            return 0;
+        });
+        cachedDetails = {};
+        let rowsHtml = '';
+        for (const w of sorted) {
+            cachedDetails[w.address] = { wallet: w, currentPrice: lastPrice };
+            rowsHtml += buildTableRow(w, lastPrice);
+        }
+        document.getElementById('portfolio-tbody').innerHTML = rowsHtml;
+        clearSortArrows();
+        document.getElementById('sort-' + col).textContent = currentSortDir === 1 ? '▲' : '▼';
+    }
+
+    // Expand/collapse position detail below a table row
+    let cachedDetails = {};
+    function toggleDetail(rowId, addr) {
+        const tr = document.getElementById(rowId);
+        if (!tr) return;
+        if (tr.style.display !== 'none') {
+            tr.style.display = 'none';
+            return;
+        }
+        if (!cachedDetails[addr]) return;
+        const { wallet, currentPrice } = cachedDetails[addr];
+        let rows = '';
+        for (const pos of wallet.positions) {
+            const badgeText = pos.eligible ? '<span style="color:#4CAF50;font-weight:700;">✅ READY</span>' : `<span style="color:#F39004;">🔒 ${Math.round(pos.progressPct)}%</span>`;
+            const posValue = pos.pbcRemaining * currentPrice;
+            const totalSold = pos.pbAmount - pos.pbcRemaining;
+            const soldValue = totalSold * currentPrice;
+            const remainingValue = pos.pbcRemaining * currentPrice;
+            // Position header row — PBt #
+            rows += `<tr style="border-bottom:1px solid rgba(255,255,255,0.1);background:rgba(243,144,4,0.06);">
+                <td style="padding:8px 8px;color:#F39004;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">PBt #${pos.pbtId}</td>
+                <td style="padding:8px 8px;text-align:right;color:#aaa;white-space:nowrap;">$${fmt(pos.usdlIn)}</td>
+                <td style="padding:8px 8px;text-align:right;color:#4CAF50;font-weight:600;white-space:nowrap;">$${fmt(pos.usdlPaid)}</td>
+                <td style="padding:8px 8px;text-align:right;color:#aaa;white-space:nowrap;">${fmtPB(pos.pbAmount)}</td>
+                <td style="padding:8px 8px;text-align:right;color:#ff9800;white-space:nowrap;">${fmtPB(pos.pbcRemaining)}</td>
+                <td style="padding:8px 8px;text-align:right;color:#4CAF50;white-space:nowrap;">$${fmt(posValue)}</td>
+                <td style="padding:8px 8px;text-align:center;">${badgeText}</td>
+                <td></td>
+            </tr>`;
+            // "Sold" row
+            rows += `<tr style="border-bottom:1px solid rgba(255,255,255,0.05);background:rgba(76,175,80,0.06);">
+                <td style="padding:4px 8px 4px 24px;color:#4CAF50;font-size:0.85rem;">Sold</td>
+                <td style="padding:4px 8px;text-align:right;font-size:0.85rem;"></td>
+                <td style="padding:4px 8px;text-align:right;color:#4CAF50;font-weight:600;font-size:0.85rem;">$${fmt(pos.usdlPaid)}</td>
+                <td style="padding:4px 8px;text-align:right;font-size:0.85rem;"></td>
+                <td style="padding:4px 8px;text-align:right;color:#4CAF50;font-size:0.85rem;">${fmtPB(totalSold)}</td>
+                <td style="padding:4px 8px;text-align:right;color:#4CAF50;font-size:0.85rem;">$${fmt(soldValue)}</td>
+                <td style="padding:4px 8px;text-align:center;color:#4CAF50;font-size:0.85rem;">${pos.nextUnlockIdx}</td>
+                <td></td>
+            </tr>`;
+            // "Remaining" row
+            rows += `<tr style="border-bottom:1px solid rgba(255,255,255,0.08);background:rgba(244,152,4,0.05);">
+                <td style="padding:4px 8px 4px 24px;color:#ff9800;font-size:0.85rem;">Remaining</td>
+                <td style="padding:4px 8px;text-align:right;font-size:0.85rem;"></td>
+                <td style="padding:4px 8px;text-align:right;font-size:0.85rem;"></td>
+                <td style="padding:4px 8px;text-align:right;font-size:0.85rem;"></td>
+                <td style="padding:4px 8px;text-align:right;color:#ff9800;font-size:0.85rem;">${fmtPB(pos.pbcRemaining)}</td>
+                <td style="padding:4px 8px;text-align:right;color:#ff9800;font-size:0.85rem;">$${fmt(remainingValue)}</td>
+                <td></td>
+                <td></td>
+            </tr>`;
+        }
+        if (wallet.positions.length === 0) {
+            rows += '<tr><td colspan="8" style="padding:8px;color:#888;font-size:0.85rem;">No positions.</td></tr>';
+        }
+        tr.querySelector('td').innerHTML = `<table style="width:100%;border-collapse:collapse;font-size:0.9rem;table-layout:fixed;">
+            <colgroup><col style="width:130px;"><col style="width:105px;"><col style="width:105px;"><col style="width:95px;"><col style="width:95px;"><col style="width:110px;"><col style="width:50px;"><col style="width:30px;"></colgroup>
+            <tbody>${rows}</tbody></table>`;
+        tr.style.display = '';
+    }
+
+    // ========================
+    // MAIN LOAD
+    // ========================
+    async function loadPortfolio() {
+        const input = document.getElementById('address-input').value;
+        const newAddrs = parseAddresses(input);
+        const savedAddrs = loadSavedAddresses();
+
+        // Merge new with saved (dedupe)
+        const allAddrs = [...new Set([...savedAddrs, ...newAddrs].map(a => {
+            try { return ethers.getAddress(a); } catch { return null; }
+        }).filter(Boolean))];
+
+        if (allAddrs.length === 0) {
+            document.getElementById('load-status').innerHTML = '<span style="color:#ff6b6b;">No valid addresses. Enter 0x... addresses above.</span>';
+            return;
+        }
+
+        saveAddresses(allAddrs);
+        document.getElementById('address-input').value = '';
+        const statusEl = document.getElementById('load-status');
+        statusEl.innerHTML = `<span style="color:#F39004;">⏳ Loading ${allAddrs.length} wallet${allAddrs.length > 1 ? 's' : ''}...</span>`;
+
+        try {
+            // Fetch current price + all unlock events in parallel
+            const [currentPrice, allEvents] = await Promise.all([
+                getCurrentPrice(),
+                fetchAllEvents(),
+            ]);
+
+            // Load all wallets in parallel
+            const wallets = await Promise.all(
+                allAddrs.map(addr => loadWallet(addr, currentPrice, allEvents).catch(err => {
+                    console.warn(`Failed to load ${addr}:`, err.message);
+                    return null;
+                }))
+            );
+
+            const validWallets = wallets.filter(Boolean);
+
+            document.getElementById('totals-section').style.display = '';
+            document.getElementById('grand-price').textContent = '$' + fmt(currentPrice, 4);
+
+            // Store for sorting
+            lastWallets = validWallets;
+            lastPrice = currentPrice;
+            currentSortCol = null;
+            currentSortDir = 1;
+
+            // Build table rows
+            cachedDetails = {};
+            let rowsHtml = '';
+            for (const w of validWallets) {
+                cachedDetails[w.address] = { wallet: w, currentPrice };
+                rowsHtml += buildTableRow(w, currentPrice);
+            }
+            document.getElementById('portfolio-tbody').innerHTML = rowsHtml;
+            document.getElementById('portfolio-tfoot').innerHTML = buildTotalsRow(validWallets, currentPrice);
+            clearSortArrows();
+            document.getElementById('wallet-results').innerHTML = '';
+
+            renderSavedAddresses(allAddrs);
+            statusEl.innerHTML = `<span style="color:#4CAF50;">✅ Loaded ${validWallets.length} wallet${validWallets.length > 1 ? 's' : ''} — ${validWallets.reduce((s, w) => s + w.positions.length, 0)} positions</span>`;
+        } catch (err) {
+            statusEl.innerHTML = `<span style="color:#ff6b6b;">Error: ${err.message}</span>`;
+            console.error('Portfolio load error:', err);
+        }
+    }
+
+    async function loadSinglePbt() {
+        const raw = document.getElementById('pbt-input').value.trim();
+        const statusEl = document.getElementById('pbt-status');
+        const resultEl = document.getElementById('pbt-result');
+
+        if (!raw || !/^\d+$/.test(raw) || Number(raw) <= 0) {
+            statusEl.innerHTML = '<span style="color:#ff6b6b;">Enter a valid PBt ID.</span>';
+            resultEl.innerHTML = '';
+            return;
+        }
+
+        const pbtId = Number(raw);
+        statusEl.innerHTML = '<span style="color:#F39004;">⏳ Loading PBt...</span>';
+        resultEl.innerHTML = '';
+
+        try {
+            const [currentPrice, allEvents, registry, unlockStatus] = await Promise.all([
+                getCurrentPrice(),
+                fetchAllEvents(),
+                vault.pbtRegistry(pbtId),
+                vault.getPositionUnlockStatus(pbtId),
+            ]);
+
+            const holder = registry.holder;
+            if (!holder || /^0x0{40}$/i.test(holder)) {
+                statusEl.innerHTML = `<span style="color:#ff6b6b;">PBt #${pbtId} was not found on ${activeNet}.</span>`;
+                return;
+            }
+
+            const buyPriceNum = Number(ethers.formatEther(registry.buyPrice));
+            const pbAmountNum = Number(ethers.formatEther(registry.pbAmount));
+            const pbcLockedNum = Number(ethers.formatEther(registry.pbcLocked));
+            const nextTriggerNum = Number(ethers.formatEther(registry.nextTriggerPrice));
+            const nextUnlockIdx = Number(registry.nextUnlockIndex);
+            const [unlockIndex, nextPrice, eligible, pbcRemaining] = unlockStatus;
+            const pbcRemainingNum = Number(ethers.formatEther(pbcRemaining));
+            const eventMap = allEvents[pbtId] || {};
+            const unlockHistory = getUnlockHistoryForPosition(pbAmountNum, nextUnlockIdx, buyPriceNum, eventMap);
+            const currentValue = pbcRemainingNum * currentPrice;
+            const progressPct = nextTriggerNum > 0 ? Math.min((currentPrice / nextTriggerNum) * 100, 100) : 0;
+            const soldPB = pbAmountNum - pbcRemainingNum;
+
+            const historyRows = unlockHistory.history.length === 0
+                ? '<tr><td colspan="5" style="padding:10px;color:#888;">No executed unlocks yet.</td></tr>'
+                : unlockHistory.history.map(h => `
+                    <tr style="border-bottom:1px solid rgba(255,255,255,0.06);">
+                        <td style="padding:8px;">T${h.unlockIndex + 1}</td>
+                        <td style="padding:8px;text-align:right;">${fmtPB(h.pbcAmount)}</td>
+                        <td style="padding:8px;text-align:right;color:#4CAF50;">$${fmt(h.proceeds)}</td>
+                        <td style="padding:8px;text-align:right;">$${fmt(h.executionPrice, 5)}</td>
+                        <td style="padding:8px;text-align:center;color:${h.estimated ? '#aaa' : '#4CAF50'};">${h.estimated ? 'est.' : 'on-chain'}</td>
+                    </tr>
+                `).join('');
+
+            resultEl.innerHTML = `
+                <div style="border:1px solid rgba(243,144,4,0.25);border-radius:12px;padding:18px;background:rgba(243,144,4,0.05);">
+                    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px;">
+                        <div style="font-size:1.1rem;font-weight:800;color:#F39004;">PBt #${pbtId}</div>
+                        <div style="font-size:0.9rem;color:${eligible ? '#4CAF50' : '#F39004'};font-weight:700;">${eligible ? 'READY TO UNLOCK' : `${Math.round(progressPct)}% to next trigger`}</div>
+                    </div>
+
+                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-bottom:16px;">
+                        <div style="padding:10px;border:1px solid rgba(255,255,255,0.08);border-radius:8px;">
+                            <div style="font-size:0.75rem;color:#888;">Holder</div>
+                            <div style="font-family:monospace;color:#ddd;word-break:break-all;">${holder}</div>
+                        </div>
+                        <div style="padding:10px;border:1px solid rgba(255,255,255,0.08);border-radius:8px;">
+                            <div style="font-size:0.75rem;color:#888;">Payout Address</div>
+                            <div style="font-family:monospace;color:#ddd;word-break:break-all;">${registry.payoutAddress}</div>
+                        </div>
+                        <div style="padding:10px;border:1px solid rgba(255,255,255,0.08);border-radius:8px;">
+                            <div style="font-size:0.75rem;color:#888;">Entry Price</div>
+                            <div style="color:#ddd;">$${fmt(buyPriceNum, 5)}</div>
+                        </div>
+                        <div style="padding:10px;border:1px solid rgba(255,255,255,0.08);border-radius:8px;">
+                            <div style="font-size:0.75rem;color:#888;">Mint Block</div>
+                            <div style="color:#ddd;">${registry.mintBlock.toString()}</div>
+                        </div>
+                        <div style="padding:10px;border:1px solid rgba(255,255,255,0.08);border-radius:8px;">
+                            <div style="font-size:0.75rem;color:#888;">Total PB</div>
+                            <div style="color:#ddd;">${fmtPB(pbAmountNum)}</div>
+                        </div>
+                        <div style="padding:10px;border:1px solid rgba(255,255,255,0.08);border-radius:8px;">
+                            <div style="font-size:0.75rem;color:#888;">Remaining PBc</div>
+                            <div style="color:#ff9800;">${fmtPB(pbcRemainingNum)}</div>
+                        </div>
+                        <div style="padding:10px;border:1px solid rgba(255,255,255,0.08);border-radius:8px;">
+                            <div style="font-size:0.75rem;color:#888;">Sold / Settled</div>
+                            <div style="color:#4CAF50;">${fmtPB(soldPB)}</div>
+                        </div>
+                        <div style="padding:10px;border:1px solid rgba(255,255,255,0.08);border-radius:8px;">
+                            <div style="font-size:0.75rem;color:#888;">USDL Paid So Far</div>
+                            <div style="color:#4CAF50;">$${fmt(unlockHistory.usdlPaid)}</div>
+                        </div>
+                        <div style="padding:10px;border:1px solid rgba(255,255,255,0.08);border-radius:8px;">
+                            <div style="font-size:0.75rem;color:#888;">Next Unlock Index</div>
+                            <div style="color:#ddd;">${nextUnlockIdx}</div>
+                        </div>
+                        <div style="padding:10px;border:1px solid rgba(255,255,255,0.08);border-radius:8px;">
+                            <div style="font-size:0.75rem;color:#888;">Next Trigger</div>
+                            <div style="color:#F39004;">$${fmt(nextTriggerNum, 5)}</div>
+                        </div>
+                        <div style="padding:10px;border:1px solid rgba(255,255,255,0.08);border-radius:8px;">
+                            <div style="font-size:0.75rem;color:#888;">Current PBc Value</div>
+                            <div style="color:#4CAF50;">$${fmt(currentValue)}</div>
+                        </div>
+                    </div>
+
+                    <div style="overflow-x:auto;">
+                        <table style="width:100%;border-collapse:collapse;font-size:0.9rem;">
+                            <thead>
+                                <tr style="border-bottom:1px solid rgba(243,144,4,0.35);">
+                                    <th style="padding:8px;text-align:left;color:#F39004;">Unlock</th>
+                                    <th style="padding:8px;text-align:right;color:#F39004;">PB Settled</th>
+                                    <th style="padding:8px;text-align:right;color:#F39004;">USDL Paid</th>
+                                    <th style="padding:8px;text-align:right;color:#F39004;">Exec Price</th>
+                                    <th style="padding:8px;text-align:center;color:#F39004;">Source</th>
+                                </tr>
+                            </thead>
+                            <tbody>${historyRows}</tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+
+            statusEl.innerHTML = `<span style="color:#4CAF50;">✅ Loaded PBt #${pbtId}</span>`;
+        } catch (err) {
+            console.error('PBt lookup error:', err);
+            statusEl.innerHTML = `<span style="color:#ff6b6b;">Error: ${err.message}</span>`;
+        }
+    }
+
+    async function fetchAllEvents() {
+        const eventMap = {};
+        try {
+            const events = await vault.queryFilter(vault.filters.UnlockTriggered());
+            for (const event of events) {
+                try {
+                    const pbtId = Number(event.args[0]);
+                    const unlockIndex = Number(event.args[1]);
+                    const pbUnlocked = Number(ethers.formatEther(event.args[2]));
+                    const usdlProceeds = Number(ethers.formatEther(event.args[3]));
+                    if (!eventMap[pbtId]) eventMap[pbtId] = {};
+                    eventMap[pbtId][unlockIndex] = {
+                        pbcAmount: pbUnlocked,
+                        proceeds: usdlProceeds,
+                        executionPrice: pbUnlocked > 0 ? usdlProceeds / pbUnlocked : 0,
+                    };
+                } catch { /* skip */ }
+            }
+        } catch (e) {
+            console.warn('Event fetch failed:', e.message);
+        }
+        return eventMap;
+    }
+
+    // ========================
+    // ADDRESS MANAGEMENT
+    // ========================
+    function renderSavedAddresses(addrs) {
+        if (!addrs || addrs.length === 0) {
+            document.getElementById('saved-addresses').innerHTML = '';
+            return;
+        }
+        const chips = addrs.map(a => `
+            <span style="display:inline-flex;align-items:center;gap:6px;background:rgba(243,144,4,0.1);border:1px solid rgba(243,144,4,0.3);border-radius:20px;padding:4px 12px;font-size:0.8rem;font-family:monospace;color:#ddd;">
+                ${shortAddr(a)}
+                <span style="cursor:pointer;color:#ff6b6b;font-weight:bold;" onclick="removeAddress('${a}')" title="Remove">&times;</span>
+            </span>
+        `).join(' ');
+        document.getElementById('saved-addresses').innerHTML = `<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;">${chips}</div>`;
+    }
+
+    function removeAddress(addr) {
+        let addrs = loadSavedAddresses().filter(a => a.toLowerCase() !== addr.toLowerCase());
+        saveAddresses(addrs);
+        if (addrs.length > 0) {
+            loadPortfolio();
+        } else {
+            document.getElementById('totals-section').style.display = 'none';
+            document.getElementById('wallet-results').innerHTML = '';
+            document.getElementById('saved-addresses').innerHTML = '';
+            document.getElementById('load-status').innerHTML = '';
+        }
+    }
+
+    // ========================
+    // EXPORT / IMPORT (Short Code via API)
+    // ========================
+    const API_BASE = 'https://perpetualbitcoin.io/api';
+
+    document.getElementById('btn-export').addEventListener('click', async () => {
+        const addrs = loadSavedAddresses();
+        const statusEl = document.getElementById('share-status');
+        if (addrs.length === 0) { statusEl.innerHTML = '<span style="color:#ff6b6b;">No addresses to export.</span>'; return; }
+        statusEl.innerHTML = '<span style="color:#F39004;">⏳ Saving...</span>';
+        try {
+            const resp = await fetch(API_BASE + '/portfolio', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ addresses: addrs }),
+            });
+            const data = await resp.json();
+            if (!resp.ok) throw new Error(data.error || 'Save failed');
+            document.getElementById('export-code-display').style.display = '';
+            document.getElementById('export-code-value').textContent = data.code;
+            statusEl.innerHTML = `<span style="color:#4CAF50;">📤 Saved ${addrs.length} address${addrs.length>1?'es':''}. Click code to copy.</span>`;
+        } catch (e) {
+            statusEl.innerHTML = `<span style="color:#ff6b6b;">Error: ${e.message}</span>`;
+        }
+    });
+
+    document.getElementById('btn-import').addEventListener('click', async () => {
+        const code = document.getElementById('import-code').value.trim().toUpperCase();
+        const statusEl = document.getElementById('share-status');
+        if (!code || code.length !== 5) { statusEl.innerHTML = '<span style="color:#ff6b6b;">Enter a 5-character code.</span>'; return; }
+        statusEl.innerHTML = '<span style="color:#F39004;">⏳ Loading...</span>';
+        try {
+            const resp = await fetch(API_BASE + '/portfolio/' + encodeURIComponent(code));
+            const data = await resp.json();
+            if (!resp.ok) throw new Error(data.error || 'Not found');
+            const addrs = (data.addresses || []).filter(a => /^0x[0-9a-fA-F]{40}$/.test(a));
+            if (addrs.length === 0) { statusEl.innerHTML = '<span style="color:#ff6b6b;">No valid addresses in that code.</span>'; return; }
+            const existing = loadSavedAddresses();
+            const merged = [...new Set([...existing, ...addrs].map(a => { try { return ethers.getAddress(a); } catch { return null; } }).filter(Boolean))];
+            saveAddresses(merged);
+            document.getElementById('import-code').value = '';
+            statusEl.innerHTML = `<span style="color:#4CAF50;">📥 Imported ${addrs.length} address${addrs.length>1?'es':''}!</span>`;
+            loadPortfolio();
+        } catch (e) {
+            statusEl.innerHTML = `<span style="color:#ff6b6b;">${e.message === 'code not found' ? 'Code not found. Check and try again.' : 'Error: ' + e.message}</span>`;
+        }
+    });
+
+    // Allow Enter key in import code field
+    document.getElementById('import-code').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); document.getElementById('btn-import').click(); }
+    });
+
+    document.getElementById('btn-load').addEventListener('click', loadPortfolio);
+    document.getElementById('btn-pbt-load').addEventListener('click', loadSinglePbt);
+    document.getElementById('btn-clear').addEventListener('click', () => {
+        localStorage.removeItem(STORAGE_KEY);
+        document.getElementById('address-input').value = '';
+        document.getElementById('pbt-input').value = '';
+        document.getElementById('totals-section').style.display = 'none';
+        document.getElementById('wallet-results').innerHTML = '';
+        document.getElementById('saved-addresses').innerHTML = '';
+        document.getElementById('load-status').innerHTML = '';
+        document.getElementById('pbt-status').innerHTML = '';
+        document.getElementById('pbt-result').innerHTML = '';
+        document.getElementById('export-code-display').style.display = 'none';
+        document.getElementById('share-status').innerHTML = '';
+    });
+
+    // Enter key triggers load
+    document.getElementById('address-input').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            loadPortfolio();
+        }
+    });
+
+    document.getElementById('pbt-input').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            loadSinglePbt();
+        }
+    });
+
+    // Auto-load saved addresses on page load
+    (function() {
+        const saved = loadSavedAddresses();
+        if (saved.length > 0) {
+            renderSavedAddresses(saved);
+            loadPortfolio();
+        }
+    })();
+    </script>
+</body>
+</html>
