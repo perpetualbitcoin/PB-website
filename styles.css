@@ -182,6 +182,257 @@ body {
     width: 100%;
 }
 
+.docs-grid-page {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.docs-intro-card,
+.docs-checklist-card,
+.trust-hero-card {
+    background: linear-gradient(180deg, rgba(255, 165, 0, 0.09), rgba(255, 165, 0, 0.03));
+    border: 1px solid rgba(255, 165, 0, 0.18);
+}
+
+.docs-note {
+    color: rgba(255, 255, 255, 0.72);
+    margin-bottom: 1rem;
+}
+
+.docs-link-row {
+    margin-top: 1.5rem;
+}
+
+.invariant-grid,
+.trust-claims-grid,
+.trust-reference-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.invariant-grid--quad,
+.docs-grid--quad {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.invariant-card,
+.trust-claim-card,
+.trust-reference-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    padding: 1.1rem;
+}
+
+.trust-reference-card {
+    display: block;
+    text-decoration: none;
+    color: var(--text-light);
+    transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+
+.trust-reference-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(255, 165, 0, 0.32);
+    background: rgba(255, 165, 0, 0.06);
+}
+
+.invariant-card h3,
+.trust-claim-card h3,
+.trust-reference-card strong {
+    margin-bottom: 0.45rem;
+}
+
+.invariant-card p,
+.trust-claim-card p,
+.trust-reference-card p {
+    color: rgba(255, 255, 255, 0.76);
+}
+
+.invariant-tag,
+.trust-reference-label {
+    display: inline-block;
+    margin-bottom: 0.7rem;
+    padding: 0.22rem 0.6rem;
+    border-radius: 999px;
+    background: rgba(255, 165, 0, 0.14);
+    color: var(--primary-color);
+    font-size: 0.76rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.docs-checklist {
+    margin-top: 1rem;
+}
+
+.trust-hero-card {
+    display: flex;
+    justify-content: space-between;
+    gap: 1.5rem;
+    align-items: flex-start;
+}
+
+.trust-status-list {
+    min-width: 250px;
+    display: grid;
+    gap: 0.8rem;
+}
+
+.trust-status-list div {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 0.8rem 0.95rem;
+}
+
+.trust-status-list span {
+    display: block;
+    color: rgba(255, 255, 255, 0.62);
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 0.22rem;
+}
+
+.trust-status-list strong {
+    color: #fff;
+}
+
+.address-panels {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.address-panel {
+    background: linear-gradient(180deg, rgba(243, 144, 4, 0.08), rgba(243, 144, 4, 0.02));
+    border: 1px solid rgba(243, 144, 4, 0.18);
+    border-radius: 12px;
+    padding: 1rem;
+}
+
+.address-panel-header h5 {
+    margin: 0;
+    font-size: 1.05rem;
+    color: #fff;
+}
+
+.address-panel-header p {
+    margin: 0.2rem 0 0;
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 0.92rem;
+}
+
+.address-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+    margin-top: 1rem;
+}
+
+.address-row {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 10px;
+    padding: 0.8rem;
+}
+
+.address-row-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.45rem;
+}
+
+.address-name {
+    font-weight: 700;
+    color: #fff;
+}
+
+.address-state {
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #F39004;
+}
+
+.address-value-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.address-value {
+    flex: 1;
+    font-family: monospace;
+    font-size: 0.9rem;
+    line-height: 1.45;
+    color: #f7f7f7;
+    word-break: break-all;
+}
+
+.address-value.copyable {
+    cursor: pointer;
+}
+
+.address-value.copyable:hover {
+    color: #F39004;
+}
+
+.address-value.unpublished {
+    color: rgba(255, 255, 255, 0.58);
+    font-style: italic;
+}
+
+.address-btn {
+    border: 1px solid rgba(243, 144, 4, 0.28);
+    background: rgba(243, 144, 4, 0.08);
+    color: #fff;
+    border-radius: 999px;
+    padding: 0.42rem 0.72rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.address-btn.secondary {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.address-status {
+    min-height: 1.25rem;
+    margin-top: 0.8rem;
+    font-size: 0.85rem;
+    color: #F39004;
+}
+
+@media (max-width: 900px) {
+    .trust-hero-card {
+        flex-direction: column;
+    }
+
+    .trust-status-list {
+        min-width: 0;
+        width: 100%;
+    }
+}
+
+@media (max-width: 720px) {
+    .address-row-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+
 /* ========================
    HERO SECTION
    ======================== */
@@ -935,6 +1186,79 @@ table tr:hover {
     background-attachment: fixed;
 }
 
+.trade-grid {
+    align-items: stretch;
+}
+
+.card.trade-card {
+    display: flex;
+    flex-direction: column;
+    min-height: 100%;
+    border: 2px solid transparent !important;
+}
+
+.card.trade-card-buy {
+    border: 2px solid rgba(76, 175, 80, 0.95) !important;
+    box-shadow: inset 0 0 0 1px rgba(76, 175, 80, 0.28), 0 0 22px rgba(76, 175, 80, 0.22), 0 20px 38px rgba(0, 0, 0, 0.18) !important;
+}
+
+.card.trade-card-sell {
+    border: 2px solid rgba(244, 67, 54, 0.95) !important;
+    box-shadow: inset 0 0 0 1px rgba(244, 67, 54, 0.28), 0 0 22px rgba(244, 67, 54, 0.22), 0 20px 38px rgba(0, 0, 0, 0.18) !important;
+}
+
+.trade-card-actions {
+    margin-top: auto;
+    padding-top: 20px;
+}
+
+.quote-meta {
+    min-height: 1.2em;
+    margin-top: 10px;
+    font-size: 0.8rem;
+    color: #9ad9a0;
+}
+
+.quote-detail {
+    margin-top: 0;
+    font-size: 0.8rem;
+    color: #b9c8b9;
+    white-space: nowrap;
+}
+
+.quote-detail strong {
+    color: #d9ead9;
+    font-weight: 600;
+}
+
+.quote-subrow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 7px;
+    flex-wrap: wrap;
+}
+
+.quote-quick-actions {
+    display: flex;
+    gap: 5px;
+    flex-wrap: wrap;
+}
+
+.quote-meta.is-stale {
+    color: #ffb74d;
+}
+
+.quote-meta.is-idle {
+    color: #8e8e8e;
+}
+
+.trade-card #buy-status,
+.trade-card #sell-status {
+    min-height: 2.4em;
+}
+
 .wallet-panel {
     background: linear-gradient(135deg, rgba(255, 165, 0, 0.08) 0%, rgba(255, 107, 53, 0.08) 100%);
     border: 1px solid rgba(255, 165, 0, 0.2);
@@ -1011,6 +1335,74 @@ table tr:hover {
 /* ========================
    WHITEPAPER LITE PAGE
    ======================== */
+
+.tradeoff-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem;
+    margin-top: 1.25rem;
+}
+
+.tradeoff-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    padding: 1.1rem;
+}
+
+.tradeoff-card h3 {
+    margin-bottom: 0.6rem;
+    color: #fff;
+}
+
+.tradeoff-card p {
+    color: rgba(255, 255, 255, 0.76);
+    margin-bottom: 0.75rem;
+}
+
+.tradeoff-tag {
+    display: inline-block;
+    margin-bottom: 0.7rem;
+    padding: 0.22rem 0.6rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    background: rgba(255, 165, 0, 0.12);
+    color: #F39004;
+}
+
+.tradeoff-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+    margin-top: 0.75rem;
+}
+
+.tradeoff-list div {
+    padding: 0.75rem 0.85rem;
+    border-radius: 10px;
+    background: rgba(0, 0, 0, 0.22);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    color: rgba(255, 255, 255, 0.82);
+}
+
+.tradeoff-list strong {
+    color: #fff;
+}
+
+.tradeoff-callout {
+    background: linear-gradient(180deg, rgba(255, 165, 0, 0.09), rgba(255, 165, 0, 0.03));
+    border: 1px solid rgba(255, 165, 0, 0.18);
+    border-radius: 14px;
+    padding: 1.15rem;
+}
+
+.tradeoff-callout p {
+    color: rgba(255, 255, 255, 0.82);
+    margin: 0;
+}
 
 .page-hero {
     background: linear-gradient(135deg, rgba(255, 165, 0, 0.12) 0%, rgba(255, 107, 53, 0.12) 100%);
@@ -2146,6 +2538,11 @@ table tr:hover {
 }
 
 @media (max-width: 768px) {
+    .invariant-grid--quad,
+    .docs-grid--quad {
+        grid-template-columns: 1fr;
+    }
+
     .grid-2col, .grid-2way {
         grid-template-columns: 1fr;
     }

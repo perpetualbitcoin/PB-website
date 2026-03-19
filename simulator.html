@@ -3,24 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PB Protocol Simulator - Perpetual Bitcoin</title>
-<meta name="description" content="Simulate the Perpetual Bitcoin protocol: model presale buys, price-driven PBc unlocks, vault netting, and LP dynamics. See how the immutable mechanics play out over time." />
-<meta name="keywords" content="Perpetual Bitcoin simulator, PB simulator, DeFi simulator, PBc unlock simulator, vault netting, PulseChain, protocol modeling" />
-<meta name="robots" content="index, follow" />
-<meta name="theme-color" content="#F39004" />
-<link rel="canonical" href="https://perpetualbitcoin.io/simulator.html" />
-<!-- Open Graph -->
-<meta property="og:type" content="website" />
-<meta property="og:url" content="https://perpetualbitcoin.io/simulator.html" />
-<meta property="og:title" content="PB Protocol Simulator - Perpetual Bitcoin" />
-<meta property="og:description" content="Simulate presale buys, price-driven unlocks, vault netting, and LP dynamics for the Perpetual Bitcoin protocol." />
-<meta property="og:image" content="https://perpetualbitcoin.io/Pic/PB_logo.jpg" />
-<meta property="og:site_name" content="Perpetual Bitcoin" />
-<!-- Twitter Card -->
-<meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:title" content="PB Protocol Simulator - Perpetual Bitcoin" />
-<meta name="twitter:description" content="Simulate presale buys, price-driven unlocks, vault netting, and LP dynamics for the Perpetual Bitcoin protocol." />
-<meta name="twitter:image" content="https://perpetualbitcoin.io/Pic/PB_logo.jpg" />
+<title>Perpetual Bitcoin - PB Protocol Simulator</title>
 <link rel="icon" href="Pic/favicon.ico" type="image/x-icon" />
         <!-- Google tag (gtag.js) -->
         <script async src="https://www.googletagmanager.com/gtag/js?id=G-LK69CE9C9C"></script>
@@ -341,7 +324,7 @@ function getPBPerBlock(blockNum) {
     return 555.5 / entryPrice;  // USDL_PER_BLOCK / entryPrice
 }
 
-// ── FOAD block positions (primes + 1, matching PresaleIOU.sol - 102 blocks) ──
+// ── FOAD block positions (primes + 1, matching PresaleIOU.sol — 102 blocks) ──
 const FOAD_BLOCK_LIST = [1,2,3,5,7,11,13,17,19,23,29,31,37,41,43,47,53,59,61,67,71,73,79,83,89,97,101,103,107,109,113,127,131,137,139,149,151,157,163,167,173,179,181,191,193,197,199,211,223,227,229,233,239,241,251,257,263,269,271,277,281,283,293,307,311,313,317,331,337,347,349,353,359,367,373,379,383,389,397,401,409,419,421,431,433,439,443,449,457,461,463,467,479,487,491,499,503,509,521,523,541,547];
 const FOAD_BLOCK_SET = new Set(FOAD_BLOCK_LIST);
 
@@ -532,7 +515,7 @@ function allocatePresaleUser(holderAddr, pbAmount, entryPrice) {
 
 
 // ════════════════════════════════════════════════════════════════
-// CORE: BUY PB DIRECT (matches Vault.buyPBDirect - sequential netting)
+// CORE: BUY PB DIRECT (matches Vault.buyPBDirect — sequential netting)
 // ════════════════════════════════════════════════════════════════
 
 function buyPBDirect(buyerAddr, usdlAmount) {
@@ -544,7 +527,7 @@ function buyPBDirect(buyerAddr, usdlAmount) {
     // Step 1: Get sorted unlock IDs
     const unlockIds = getSortedUnlockIds();
 
-    // Step 2: Netting scan - Absorb & Net (full + partial triggers)
+    // Step 2: Netting scan — Absorb & Net (full + partial triggers)
     const { results: nettedResults, nettingStopIdx, totalSettlement, totalVBuy, absorbedPBc, partialTrigger } =
         sequentialNettingScan(usdlAmount, S.reservePB, S.reserveUSDL, unlockIds);
 
@@ -815,11 +798,11 @@ function sequentialNettingScan(usdlAmount, reservePB, reserveUSDL, unlockIds) {
 
         // 3. Can buyer afford both vBuy + full settlement?
         if (budget < vBuy + settlement) {
-            // Can't fully absorb - try PARTIAL if buyer can at least reach the trigger.
+            // Can't fully absorb — try PARTIAL if buyer can at least reach the trigger.
             // Net sell is valid: unsettled PBc gets sold on AMM for the holder.
             if (budget >= vBuy) {
                 nettingStopIdx = i + 1; // partial counts as processed
-                // Can reach trigger - do partial settlement
+                // Can reach trigger — do partial settlement
                 budget -= vBuy;
                 totalVBuy += vBuy;
 
@@ -840,7 +823,7 @@ function sequentialNettingScan(usdlAmount, reservePB, reserveUSDL, unlockIds) {
                 absorbedPBc += partialPBc;
                 budget = 0;
 
-                // Record partial - full tranche fires from holder, buyer gets partialPBc
+                // Record partial — full tranche fires from holder, buyer gets partialPBc
                 results.push({
                     pbtId: id,
                     unlockPBc: partialPBc,   // buyer gets this portion
@@ -863,7 +846,7 @@ function sequentialNettingScan(usdlAmount, reservePB, reserveUSDL, unlockIds) {
                     payoutAddress: pbt.payoutAddress,
                 };
             } else {
-                // Can't reach trigger - stop, remaining budget → AMM buy
+                // Can't reach trigger — stop, remaining budget → AMM buy
                 nettingStopIdx = i;
             }
             break;
@@ -875,7 +858,7 @@ function sequentialNettingScan(usdlAmount, reservePB, reserveUSDL, unlockIds) {
         totalSettlement += settlement;
 
         // 5. Apply vBuy to virtual reserves (price walks UP to trigger)
-        //    NO virtual sell - absorbed PBc never touches AMM
+        //    NO virtual sell — absorbed PBc never touches AMM
         if (vBuy > 0) {
             const pbBought = getAmountOut(vBuy, vReserveUSDL, vReservePB);
             vReserveUSDL += vBuy;
@@ -903,7 +886,7 @@ function settleNettedPosition(r) {
     const pbt = S.positions.get(r.pbtId);
     const holder = getHolder(pbt.holder);
 
-    // Full tranche fires from holder (even for partial - full tranche is deducted)
+    // Full tranche fires from holder (even for partial — full tranche is deducted)
     const tranche = r.isPartial ? r.fullTranche : r.unlockPBc;
 
     // PBc: holder → vault (full tranche)
@@ -1089,7 +1072,7 @@ function initProtocol() {
 function calculateLPStopPrice() {
     // LP stops when vaultPBBalance <= totalOutstandingPBc
     // Each buy with LP contribution takes 2*pbForLP from vault (1 to LP, 1 as compensation)
-    // This is approximate - just show the current state
+    // This is approximate — just show the current state
     const excess = S.vaultPBBalance - totalOutstandingPBc();
     if (excess <= 0) {
         document.getElementById('s-lp-stop').innerText = 'ALREADY STOPPED';

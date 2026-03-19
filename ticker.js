@@ -13,7 +13,7 @@
         { id: 'tick-gain',        label: '% Since Deploy', color: '',       bold: false },
         { id: 'tick-mc',          label: 'Total MC',    color: '#FFD700', bold: false },
         { id: 'tick-mc-users',    label: 'MC Users',    color: '#4CAF50', bold: false },
-        { id: 'tick-distributed', label: 'Distributed', color: '#F39004', bold: true  },
+        { id: 'tick-distributed', label: 'Distributed to Holders', color: '#F39004', bold: true  },
     ];
 
     // ── Build HTML from ITEMS array ──

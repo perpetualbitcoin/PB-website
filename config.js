@@ -60,7 +60,7 @@ const ADDRESSES = NETWORK === "mainnet" ? ADDRESSES_MAINNET : ADDRESSES_TESTNET;
 const ACTIVE_NETWORK = NETWORKS[NETWORK];
 
 // ── Site distribution links ─────────────────
-const IPFS_CID = "Qmbg3FZEgf3UttVntzViWLQ31sPMJjTqwvUrX9CfMLNWTa";
+const IPFS_CID = "QmfBguZcQ8F7gJoZ9kFf1LjFRjWEQjsPsd6R4W4FS7djER";
 const GITHUB_DOWNLOAD = "https://github.com/perpetualbitcoin/PB-website/archive/refs/heads/main.zip";
 
 console.log(`✅ Config loaded [${NETWORK}] chainId:${ACTIVE_NETWORK.chainId}`);

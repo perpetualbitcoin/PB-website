@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FAQ - Perpetual Bitcoin | How PB Works</title>
-    <meta name="description" content="Frequently asked questions about Perpetual Bitcoin. Learn how PB works, presale mechanics, price-driven PBc unlocks, vault collateralization, netting, and the immutable smart contract design." />
+    <meta name="description" content="Frequently asked questions about Perpetual Bitcoin. Learn how PB works, presale mechanics, price-driven unlocks, vault rules, verification paths, and protocol risks." />
     <meta name="keywords" content="Perpetual Bitcoin FAQ, PB FAQ, how PB works, PBc unlock, presale FAQ, PulseChain DeFi, vault mechanics, convergent netting" />
     <meta name="robots" content="index, follow" />
     <meta name="theme-color" content="#F39004" />
@@ -13,13 +13,13 @@
     <meta property="og:type" content="article" />
     <meta property="og:url" content="https://perpetualbitcoin.io/faq.html" />
     <meta property="og:title" content="FAQ - Perpetual Bitcoin | How PB Works" />
-    <meta property="og:description" content="Everything you need to know about Perpetual Bitcoin: presale, unlocks, vault mechanics, security, and more." />
+    <meta property="og:description" content="Questions, edge cases, and operational details for Perpetual Bitcoin: presale, unlocks, vault rules, verification, and security." />
     <meta property="og:image" content="https://perpetualbitcoin.io/Pic/PB_logo.jpg" />
     <meta property="og:site_name" content="Perpetual Bitcoin" />
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="FAQ - Perpetual Bitcoin | How PB Works" />
-    <meta name="twitter:description" content="Everything you need to know about Perpetual Bitcoin: presale, unlocks, vault mechanics, security, and more." />
+    <meta name="twitter:description" content="Questions, edge cases, and operational details for Perpetual Bitcoin: presale, unlocks, vault rules, verification, and security." />
     <meta name="twitter:image" content="https://perpetualbitcoin.io/Pic/PB_logo.jpg" />
     <link rel="icon" href="Pic/favicon.ico" type="image/x-icon" />
     <link rel="stylesheet" href="styles.css">
@@ -94,7 +94,7 @@
           "name": "What is Perpetual Bitcoin (PB)?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "PB is a finished, deployed, immutable protocol with a fixed supply of 21 million tokens that unlock only when market price reache your specific checkpoints. No admin keys, no back doors, no VCs, no mint function, no rug factors, no governance, no freeze function, no blacklist function, no inflation ever. Everyone gets the same rules."
+            "text": "PB is a finished, deployed, immutable protocol with a fixed supply of 21 million tokens that unlock only when market price reaches your specific checkpoints. No admin keys, no back doors, no VCs, no mint function, no rug factors, no governance, no freeze function, no blacklist function, and no inflation ever. Everyone gets the same rules."
           }
         },
         {
@@ -189,10 +189,9 @@
             <ul class="nav-menu">
                 <li><a href="index.html#home" class="nav-link">Home</a></li>
                 <li><a href="faq.html" class="nav-link">FAQ</a></li>
-                <li><a href="faq.html#disclaimer" class="nav-link">Disclaimer</a></li>
                 <li><a href="whitepaperLite.html" class="nav-link">Whitepaper Lite</a></li>
                 <li><a href="PBManifesto.html" class="nav-link">PB Manifesto</a></li>
-                <li><a href="presale-dapp-test.html" class="nav-link">Presale🎉</a></li>
+                <li><a href="presale-dapp.html" class="nav-link">Presale🎉</a></li>
                 <li><a href="portfolio.html" class="nav-link">Portfolio</a></li>
                 <li><a href="testDapp.html" class="nav-link" style="color: #F39004; font-weight:600;">✨ Full testDapp</a></li>
             </ul>
@@ -215,6 +214,11 @@
     </section>
 
     <div class="page-container">
+        <section class="presale-section docs-intro-card">
+            <h2>What This Page Is For</h2>
+            <p>This page handles objections, edge cases, and practical user questions. It is not the thesis page and it is not the formal spec. The supporting references are linked where they matter inside the answers below.</p>
+        </section>
+
         <section class="faq-section" id="disclaimer">
             <h2>Disclaimer: Perpetual Bitcoin (PB) Legal Disclaimer</h2>
             <div class="faq-item">
@@ -327,9 +331,10 @@
             <div class="faq-item" id="what-is-pb">
                 <h4>What is Perpetual Bitcoin (PB)?</h4>
                 <p>
-                    PB is a <strong>finished, immutable 21 million supply protocol</strong> with built-in, price-triggered settlement.
+                    PB is a <strong>finished, immutable 21 million supply protocol</strong> with price-based unlocks that settle into USDL.
                     When market price reaches your specific <a href="#hardcore-price" style="color: var(--primary-color);">checkpoints</a>, 
                     &frac13; of your remaining locked position is automatically settled into USDL. No roadmap, no promises, just deterministic on-chain rules.
+                    If you want the shortest plain-English intro first, read <a href="pb-in-60-seconds.html" style="color: var(--primary-color); text-decoration: underline;">PB in 60 Seconds</a>.
                 </p>
                 <ul>
                     <li>NO admin keys</li>
@@ -345,7 +350,7 @@
             <div class="faq-item">
                 <h4>Why 21 million? Isn't that just like Bitcoin?</h4>
                 <p>
-                    The 21M number is a reference to Bitcoin's "total supply” a proven model of fixed scarcity. However, PB is 
+                    The 21M number is a reference to Bitcoin's "total supply," a proven model of fixed scarcity. However, PB is 
                     unique in its unlock mechanism. We're not copying Bitcoin's success; we're building on its philosophy with 
                     new mechanics.
                 </p>
@@ -376,7 +381,7 @@
             <div class="faq-item">
                 <h4>Who controls PB? Is there a team?</h4>
                 <p>
-                    PB is a fully autonomous protocol with no admin keys. Once deployed, contracts cannot be modified. 
+                    PB is a fully autonomous protocol. No admin. No upgradeability. 
                     The team that built it has no special control or governance rights. Everyone is equal.
                 </p>
             </div>
@@ -497,7 +502,7 @@
                 <h4>What is a PBc?</h4>
                 <p>
                     PBc (Perpetual Bitcoin Claim) is a non-transferable ERC-20 token issued when you buy PB. It represents your 
-                    locked allocation and is tied to your wallet. You cannot sell it or transfer it. It only settles when price
+                    locked allocation and is tied to your wallet. You cannot sell it or transfer it. It only settles into USDL when price
                     reaches the next checkpoint.
                 </p>
             </div>
@@ -507,7 +512,7 @@
                 <p>
                     Each checkpoint does two things:
                     the <strong>trigger price</strong> is set by your entry price, and when that trigger is reached,
-                    <strong>1/3 (one-third) of your remaining locked amount</strong> is settled.
+                    <strong>1/3 (one-third) of your remaining locked amount</strong> settles into USDL.
                 </p>
                 <p>
                     Trigger prices follow the formula: <code>checkpoint_n = entryPrice &times; (1.5555^n)</code>
@@ -528,22 +533,20 @@
                     <li>Checkpoint 2 &rarr; 2,222.22 unlock (1/3 of 6,666.67 remaining)</li>
                     <li>Checkpoint 3 &rarr; 1,481.48 unlock (1/3 of 4,444.45 remaining)</li>
                     <li>Checkpoint 4 &rarr; 987.65 unlock (1/3 of 2,962.97 remaining)</li>
-                    <li><em>Continues forever until &lt;15 Satoshi remains, then automatic sell</em></li>
+                    <li><em>Continues until less than 15 Satoshi remains, then the dust is settled automatically</em></li>
                 </ul>
             </div>
 
             <div class="faq-item">
                 <h4>How many times do tokens unlock? Is there an end?</h4>
                 <p>
-                    Unlocks continue <strong>forever</strong> (technically indefinitely). Every 55.55% price increase (&times;1.5555 multiplier) 
+                    Unlocks continue until only dust remains. Every 55.55% price increase (&times;1.5555 multiplier) 
                     triggers another checkpoint where &frac13; of your <em>remaining</em> locked amount unlocks.
                 </p>
                 <p>
                     Since each unlock releases only &frac13;, the remaining balance decreases geometrically. Eventually, the locked 
                     amount drops below 15 Satoshi (dust threshold), at which point the vault automatically sells the entire remainder 
-                    to your wallet
-                    Your tokens stay locked. You retain full ownership and can't transfer or sell them. This is "intentional”
-                    it ensures not only believers hold through price movements BUT everybody has diamond hands.
+                    to your wallet. Your tokens stay locked until those rule-based settlements occur. That is intentional: the design keeps remaining exposure under the same price-based rules instead of unlocking everything on a calendar.
                 </p>
             </div>
 
@@ -755,7 +758,7 @@
                 <p>
                     Bitcoin is proven sound money but remains fundamentally illiquid. PB takes Bitcoin's fixed-supply principle 
                     and adds <strong>dynamic vault-driven liquidity expansion</strong>. As price rises, the vault automatically deepens 
-                    pools, solving the chicken-and-egg problem of low liquidity. You get Bitcoin's scarcity with crypto-native market depth.
+                    pools, solving the chicken-and-egg problem of low liquidity. You get Bitcoin's scarcity with crypto-native market depth. If you want the broader design-tradeoff framing behind choices like this, read <a href="WHY.html" style="color: var(--primary-color); text-decoration: underline;">WHY</a>.
                 </p>
             </div>
 
@@ -763,7 +766,7 @@
                 <h4>How is PB better than HEX?</h4>
                 <p>
                     HEX introduced staking and time-locked vesting, but vesting schedules create <strong>predictable dump pressure</strong> 
-                    when tokens "unlock on a calendar” regardless of price. PB eliminates both staking and time-based cliffs. Unlocks are 
+                    when tokens "unlock on a calendar" regardless of price. PB eliminates both staking and time-based cliffs. Unlocks are 
                     triggered only by price proof (55.55% increases = 1.5555&times; multiplier), and the vault pre-deepens pools before users get tokens, preventing the 
                     panic-dump cycle that plagues fixed-schedule protocols.
                 </p>
@@ -785,14 +788,14 @@
             <div class="faq-item">
                 <h4>Can the team pause or upgrade the contracts?</h4>
                 <p>
-                    No. The contracts are "immutable” no pause functions, no upgrade paths. What's deployed is what you get forever.
+                    No. The contracts are intended to remain immutable after deployment, with no pause functions and no upgrade path. If you want the hard constraints listed without interpretation, read <a href="immutable-rules.html" style="color: var(--primary-color); text-decoration: underline;">Immutable Rules</a>.
                 </p>
             </div>
 
             <div class="faq-item">
                 <h4>What if there's a bug?</h4>
                 <p>
-                    Bugs are discovered during audits and fixed before deployment. After deployment, bugs cannot be "patched”
+                    Bugs are discovered during audits and fixed before deployment. After deployment, bugs cannot be "patched" because 
                     the code is immutable. This is a feature, not a bug.
                 </p>
             </div>
@@ -995,7 +998,7 @@
             const totalValue  = cumPayout + liquidVal + remainVal;
             document.getElementById('calc-footnote').innerHTML =
                 `After ${tiers} tiers: <strong>${pctUnlocked}%</strong> of your PBc unlocked for <strong>$${cumPayout.toFixed(2)}</strong> in USDL payouts. <br>` +
-                `Remaining <strong>${fmtPB(remaining)} PBc</strong> continues unlocking forever (&frac13; per tier, &times;1.5555 each).<br>` +
+                `Remaining <strong>${fmtPB(remaining)} PBc</strong> continues unlocking until dust remains (&frac13; per tier, &times;1.5555 each).<br>` +
                 ` Entry: $${usdl.toFixed(2)} invested &rarr; ${(cumPayout / usdl).toFixed(1)}&times; returned so far, plus ${fmtPB(liquidPB)} liquid PB you still hold` +
                 ` (worth <strong>$${liquidVal.toFixed(2)}</strong> at tier ${tiers} price of $${lastTrigger < 1 ? lastTrigger.toFixed(5) : lastTrigger.toFixed(2)})` +
                 ` + remaining PBc worth <strong>$${remainVal.toFixed(2)}</strong>.<br>` +
@@ -1242,15 +1245,14 @@
                     <li>You receive USDL directly, no AMM sell, no slippage on your payout</li>
                     <li>It happens <strong>without you doing anything and without you paying the gas</strong>, the next buyer's transaction settles it</li>
                     <li>The remaining &frac23; stays locked and continues following the same price-triggered rules</li>
-                    <li>This continues <strong>forever</strong>, there is no end date</li>
+                    <li>This continues until the position converges to dust</li>
                 </ul>
                 <p>
                     The key difference: traditional DCA out reduces your position and you're done. PB's unlock decay 
-                    (&frac23; remaining each tier) means you <strong>always</strong> have skin in the game. You're never 
-                    fully out. You take profits at every milestone while your remaining position keeps growing in value.
+                    (&frac23; remaining each tier) means some exposure can remain after each settlement. You are not forced fully out by a single vesting event. You take profit at milestones while the remaining position stays subject to the same rules.
                 </p>
                 <p>
-                    Think of it as <strong>rule-based, perpetual profit-taking with enforced diamond hands</strong>. The protocol 
+                    Think of it as <strong>rule-based profit-taking with remaining locked exposure</strong>. The protocol 
                     handles the sell-side settlement for you at predefined price checkpoints, so emotion and timing discretion are removed.
                 </p>
             </div>
@@ -1262,7 +1264,7 @@
                 <h4>Where can I verify the official PB contracts?</h4>
                 <p>
                     Use the cards below to click any published address to copy it, open it on the official block explorer,
-                    add the correct PulseChain network to MetaMask, and import PB or PBc directly into your wallet.
+                    add the correct PulseChain network to MetaMask, and import PB or PBc directly into your wallet. If you want the canonical trust and verification hub, use the <a href="trust-center.html" style="color: var(--primary-color); text-decoration: underline;">Trust Center</a>.
                 </p>
                 <div class="address-panels">
                     <div class="address-panel">
@@ -1311,12 +1313,13 @@
 
     <footer class="footer">
         <div class="footer-content">
-            <p>&copy; 2026 Perpetual Bitcoin. All rights reserved. Built on PulseChain.</p>
+            <p>&copy; 2026 Perpetual Bitcoin. Built on PulseChain. One Price. One Pool. One Truth.</p>
             <div class="footer-links">
-                <a href="whitepaperLite.html">Whitepaper</a>
-                <a href="testDapp.html">Dapp</a>
-                <a href="simulator.html" target="_blank">Simulator</a>
-                <a href="https://twitter.com/PerpetualB67383">@PerpetualB67383</a>
+                <a href="https://twitter.com/PerpetualB67383">X @PerpetualB67383</a>
+                <a href="https://t.me/Perpetual_Bitcoin">t.me/Perpetual_Bitcoin</a>
+            </div>
+            <div style="margin-top:8px;font-size:0.85rem;color:#999">
+                <a href="faq.html#disclaimer" style="color:#999;text-decoration:underline">Disclaimer</a>
             </div>
         </div>
     </footer>
