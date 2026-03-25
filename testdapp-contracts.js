@@ -15,9 +15,13 @@
         ROUTER_ABI,
         NFT_ABI,
         BADGE_ABI,
+        CHAIN_ID,
+        RPC_URL,
     } = window.PBTestDapp;
 
     function create(app) {
+        let fallbackReadProvider = null;
+
         const addresses = {
             vault: TVault,
             pb: TPB,
@@ -41,13 +45,22 @@
             pbi: BADGE_ABI,
         };
 
+        function getFallbackReadProvider() {
+            if (!fallbackReadProvider) {
+                fallbackReadProvider = new ethers.JsonRpcProvider(RPC_URL, CHAIN_ID);
+            }
+            return fallbackReadProvider;
+        }
+
         function getReadContract(key, abiOverride) {
-            const web3 = app.getWeb3();
-            if (!web3) throw new Error('Web3 not initialized');
+            const provider = (typeof app.getReadProvider === 'function' ? app.getReadProvider() : null)
+                || app.getWeb3()
+                || getFallbackReadProvider();
+            if (!provider) throw new Error('Read provider not initialized');
             const address = addresses[key];
             const abi = abiOverride || abis[key];
             if (!address || !abi) throw new Error(`Unknown read contract: ${key}`);
-            return new ethers.Contract(address, abi, web3);
+            return new ethers.Contract(address, abi, provider);
         }
 
         function getWriteContract(key, abiOverride) {

@@ -50,19 +50,19 @@
 <body class="presale-dapp-bg">
     <nav class="navbar" style="padding: 0.4rem 0;">
         <div class="nav-container" style="padding: 0 2rem;">
-            <div class="logo"><img src="Pic/PB1.png" alt="Perpetual Bitcoin PB logo" style="width:40px;height:40px;"></div>
+            <div class="logo"><a href="DEV.html" title="Developer Access"><img src="Pic/PB1.png" alt="Perpetual Bitcoin PB logo" style="width:40px;height:40px;"></a></div>
             <div class="gtranslate_wrapper"></div>
             <button class="hamburger" id="hamburger-btn" aria-label="Toggle menu">
                 <span></span><span></span><span></span>
             </button>
             <ul class="nav-menu" id="nav-menu">
                 <li><a href="index.html#home" class="nav-link">Home</a></li>
-                <li><a href="faq.html" class="nav-link">FAQ</a></li>
-                <li><a href="whitepaperLite.html" class="nav-link">Whitepaper Lite</a></li>
                 <li><a href="PBManifesto.html" class="nav-link">PB Manifesto</a></li>
+                    <li><a href="whitepaperLite.html" class="nav-link">Whitepaper Lite</a></li>
+                    <li><a href="faq.html" class="nav-link">FAQ</a></li>
                 <li><a href="presale-dapp.html" class="nav-link">Presale 🎉</a></li>
-                <li><a href="testDapp.html" class="nav-link" style="color: #F39004; font-weight:600;">✨ Full testDapp</a></li>
                 <li><a href="portfolio.html" class="nav-link">Portfolio</a></li>
+                    <li><a href="testDapp.html" class="nav-link" style="color: #F39004; font-weight:600;">✨ Full testDapp</a></li>
             </ul>
             <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">
                 <button class="btn btn-primary" id="nav-connect-btn" style="padding: 4px 10px; font-size: 0.8rem; white-space: nowrap;">Connect</button>
@@ -76,13 +76,8 @@
         <p>Trade, manage positions, perpetual unlocks, and earn LP rewards. ONE PROTOCOL. FOREVER.<br><span style="font-weight: 700; font-size: 1.1rem; color: #ddd;">TIP: CREATE A VIRGIN <a href="https://www.okx.com/en-us/download?pageSource=nav" target="_blank" style="color: #ddd; text-decoration: underline; cursor: pointer;">WALLET</a>, and SEED that <a href="https://www.okx.com/en-us/download?pageSource=nav" target="_blank" style="color: #ddd; text-decoration: underline; cursor: pointer;">wallet</a> to interact with the presale.</span></p>
         <p style="color: #F39004; font-weight: 600; margin-top: 10px;">🧪 TESTNET ONLY - USE tPLS faucet to get gas - use USDL faucet to interact</p>
         <div style="margin-top:12px;display:inline-flex;align-items:center;gap:10px;background:rgba(0,0,0,0.3);padding:6px 16px;border-radius:20px;">
-            <span id="label-testnet-hero" style="font-size:0.85rem;font-weight:700;color:#F39004;">Testnet 943</span>
-            <label style="position:relative;display:inline-block;width:48px;height:26px;cursor:pointer;">
-                <input type="checkbox" id="network-toggle-hero" style="opacity:0;width:0;height:0;">
-                <span style="position:absolute;inset:0;background:#555;border-radius:26px;transition:0.3s;"></span>
-                <span id="toggle-knob-hero" style="position:absolute;left:3px;top:3px;width:20px;height:20px;background:#fff;border-radius:50%;transition:0.3s;"></span>
-            </label>
-            <span id="label-mainnet-hero" style="font-size:0.85rem;font-weight:700;color:#666;">Mainnet 369</span>
+            <span style="font-size:0.85rem;font-weight:700;color:#F39004;">Testnet 943 Only</span>
+            <span style="font-size:0.82rem;color:#bbb;">Mainnet deployment not live yet</span>
         </div>
     </div>
 
@@ -189,7 +184,7 @@
                             <button class="btn" id="buy-66" style="padding: 1px 6px; font-size: 0.66rem; min-height: 18px; line-height: 1;">66%</button>
                             <button class="btn" id="buy-100" style="padding: 1px 6px; font-size: 0.66rem; min-height: 18px; line-height: 1;">100%</button>
                         </div>
-                        <div class="quote-detail"><strong>Avg buy price / PB:</strong> <span id="quote-avg-price">-</span></div>
+                        <div class="quote-detail"><strong>Est. Avg buy price / PB:</strong> <span id="quote-avg-price">-</span></div>
                     </div>
                     <div id="buy-quote-meta" class="quote-meta is-idle">No quote fetched yet. Refreshes every 30s after a quote is loaded.</div>
                 </div>
@@ -344,112 +339,104 @@
             </div>
         </section>
 
-        <!-- PBr & PBi Side-by-Side -->
-        <div class="grid-2way">
-            <!-- PBr - Recovery Setup -->
-            <section class="card">
-                <h3 class="section-title">🛡️ PBr - Recovery</h3>
-                <div class="alert alert-info" style="font-size: 0.9rem;">
-                    <strong>Recovery:</strong> Set a fallback wallet to recover assets if your main account is compromised.
-                </div>
-                <div class="form-columns">
-                    <div class="form-column">
-                        <h4>📝 Setup Recovery</h4>
+        <section class="card" style="margin-top: 20px;">
+            <h3 class="section-title">🛡️  Recovery / Inheritance Controls</h3>
+            <div class="alert alert-info" style="font-size: 0.9rem; margin-bottom: 18px;">
+                Set recovery and inheritance separately, then activate from other wallet..
+            </div>
+
+            <div class="grid-2way" style="margin-bottom: 18px; align-items: stretch;">
+                <div style="width: 100%; box-sizing: border-box; padding: 18px; background: rgba(0, 0, 0, 0.18); border: 1px solid rgba(243, 144, 4, 0.14); border-radius: 12px;">
+                    <h3 class="section-title">🛡️ Set PBr (PB recovery)</h3>
+                    <div class="alert alert-info" style="font-size: 0.9rem;">
+                        <strong>Recovery:</strong> Set a fallback wallet UPFRONT to recover assets if your main account is compromised.
+                    </div>
+                    <div>
                         <div class="form-group">
                             <label for="recovery-pbtid">Select PBt ID</label>
-                            <select id="recovery-pbtid" class="input-field" style="cursor: pointer;">
+                            <select id="recovery-pbtid" class="input-field" style="cursor: pointer; width: 100%; min-width: 0; display: block; box-sizing: border-box;">
                                 <option value="">Loading your positions...</option>
                             </select>
                         </div>
                         <div class="form-group">
                             <label for="recovery-addr">Recovery Wallet</label>
-                            <input type="text" id="recovery-addr" class="input-field" placeholder="0x..." />
+                            <input type="text" id="recovery-addr" class="input-field" placeholder="0x..." style="width: 100%; min-width: 0; display: block; box-sizing: border-box;" />
                         </div>
                         <div class="form-group">
                             <label for="recovery-password">Password (min 11 chars)</label>
-                            <input type="password" id="recovery-password" class="input-field" placeholder="••••••••••••" />
+                            <input type="password" id="recovery-password" class="input-field" placeholder="••••••••••••" style="width: 100%; min-width: 0; display: block; box-sizing: border-box;" />
                         </div>
                         <div class="form-group">
                             <label for="recovery-memo" style="font-size:0.8rem">Memo <span style="color:#888;font-weight:normal;font-size:0.7rem">(optional, max 280 chars)</span></label>
-                            <input type="text" id="recovery-memo" class="input-field" placeholder="e.g. Gift - Donation - Support" maxlength="280" />
+                            <input type="text" id="recovery-memo" class="input-field" placeholder="e.g. Gift - Donation - Support" maxlength="280" style="width: 100%; min-width: 0; display: block; box-sizing: border-box;" />
                         </div>
-                        <button class="btn btn-primary" id="btn-setup-recovery" style="width: 100%;">Set Recovery Address</button>
+                        <button class="btn btn-primary" id="btn-setup-recovery" style="width: 100%;">Set Recovery</button>
                         <div id="recovery-status" style="margin-top: 12px; font-size: 0.85rem;"></div>
                     </div>
+                </div>
 
-                    <div class="form-column">
-                        <h4>✅ Activate Recovery</h4>
-                        <div class="alert alert-info" style="font-size: 0.85rem; margin-top: 0;">
-                            Click to find your PBr badge first, then enter password.
-                        </div>
-                        <button class="btn btn-primary" id="btn-find-pbr" style="width: 100%; margin-bottom: 15px;">Find My PBr Badge</button>
-                        <div id="recovery-badge-info" style="padding: 10px; background: #1a1a2e; border-radius: 5px; margin-bottom: 15px; display: none;">
-                            <div style="color: #4CAF50; font-weight: 600; font-size: 0.95rem;" id="recovery-badge-text"></div>
-                            <select id="recovery-badge-select" style="width: 100%; margin-top: 10px; display: none;" class="input-field">
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="recovery-activate-password">Recovery Password</label>
-                            <input type="password" id="recovery-activate-password" class="input-field" placeholder="••••••••••••" disabled />
-                        </div>
-                        <button class="btn btn-primary" id="btn-activate-recovery" style="width: 100%;" disabled>Activate Recovery</button>
-                        <div id="recovery-activate-status" style="margin-top: 12px; font-size: 0.85rem;"></div>
+                <div style="width: 100%; box-sizing: border-box; padding: 18px; background: rgba(0, 0, 0, 0.18); border: 1px solid rgba(243, 144, 4, 0.14); border-radius: 12px;">
+                    <h3 class="section-title">👨‍👩‍👧‍👦 Set PBi (PB Inheritance)</h3>
+                    <div class="alert alert-info" style="font-size: 0.9rem;">
+                        <strong>Inheritance:</strong> Designate a beneficiary UPFRONT who can claim your assets. No timeout - your choice.
                     </div>
-                </div>
-            </section>
-
-            <!-- PBi - Inheritance Setup -->
-            <section class="card">
-                <h3 class="section-title">👨‍👩‍👧‍👦 PBi - Inheritance</h3>
-                <div class="alert alert-info" style="font-size: 0.9rem;">
-                    <strong>Inheritance:</strong> Designate a beneficiary who can claim your assets. No timeout - your choice.
-                </div>
-                <div class="form-columns">
-                    <div class="form-column">
-                        <h4>📝 Setup Inheritance</h4>
+                    <div>
                         <div class="form-group">
                             <label for="inheritance-pbtid">Select PBt ID</label>
-                            <select id="inheritance-pbtid" class="input-field" style="cursor: pointer;">
+                            <select id="inheritance-pbtid" class="input-field" style="cursor: pointer; width: 100%; min-width: 0; display: block; box-sizing: border-box;">
                                 <option value="">Loading your positions...</option>
                             </select>
                         </div>
                         <div class="form-group">
                             <label for="beneficiary-addr">Beneficiary Address</label>
-                            <input type="text" id="beneficiary-addr" class="input-field" placeholder="0x..." />
+                            <input type="text" id="beneficiary-addr" class="input-field" placeholder="0x..." style="width: 100%; min-width: 0; display: block; box-sizing: border-box;" />
                         </div>
                         <div class="form-group">
                             <label for="inheritance-password">Password (min 11 chars)</label>
-                            <input type="password" id="inheritance-password" class="input-field" placeholder="••••••••••••" />
+                            <input type="password" id="inheritance-password" class="input-field" placeholder="••••••••••••" style="width: 100%; min-width: 0; display: block; box-sizing: border-box;" />
                         </div>
                         <div class="form-group">
                             <label for="inheritance-memo" style="font-size:0.8rem">Memo <span style="color:#888;font-weight:normal;font-size:0.7rem">(optional, max 280 chars)</span></label>
-                            <input type="text" id="inheritance-memo" class="input-field" placeholder="e.g. Gift - Donation - Support" maxlength="280" />
+                            <input type="text" id="inheritance-memo" class="input-field" placeholder="e.g. Gift - Donation - Support" maxlength="280" style="width: 100%; min-width: 0; display: block; box-sizing: border-box;" />
                         </div>
                         <button class="btn btn-primary" id="btn-setup-inheritance" style="width: 100%;">Set Beneficiary</button>
                         <div id="inheritance-status" style="margin-top: 12px; font-size: 0.85rem;"></div>
                     </div>
+                </div>
+            </div>
 
-                    <div class="form-column">
-                        <h4>✅ Activate Inheritance</h4>
-                        <div class="alert alert-info" style="font-size: 0.85rem; margin-top: 0;">
-                            Click to find your PBi badge first, then enter password.
+            <div style="width: 100%; box-sizing: border-box; padding: 18px; background: rgba(0, 0, 0, 0.18); border: 1px solid rgba(243, 144, 4, 0.14); border-radius: 12px;">
+                <h3 class="section-title">✅ Activate PBr / PBi</h3>
+                <div class="alert alert-info" style="font-size: 0.9rem;">
+                    Scan available PBr or PBi badge, then enter the matching password.
+                </div>
+                <div class="grid-2way" style="margin-bottom: 15px; align-items: end;">
+                    <div>
+                        <label style="display: block; color: #aaa; font-size: 0.9rem; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">Scan Badge</label>
+                    </div>
+                    <div>
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label for="combined-activate-password">Activation Password</label>
+                            <input type="password" id="combined-activate-password" class="input-field" placeholder="••••••••••••" style="width: 100%; min-width: 0; display: block; box-sizing: border-box;" disabled />
                         </div>
-                        <button class="btn btn-primary" id="btn-find-pbi" style="width: 100%; margin-bottom: 15px;">Find My PBi Badge</button>
-                        <div id="inheritance-badge-info" style="padding: 10px; background: #1a1a2e; border-radius: 5px; margin-bottom: 15px; display: none;">
-                            <div style="color: #4CAF50; font-weight: 600; font-size: 0.95rem;" id="inheritance-badge-text"></div>
-                            <select id="inheritance-badge-select" style="width: 100%; margin-top: 10px; display: none;" class="input-field">
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="inheritance-activate-password">Inheritance Password</label>
-                            <input type="password" id="inheritance-activate-password" class="input-field" placeholder="••••••••••••" disabled />
-                        </div>
-                        <button class="btn btn-primary" id="btn-activate-inheritance" style="width: 100%;" disabled>Activate Inheritance</button>
-                        <div id="inheritance-activate-status" style="margin-top: 12px; font-size: 0.85rem;"></div>
                     </div>
                 </div>
-            </section>
-        </div>
+                <div class="grid-2way" style="margin-bottom: 15px; align-items: start;">
+                    <div>
+                        <button class="btn btn-primary" id="btn-find-activation-badges" style="width: 100%;">Detect My PBr / PBi Badges</button>
+                    </div>
+                    <div>
+                        <button class="btn btn-primary" id="btn-activate-selected-badge" style="width: 100%;" disabled>Activate Selected Badge</button>
+                    </div>
+                </div>
+                <div id="combined-badge-info" style="width: 100%; box-sizing: border-box; padding: 10px; background: #1a1a2e; border-radius: 5px; margin-bottom: 15px; display: none;">
+                    <div style="color: #4CAF50; font-weight: 600; font-size: 0.95rem;" id="combined-badge-text"></div>
+                    <select id="combined-badge-select" style="width: 100%; min-width: 0; margin-top: 10px; display: none; box-sizing: border-box;" class="input-field">
+                    </select>
+                </div>
+                <div id="combined-activate-status" style="margin-top: 12px; font-size: 0.85rem;"></div>
+            </div>
+        </section>
 
 
 
@@ -473,6 +460,14 @@
                 <div style="padding: 10px; background: rgba(0,0,0,0.2); border-radius: 4px;"><span style="color: #aaa;">Total USDL Distributed to holders:</span> <span id="diag-accumulated-tusdl" style="color: #F39004;">-</span></div>
                 <div style="padding: 10px; background: rgba(0,0,0,0.2); border-radius: 4px;"><span style="color: #aaa;">% Gain/Loss Since Deploy:</span> <span id="diag-gain-loss" style="font-weight: 600;">-</span></div>
             </div>
+        </section>
+        <section class="presale-section docs-intro-card" style="max-width: 1080px; margin: 2rem auto 0;">
+            <h2>End Of The Trail</h2>
+            <p>This is the end of the public path. Step back to the portfolio view if you want the read-only summary page again.</p>
+            <div class="hero-buttons docs-link-row" style="justify-content: flex-start; gap: 1rem;">
+                <a href="portfolio.html" class="btn btn-secondary">&laquo; Portfolio</a>
+            </div>
+        </section>
     </div>
 
     <footer class="footer">
@@ -523,8 +518,9 @@
             formatPrice,
         } = window.PBTestDapp;
 
-        let web3, account, signer;
+        let web3, readProvider, account, signer;
         let latestTusdlBalance = 0;
+        let latestPbBalanceExact = '0';
 
         const contractLayer = window.PBTestDappContracts.create({
             getWeb3: () => web3,
@@ -571,12 +567,10 @@
         const switchTab = positionsLayer.switchTab;
         const populatePBtDropdowns = recoveryLayer.populatePBtDropdowns;
         const setupRecovery = recoveryLayer.setupRecovery;
-        const activateRecovery = recoveryLayer.activateRecovery;
+        const activateSelectedBadge = recoveryLayer.activateSelectedBadge;
         const setupInheritance = recoveryLayer.setupInheritance;
-        const activateInheritance = recoveryLayer.activateInheritance;
         const updateRecoveryInheritanceDiagnostics = recoveryLayer.updateRecoveryInheritanceDiagnostics;
-        const findPBr = recoveryLayer.findPBr;
-        const findPBi = recoveryLayer.findPBi;
+        const findActivatableBadges = recoveryLayer.findActivatableBadges;
         const updateLPFeeStatus = vlockLayer.updateLPFeeStatus;
         const updateVLockPreview = vlockLayer.updateVLockPreview;
         const harvestAndRefreshLPRewards = vlockLayer.harvestAndRefreshLPRewards;
@@ -610,7 +604,7 @@
         }
 
         async function updateBalances() {
-            if (!account || !web3) return;
+                if (!account || !web3) return;
             try {
                 const pbContract = contractLayer.getReadContract('pb');
                 const pbcContract = contractLayer.getReadContract('pbc');
@@ -621,8 +615,10 @@
                 const tusdlBalance = await tusdlContract.balanceOf(account);
                 const { price } = await contractLayer.getPoolSnapshot();
 
-                const pbBal = Number(ethers.formatEther(pbBalance));
+                const pbBalExact = ethers.formatEther(pbBalance);
+                const pbBal = Number(pbBalExact);
                 const pbcBal = Number(ethers.formatEther(pbcBalance));
+                latestPbBalanceExact = pbBalExact;
                 latestTusdlBalance = Number(ethers.formatEther(tusdlBalance));
                 const totalValue = (pbBal * price) + (pbcBal * price);
 
@@ -636,7 +632,8 @@
 
         async function updatePrice() {
             try {
-                if (!web3) return;
+                const activeReadProvider = readProvider || web3;
+                if (!activeReadProvider) return;
                 const { pbReserve, usdlReserve, price, poolValue } = await contractLayer.getPoolSnapshot();
 
                 document.getElementById('live-price').innerText = formatPrice(price);
@@ -703,11 +700,9 @@
             updateVLockPreview,
             harvestAndRefreshLPRewards,
             setupRecovery,
-            activateRecovery,
+            activateSelectedBadge,
             setupInheritance,
-            activateInheritance,
-            findPBr,
-            findPBi,
+            findActivatableBadges,
             faucetMintTUSDL,
             updateLPFeeStatus,
             updatePrice,
@@ -719,8 +714,11 @@
             refreshDashboard,
             initChart,
             getLatestTusdlBalance: () => latestTusdlBalance,
+            getLatestPBBalanceExact: () => latestPbBalanceExact,
             getWeb3: () => web3,
             setWeb3: (value) => { web3 = value; },
+            getReadProvider: () => readProvider,
+            setReadProvider: (value) => { readProvider = value; },
             getAccount: () => account,
             setAccount: (value) => { account = value; },
             getSigner: () => signer,

@@ -13,8 +13,7 @@
         async function loadPriceHistory() {
             try {
                 const now = Math.floor(Date.now() / 1000);
-                const from = now - 7 * 86400;
-                const resp = await fetch(`${INDEXER_URL}/price?from=${from}&to=${now}&resolution=1m`);
+                const resp = await fetch(`${INDEXER_URL}/price?to=${now}&resolution=1m`);
                 if (resp.ok) {
                     const data = await resp.json();
                     if (data.prices && data.prices.length > 0) {
@@ -22,7 +21,8 @@
                             time: c.t,
                             price: parseFloat(c.c) / 1e18,
                         })).filter((t) => t.price > 0);
-                        console.log(`[chart] Loaded ${tickHistory.length} price points from DB`);
+                        tickHistory.sort((a, b) => a.time - b.time);
+                        console.log(`[chart] Loaded ${tickHistory.length} full-history price points from DB`);
                     }
                 }
             } catch (e) {
@@ -37,6 +37,7 @@
                     const newerTicks = localTicks.filter((t) => t.time > dbMaxTime && t.price > 0);
                     if (newerTicks.length > 0) {
                         tickHistory = tickHistory.concat(newerTicks);
+                        tickHistory.sort((a, b) => a.time - b.time);
                         console.log(`[chart] Merged ${newerTicks.length} newer localStorage ticks`);
                     }
                 } catch {}
@@ -78,19 +79,11 @@
             return filled;
         }
 
-        function updateChartDisplay() {
+        function updateChartDisplay(resetView = false) {
             if (!candleSeries || !tickHistory.length) return;
 
             const tf = currentTimeframeMin === 0 ? 15 : currentTimeframeMin;
-            let filteredTicks = tickHistory;
-            if (currentTimeframeMin > 0) {
-                const windowSeconds = tf * 60 * 80;
-                const cutoff = Math.floor(Date.now() / 1000) - windowSeconds;
-                filteredTicks = tickHistory.filter((t) => t.time >= cutoff);
-                if (filteredTicks.length < 2) filteredTicks = tickHistory;
-            }
-
-            const candles = aggregateCandles(filteredTicks, tf);
+            const candles = aggregateCandles(tickHistory, tf);
             candleSeries.setData(candles);
             volumeSeries.setData(candles.map((c) => ({
                 time: c.time,
@@ -99,15 +92,16 @@
             })));
             lineSeries.setData(candles.map((c) => ({ time: c.time, value: c.close })));
 
-            if (currentTimeframeMin === 0) {
-                priceChart.timeScale().fitContent();
-            } else {
-                const targetVisibleBars = 30;
-                const rightPaddingBars = 1;
-                priceChart.timeScale().setVisibleLogicalRange({
-                    from: candles.length - targetVisibleBars,
-                    to: candles.length - 1 + rightPaddingBars,
-                });
+            if (resetView) {
+                if (currentTimeframeMin === 0) {
+                    const visibleBars = Math.min(240, candles.length);
+                    priceChart.timeScale().setVisibleLogicalRange({
+                        from: Math.max(0, candles.length - visibleBars),
+                        to: candles.length - 1 + 1,
+                    });
+                } else {
+                    priceChart.timeScale().fitContent();
+                }
             }
         }
 
@@ -123,7 +117,7 @@
                 clickedBtn.style.color = '#F39004';
                 clickedBtn.style.borderColor = 'rgba(255, 165, 0, 0.3)';
             }
-            updateChartDisplay();
+            updateChartDisplay(true);
         }
 
         function switchChartType(type) {
@@ -138,7 +132,7 @@
             document.getElementById('chart-line-btn').style.background = !isCandle ? 'rgba(255,165,0,0.1)' : 'transparent';
             document.getElementById('chart-line-btn').style.color = !isCandle ? '#F39004' : '#aaa';
             document.getElementById('chart-line-btn').style.borderColor = !isCandle ? 'rgba(255,165,0,0.3)' : 'rgba(255,165,0,0.2)';
-            updateChartDisplay();
+            updateChartDisplay(false);
         }
 
         function initChart() {
@@ -229,7 +223,7 @@
                 switchChartType('line');
             });
 
-            updateChartDisplay();
+            updateChartDisplay(true);
         }
 
         function updateChartData(price) {

@@ -289,9 +289,22 @@
         function bindEventListeners() {
             if (listenersBound) return;
 
+            function formatPercentAmount(value) {
+                const floored = Math.floor(value * 1000000) / 1000000;
+                return floored.toFixed(6).replace(/\.0+$/, '').replace(/(\.\d*?)0+$/, '$1');
+            }
+
             function getPBInputBalance() {
                 const balanceText = document.getElementById('balance-pb')?.innerText || '0';
                 return parseFloat(balanceText.replace(/[^\d\.]/g, '')) || 0;
+            }
+
+            function getExactPBInputBalance() {
+                if (typeof app.getLatestPBBalanceExact === 'function') {
+                    const exact = app.getLatestPBBalanceExact();
+                    if (exact && Number(exact) > 0) return exact;
+                }
+                return String(getPBInputBalance());
             }
 
             function getUSDLInputBalance() {
@@ -349,28 +362,26 @@
                 app.getSellQuote();
             });
             document.getElementById('vlock-25').addEventListener('click', () => {
-                document.getElementById('vlock-amount').value = (getPBInputBalance() * 0.25).toFixed(0);
+                document.getElementById('vlock-amount').value = formatPercentAmount(Number(getExactPBInputBalance()) * 0.25);
                 app.updateVLockPreview();
             });
             document.getElementById('vlock-50').addEventListener('click', () => {
-                document.getElementById('vlock-amount').value = (getPBInputBalance() * 0.5).toFixed(0);
+                document.getElementById('vlock-amount').value = formatPercentAmount(Number(getExactPBInputBalance()) * 0.5);
                 app.updateVLockPreview();
             });
             document.getElementById('vlock-75').addEventListener('click', () => {
-                document.getElementById('vlock-amount').value = (getPBInputBalance() * 0.75).toFixed(0);
+                document.getElementById('vlock-amount').value = formatPercentAmount(Number(getExactPBInputBalance()) * 0.75);
                 app.updateVLockPreview();
             });
             document.getElementById('vlock-100').addEventListener('click', () => {
-                document.getElementById('vlock-amount').value = getPBInputBalance().toFixed(0);
+                document.getElementById('vlock-amount').value = getExactPBInputBalance();
                 app.updateVLockPreview();
             });
             document.getElementById('btn-harvest-refresh').addEventListener('click', app.harvestAndRefreshLPRewards);
-            document.getElementById('btn-setup-recovery').addEventListener('click', app.setupRecovery);
-            document.getElementById('btn-activate-recovery').addEventListener('click', app.activateRecovery);
-            document.getElementById('btn-setup-inheritance').addEventListener('click', app.setupInheritance);
-            document.getElementById('btn-activate-inheritance').addEventListener('click', app.activateInheritance);
-            document.getElementById('btn-find-pbr').addEventListener('click', app.findPBr);
-            document.getElementById('btn-find-pbi').addEventListener('click', app.findPBi);
+            document.getElementById('btn-setup-recovery')?.addEventListener('click', app.setupRecovery);
+            document.getElementById('btn-setup-inheritance')?.addEventListener('click', app.setupInheritance);
+            document.getElementById('btn-find-activation-badges')?.addEventListener('click', app.findActivatableBadges);
+            document.getElementById('btn-activate-selected-badge')?.addEventListener('click', app.activateSelectedBadge);
             document.getElementById('refresh-positions-btn')?.addEventListener('click', app.updatePositions);
             document.getElementById('refresh-positions-btn')?.addEventListener('mouseenter', (event) => {
                 event.currentTarget.style.transform = 'rotate(20deg)';
@@ -388,14 +399,9 @@
             });
             document.getElementById('diag-vault')?.addEventListener('click', copyDiagVaultAddress);
 
-            document.getElementById('recovery-activate-password')?.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter' && !document.getElementById('btn-activate-recovery').disabled) {
-                    document.getElementById('btn-activate-recovery').click();
-                }
-            });
-            document.getElementById('inheritance-activate-password')?.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter' && !document.getElementById('btn-activate-inheritance').disabled) {
-                    document.getElementById('btn-activate-inheritance').click();
+            document.getElementById('combined-activate-password')?.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter' && !document.getElementById('btn-activate-selected-badge').disabled) {
+                    document.getElementById('btn-activate-selected-badge').click();
                 }
             });
 
@@ -411,6 +417,23 @@
 
         async function connectWallet() {
             try {
+                if (!window.ethereum) {
+                    document.getElementById('wallet-addr').innerText = 'Install wallet to connect';
+                    document.getElementById('connect-btn').innerText = 'Install Wallet';
+                    document.getElementById('nav-connect-btn').innerText = 'Install MM';
+                    return;
+                }
+
+                if (window.PBDisclaimer && typeof window.PBDisclaimer.ensureAccepted === 'function') {
+                    const accepted = await window.PBDisclaimer.ensureAccepted();
+                    if (!accepted) {
+                        document.getElementById('wallet-addr').innerText = 'Disclaimer required';
+                        document.getElementById('connect-btn').innerText = 'Connect Wallet';
+                        document.getElementById('nav-connect-btn').innerText = 'Connect';
+                        return;
+                    }
+                }
+
                 const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
                 const account = accounts[0];
                 app.setAccount(account);
@@ -468,38 +491,40 @@
         async function init() {
             await app.loadPriceHistory();
 
+            if (typeof ethers === 'undefined') {
+                console.error('ethers library not loaded');
+                document.getElementById('wallet-addr').innerText = 'ethers library not loaded';
+                document.getElementById('nav-connect-btn').innerText = 'Error: Ethers';
+                return;
+            }
+
+            app.setReadProvider(new ethers.JsonRpcProvider(RPC_URL, CHAIN_ID));
+
             const vaultAddrShort = TVault.substring(0, 6) + '...' + TVault.substring(TVault.length - 4);
             document.getElementById('nav-vault-addr').innerText = vaultAddrShort;
 
+            bindEventListeners();
+            app.updateLPFeeStatus();
+            app.updateVLockPreview();
+            setInterval(app.updateLPFeeStatus, 30000);
+            app.updatePrice();
+            setInterval(app.updatePrice, 15000);
+            setInterval(() => {
+                if (app.getAccount()) app.updateBalances();
+            }, 30000);
+
+            try {
+                app.initChart();
+            } catch (e) {
+                console.warn('Chart init failed:', e);
+            }
+            setupNetworkToggle();
+
             if (typeof window.ethereum !== 'undefined') {
-                if (typeof ethers === 'undefined') {
-                    console.error('ethers library not loaded');
-                    document.getElementById('wallet-addr').innerText = 'ethers library not loaded';
-                    document.getElementById('nav-connect-btn').innerText = 'Error: Ethers';
-                    return;
-                }
-
                 app.setWeb3(new ethers.BrowserProvider(window.ethereum));
-                console.log('Fallback RPC initialized:', RPC_URL);
-
-                bindEventListeners();
-                app.updateLPFeeStatus();
-                app.updateVLockPreview();
-                setInterval(app.updateLPFeeStatus, 30000);
-                app.updatePrice();
-                setInterval(app.updatePrice, 15000);
-                setInterval(() => {
-                    if (app.getAccount()) app.updateBalances();
-                }, 30000);
-
-                try {
-                    app.initChart();
-                } catch (e) {
-                    console.warn('Chart init failed:', e);
-                }
-                setupNetworkToggle();
             } else {
-                document.getElementById('wallet-addr').innerText = 'MetaMask not detected';
+                document.getElementById('wallet-addr').innerText = 'Read-only mode';
+                document.getElementById('connect-btn').innerText = 'Install Wallet';
                 document.getElementById('nav-connect-btn').innerText = 'Install MM';
             }
         }
