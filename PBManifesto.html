@@ -41,16 +41,18 @@
 <body class="presale-dapp-bg">
     <nav class="navbar" style="padding: 0.4rem 0;">
         <div class="nav-container" style="padding: 0 2rem;">
-            <div class="logo"><img src="Pic/PB1.png" alt="Perpetual Bitcoin PB logo" style="width:40px;height:40px;"></div>
+            <div class="logo"><a href="DEV.html" title="Developer Access"><img src="Pic/PB1.png" alt="Perpetual Bitcoin PB logo" style="width:40px;height:40px;"></a></div>
             <div class="gtranslate_wrapper"></div>
-            <ul class="nav-menu" style="text-align: center;">
+            <button class="hamburger" id="hamburger-btn" aria-label="Toggle menu" aria-controls="nav-menu" aria-expanded="false">
+                <span></span><span></span><span></span>
+            </button>
+            <ul class="nav-menu" id="nav-menu" style="text-align: center;">
                 <li><a href="index.html#home" class="nav-link">Home</a></li>
-                <li><a href="faq.html" class="nav-link">FAQ</a></li>
-                <li><a href="whitepaperLite.html" class="nav-link">Whitepaper Lite</a></li>
                 <li><a href="PBManifesto.html" class="nav-link" style="color: #F39004; font-weight:600;">PB Manifesto</a></li>
-                <li><a href="presale-dapp.html" class="nav-link">Presale 🎉</a></li>
-                <li><a href="testDapp.html" class="nav-link" style="color: #F39004; font-weight:600;">✨ Full testDapp</a></li>
+                <li><a href="whitepaper.html" class="nav-link">Whitepaper</a></li>
+                <li><a href="faq.html" class="nav-link">FAQ</a></li>
                 <li><a href="portfolio.html" class="nav-link">Portfolio</a></li>
+                <li><a href="Dapp.html" class="nav-link">Dapp</a></li>
             </ul>
         </div>
     </nav>
@@ -61,15 +63,6 @@
     </section>
 
     <div class="page-container">
-        <section class="presale-section docs-intro-card">
-            <h2>What This Page Is For</h2>
-            <p>This is the thesis page. It explains the enemy, the worldview, and why PB exists. If you want mechanism details, read Whitepaper Lite. If you want objections and edge cases, read the FAQ.</p>
-            <div class="hero-buttons docs-link-row">
-                <a href="whitepaperLite.html" class="btn btn-primary">Read Whitepaper Lite</a>
-                <a href="faq.html" class="btn btn-secondary">Open FAQ</a>
-            </div>
-        </section>
-
         <!-- Section 1 -->
         <section class="presale-section">
             <h2 style="color: #F39004; margin-bottom: 16px; margin-top: 0;">THE REALITY</h2>
@@ -159,10 +152,12 @@
             <p style="color: #fff; font-size: 1.1rem; margin-top: 16px;"><strong>PB stays locked until the pump. Then pays YOU, and again, and again, and again…</strong></p>
         </section>
 
-        <!-- Navigation Back -->
-        <div style="text-align: center; margin-top: 30px; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
-            <a href="testDapp.html" style="text-decoration: none;"><button class="btn btn-primary" style="padding: 10px 20px;">← Back to DApp</button></a>
-        </div>
+        <section class="cta-section" style="text-align: left;">
+            <div class="cta-buttons" style="justify-content: space-between; gap: 1rem;">
+                <a href="index.html#home" class="btn btn-secondary">&laquo; Home</a>
+                <a href="whitepaper.html" class="btn btn-primary">Whitepaper &raquo;</a>
+            </div>
+        </section>
     </div>
 
     <footer class="footer">
@@ -181,6 +176,30 @@
     <script src="https://cdn.jsdelivr.net/npm/ethers@6/dist/ethers.umd.js"></script>
     <script src="config.js"></script>
     <script src="price-ticker.js"></script>
+    <script>
+    (function() {
+        const btn = document.getElementById('hamburger-btn');
+        const menu = document.getElementById('nav-menu');
+
+        if (!btn || !menu) {
+            return;
+        }
+
+        btn.addEventListener('click', function() {
+            const isOpen = btn.classList.toggle('open');
+            menu.classList.toggle('open', isOpen);
+            btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        });
+
+        menu.querySelectorAll('.nav-link').forEach(function(link) {
+            link.addEventListener('click', function() {
+                btn.classList.remove('open');
+                menu.classList.remove('open');
+                btn.setAttribute('aria-expanded', 'false');
+            });
+        });
+    })();
+    </script>
     <script>window.gtranslateSettings = {"default_language":"en","native_language_names":true,"detect_browser_language":true,"languages":["en","zh-CN","fr","de","hi","es","pt","nl","el"],"wrapper_selector":".gtranslate_wrapper","flag_style":"3d","alt_flags":{"en":"usa"}}</script>
     <script src="https://cdn.gtranslate.net/widgets/latest/float.js" defer></script>
 </body>

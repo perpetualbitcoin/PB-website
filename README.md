@@ -1,71 +1,58 @@
-# Perpetual Bitcoin — Website
+# Perpetual Bitcoin - Website
 
 Static website source for the Perpetual Bitcoin protocol.
 
-This repo contains the browser-runnable site files used for local download/use and for publishing the website bundle. It includes the main landing pages, docs pages, presale flow, simulator, and the modular test dApp scripts.
+This repo contains the browser-runnable site files used for the downloadable website bundle. It mirrors the current public site pages, docs, and main dapp runtime.
 
 ## Run Locally
 
 1. Clone or download this repo.
-2. Open `index.html` in a browser.
+2. Open index.html in a browser.
 
-No build step is required for basic local viewing.
+No build step is required for normal local viewing.
 
 ## Main Pages
 
 | File | Purpose |
 |------|---------|
-| `index.html` | Main landing page |
-| `faq.html` | FAQ |
-| `whitepaperLite.html` | Whitepaper Lite |
-| `PBManifesto.html` | Project manifesto |
-| `WHY.html` | Why PB overview page |
-| `trust-center.html` | Trust and safety page |
-| `immutable-rules.html` | Immutable rules summary |
-| `pb-in-60-seconds.html` | Short-form explainer |
-| `portfolio.html` | Portfolio page |
-| `presale-dapp.html` | Presale dApp |
-| `simulator.html` | Protocol simulator |
-| `testDapp.html` | Full testnet dApp |
+| index.html | Main landing page |
+| faq.html | Frequently asked questions |
+| whitepaper.html | Primary whitepaper page |
+| PBManifesto.html | Protocol manifesto |
+| portfolio.html | Portfolio and position overview |
+| Dapp.html | Main public dapp |
+| DEV.html | Developer and contract reference |
+| simulator.html | Protocol simulator |
 
 ## Shared Runtime Files
 
-These files support the pages above:
+- config.js
+- disclaimer.js
+- styles.css
+- ticker.js
+- price-ticker.js
 
-- `config.js`
-- `disclaimer.js`
-- `styles.css`
-- `ticker.js`
-- `price-ticker.js`
+## Dapp Modules
 
-## Test dApp Modules
+- dapp-core.js
+- dapp-contracts.js
+- dapp-trades.js
+- dapp-positions.js
+- dapp-recovery.js
+- dapp-vlock.js
+- dapp-remove-lp.js
+- dapp-chart.js
+- dapp-faucet.js
+- dapp-wallet.js
 
-The full dApp is split across these source files:
+## Assets
 
-- `testdapp-core.js`
-- `testdapp-contracts.js`
-- `testdapp-trades.js`
-- `testdapp-positions.js`
-- `testdapp-recovery.js`
-- `testdapp-vlock.js`
-- `testdapp-chart.js`
-- `testdapp-faucet.js`
-- `testdapp-wallet.js`
+- Pic/ contains site images and downloadable PDFs.
 
-## Assets And Libraries
+## Distribution
 
-- `Pic/` contains site images and downloadable docs.
-- `lib/` contains locally bundled browser libraries used by the site bundle.
-
-## IPFS
-
-The deployable IPFS bundle is generated from the website source and pinned separately for static hosting.
-
-## Links
-
-- Twitter/X: [@PerpetualB67383](https://twitter.com/PerpetualB67383)
-- Telegram: [t.me/Perpetual_Bitcoin](https://t.me/Perpetual_Bitcoin)
-
----
+- website-lite/ is the editable source of truth in the main workspace.
+- PB-website-repo/ is the GitHub-downloadable website copy.
+- ipfs-build/ is the generated Pinata/IPFS deployment bundle.
 
 Built on PulseChain. One Price. One Pool. One Truth.

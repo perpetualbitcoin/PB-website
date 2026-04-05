@@ -6,12 +6,16 @@
         TPBr,
         TPBi,
         TUSDL,
+        TPBRemoveUserLP,
         TVault,
+        TVaultViews,
         PULSEX_PAIR,
         PULSEX_ROUTER,
         VAULT_ABI,
+        VAULT_VIEWS_ABI,
         TOKEN_ABI,
         PAIR_ABI,
+        REMOVE_USER_LP_ABI,
         ROUTER_ABI,
         NFT_ABI,
         BADGE_ABI,
@@ -24,6 +28,7 @@
 
         const addresses = {
             vault: TVault,
+            vaultviews: TVaultViews,
             pb: TPB,
             pbc: TPBc,
             pbt: TPBt,
@@ -32,15 +37,18 @@
             tusdl: TUSDL,
             pair: PULSEX_PAIR,
             router: PULSEX_ROUTER,
+            removeUserLP: TPBRemoveUserLP,
         };
 
         const abis = {
             vault: VAULT_ABI,
+            vaultviews: VAULT_VIEWS_ABI,
             pb: TOKEN_ABI,
             pbc: TOKEN_ABI,
             tusdl: TOKEN_ABI,
             pair: PAIR_ABI,
             router: ROUTER_ABI,
+            removeUserLP: REMOVE_USER_LP_ABI,
             pbr: BADGE_ABI,
             pbi: BADGE_ABI,
         };

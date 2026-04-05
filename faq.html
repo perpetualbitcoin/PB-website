@@ -23,6 +23,15 @@
     <meta name="twitter:image" content="https://perpetualbitcoin.io/Pic/PB_logo.jpg" />
     <link rel="icon" href="Pic/favicon.ico" type="image/x-icon" />
     <link rel="stylesheet" href="styles.css">
+        <!-- Google tag (gtag.js) -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-LK69CE9C9C"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+
+            gtag('config', 'G-LK69CE9C9C');
+        </script>
     <style>
         .calc-toggle { cursor:pointer; list-style:none; padding:0.6rem 0; display:flex; align-items:center; gap:0.6rem; }
         .calc-toggle::-webkit-details-marker { display:none; }
@@ -142,7 +151,7 @@
           "name": "Are the contracts audited?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Yes. The contracts have been professionally audited. The audit report is publicly available on the website. All contracts are verified on the PulseChain block explorer."
+            "text": "Yes. The contracts have been audited. The audit report is publicly available on the website. All contracts are verified on the PulseChain block explorer."
           }
         },
         {
@@ -184,16 +193,18 @@
 <body class="presale-dapp-bg">
     <nav class="navbar" style="padding: 0.4rem 0;">
         <div class="nav-container" style="padding: 0 2rem;">
-            <div class="logo"><img src="Pic/PB1.png" alt="Perpetual Bitcoin PB logo" style="width:40px;height:40px;"></div>
+            <div class="logo"><a href="DEV.html" title="Developer Access"><img src="Pic/PB1.png" alt="Perpetual Bitcoin PB logo" style="width:40px;height:40px;"></a></div>
             <div class="gtranslate_wrapper"></div>
-            <ul class="nav-menu">
+            <button class="hamburger" id="hamburger-btn" aria-label="Toggle menu" aria-controls="nav-menu" aria-expanded="false">
+                <span></span><span></span><span></span>
+            </button>
+            <ul class="nav-menu" id="nav-menu">
                 <li><a href="index.html#home" class="nav-link">Home</a></li>
-                <li><a href="faq.html" class="nav-link">FAQ</a></li>
-                <li><a href="whitepaperLite.html" class="nav-link">Whitepaper Lite</a></li>
                 <li><a href="PBManifesto.html" class="nav-link">PB Manifesto</a></li>
-                <li><a href="presale-dapp.html" class="nav-link">Presale🎉</a></li>
+                <li><a href="whitepaper.html" class="nav-link">Whitepaper</a></li>
+                <li><a href="faq.html" class="nav-link" style="color: #F39004; font-weight:600;">FAQ</a></li>
                 <li><a href="portfolio.html" class="nav-link">Portfolio</a></li>
-                <li><a href="testDapp.html" class="nav-link" style="color: #F39004; font-weight:600;">✨ Full testDapp</a></li>
+                <li><a href="Dapp.html" class="nav-link">Dapp</a></li>
             </ul>
         </div>
     </nav>
@@ -201,24 +212,9 @@
     <section class="page-hero">
         <h1>Frequently Asked Questions</h1>
         <p>Everything You Need to Know About PB</p>
-        <p style="margin-top: 0.75rem; font-size: 0.9rem; opacity: 0.85;">
-            This site is hosted on <strong>IPFS</strong>, fully decentralized and censorship-resistant.
-            You can also <a id="faq-ipfs-link" href="#" style="color: var(--primary-color); text-decoration: underline;">browse the IPFS copy</a>.
-        </p>
-        <script>
-            if (typeof IPFS_CID !== 'undefined' && IPFS_CID) {
-                const faqIpfsLink = document.getElementById('faq-ipfs-link');
-                if (faqIpfsLink) faqIpfsLink.href = 'https://ipfs.io/ipfs/' + IPFS_CID + '/site/';
-            }
-        </script>
     </section>
 
     <div class="page-container">
-        <section class="presale-section docs-intro-card">
-            <h2>What This Page Is For</h2>
-            <p>This page handles objections, edge cases, and practical user questions. It is not the thesis page and it is not the formal spec. The supporting references are linked where they matter inside the answers below.</p>
-        </section>
-
         <section class="faq-section" id="disclaimer">
             <h2>Disclaimer: Perpetual Bitcoin (PB) Legal Disclaimer</h2>
             <div class="faq-item">
@@ -249,6 +245,7 @@
                     const status = document.getElementById('pb-faq-status');
                     const disclaimerSection = document.getElementById('disclaimer');
                     const pbItem = document.getElementById('what-is-pb');
+                    const pageContainer = disclaimerSection && disclaimerSection.parentElement;
 
                     function setCookie(name,value,days){
                         const d=new Date(); d.setTime(d.getTime()+(days*24*60*60*1000));
@@ -281,10 +278,18 @@
                         } catch(e){}
                     }
 
+                    function moveDisclaimerToBottom(){
+                        try {
+                            if (!pageContainer || !disclaimerSection) return;
+                            pageContainer.appendChild(disclaimerSection);
+                        } catch(e){}
+                    }
+
                     function handleAcceptedOnLoad(){
                         setTimeout(()=>{
                             if(!isAccepted()) return;
                             try{ showAccepted(); }catch(e){}
+                            try{ moveDisclaimerToBottom(); }catch(e){}
                             try {
                                 // keep disclaimer visible but collapse its faq-item so users can still view it later
                                 const disclaimerItem = disclaimerSection && disclaimerSection.querySelector('.faq-item');
@@ -310,6 +315,7 @@
                         try{ localStorage.setItem(KEY,'1'); }catch(e){}
                         try{ setCookie(KEY,'1',365); }catch(e){}
                         showAccepted();
+                        try{ moveDisclaimerToBottom(); }catch(e){}
                         try {
                             // keep the disclaimer visible but collapsed so users can access it later
                             const disclaimerItem = disclaimerSection && disclaimerSection.querySelector('.faq-item');
@@ -334,7 +340,7 @@
                     PB is a <strong>finished, immutable 21 million supply protocol</strong> with price-based unlocks that settle into USDL.
                     When market price reaches your specific <a href="#hardcore-price" style="color: var(--primary-color);">checkpoints</a>, 
                     &frac13; of your remaining locked position is automatically settled into USDL. No roadmap, no promises, just deterministic on-chain rules.
-                    If you want the shortest plain-English intro first, read <a href="pb-in-60-seconds.html" style="color: var(--primary-color); text-decoration: underline;">PB in 60 Seconds</a>.
+                    If you want the shortest guided intro first, start with the <a href="PBManifesto.html" style="color: var(--primary-color); text-decoration: underline;">PB Manifesto</a>.
                 </p>
                 <ul>
                     <li>NO admin keys</li>
@@ -560,8 +566,21 @@
             <div class="faq-item">
                 <h4>Can I check my unlock status?</h4>
                 <p>
-                    Yes. Use the <a href="testDapp.html" style="color: var(--primary-color);">PB Dapp</a>
+                    Yes. Use the <a href="Dapp.html" style="color: var(--primary-color);">PB Dapp</a>
                     to view your PBc balance, PBt positions, entry prices, current checkpoint, and next unlock threshold.
+                </p>
+            </div>
+
+            <div class="faq-item">
+                <h4>Can I get email updates when my position has a settlement?</h4>
+                <p>
+                    Yes. The <a href="portfolio.html" style="color: var(--primary-color);">Portfolio</a> page can save wallet addresses and send automated email settlement alerts for the wallets you choose.
+                </p>
+                <p>
+                    Each alert is meant to be a convenience notification, not the source of truth. The email can include the matched wallet address, the PBt number, and the USDL amount settled, but the on-chain transaction and the Portfolio page remain the canonical place to verify details.
+                </p>
+                <p>
+                    So yes, it is a good idea <strong>as a notification layer</strong>. It helps you notice settlements without watching the dapp all day, but you should still treat the email as an alert, not as the final authority.
                 </p>
             </div>
 
@@ -742,7 +761,7 @@
                 </ul>
                 <p><strong>How it works:</strong></p>
                 <ol>
-                    <li>Call <code>voluntaryLock(pbAmount)</code> from the <a href="testDapp.html" style="color: var(--primary-color);">PB Dapp</a> or directly on-chain</li>
+                    <li>Call <code>voluntaryLock(pbAmount)</code> from the <a href="Dapp.html" style="color: var(--primary-color);">PB Dapp</a> or directly on-chain</li>
                     <li>Vault pulls your PB in, issues you PBc (1:1)</li>
                     <li>A new PBt is minted at the current spot price</li>
                     <li>LP fees are harvested and your bonus is paid out immediately (if eligible)</li>
@@ -758,7 +777,7 @@
                 <p>
                     Bitcoin is proven sound money but remains fundamentally illiquid. PB takes Bitcoin's fixed-supply principle 
                     and adds <strong>dynamic vault-driven liquidity expansion</strong>. As price rises, the vault automatically deepens 
-                    pools, solving the chicken-and-egg problem of low liquidity. You get Bitcoin's scarcity with crypto-native market depth. If you want the broader design-tradeoff framing behind choices like this, read <a href="WHY.html" style="color: var(--primary-color); text-decoration: underline;">WHY</a>.
+                    pools, solving the chicken-and-egg problem of low liquidity. You get Bitcoin's scarcity with crypto-native market depth. The broader design tradeoffs behind choices like this are covered across the <a href="PBManifesto.html" style="color: var(--primary-color); text-decoration: underline;">PB Manifesto</a> and <a href="whitepaper.html" style="color: var(--primary-color); text-decoration: underline;">Whitepaper</a>.
                 </p>
             </div>
 
@@ -779,8 +798,8 @@
             <div class="faq-item">
                 <h4>Are the contracts audited?</h4>
                 <p>
-                    Yes. All contracts have been professionally audited. The 
-                    <a href="Pic/AUDIT%202-18-2026.pdf" target="_blank" rel="noopener" style="color: var(--primary-color);">full audit report</a> 
+                    Yes. All contracts have been audited. The 
+                        <a href="Pic/Security_Audit_Review_Perpetual_Bitcoin%20(4-4-26).pdf" target="_blank" rel="noopener" style="color: var(--primary-color);">full audit report</a> 
                     covers all 15 attack vectors, contract immutability verification, and whitepaper consistency checks.
                 </p>
             </div>
@@ -788,7 +807,7 @@
             <div class="faq-item">
                 <h4>Can the team pause or upgrade the contracts?</h4>
                 <p>
-                    No. The contracts are intended to remain immutable after deployment, with no pause functions and no upgrade path. If you want the hard constraints listed without interpretation, read <a href="immutable-rules.html" style="color: var(--primary-color); text-decoration: underline;">Immutable Rules</a>.
+                    No. The contracts are intended to remain immutable after deployment, with no pause functions and no upgrade path. The operating assumption is simple: no admin switch, no governance override, and no patch path after deployment.
                 </p>
             </div>
 
@@ -829,13 +848,19 @@
                 </p>
                 <ul>
                     <li><strong>Recovery (PBr):</strong> A fallback address that can activate control if the original holder becomes inaccessible</li>
-                    <li><strong>Inheritance (PBi):</strong> A succession address that takes precedence over recovery for planned transfers</li>
+                    <li><strong>Inheritance (PBi):</strong> A succession address that takes precedence over recovery for long-term succession planning</li>
                     <li><strong>Security:</strong> Both require password verification + NFT badge possession for activation</li>
                     <li><strong>On activation:</strong> The PBt NFT, holder status, payout address, <strong>and all PBc tokens</strong> are transferred to the new wallet. The badge is burned (one-time use).</li>
                 </ul>
                 <p>
                     &#x26A0;&#xFE0F; <strong>These must be configured while you still have access to your wallet.</strong> 
                     Recovery and inheritance cannot be set after you lose your keys.
+                </p>
+                <p>
+                    <strong>Do not use PBr or PBi for OTC sales, private transfers, or escrow-style handoffs.</strong>
+                    These are safety tools, not transfer rails. If a PBt position is being offered through recovery or inheritance arrangements instead of direct on-chain ownership,
+                    the buyer is taking counterparty risk. If inheritance was already configured on that PBt, it can take precedence over recovery. If you ignore this warning anyway,
+                    only accept PBi in your wallet, since inheritance is final and non-revocable.
                 </p>
                 <p>
                     <strong>Important Edge Cases:</strong>
@@ -851,7 +876,7 @@
                     These mechanisms ensure secure, one-way succession while preventing abuse or manipulation after activation.
                 </p>
                 <p>
-                    <strong>Note:</strong> If you made a recovery address typo, use the PBi (inheritance) to correct it, as recovery cannot be modified once configured.
+                    <strong>Note:</strong> Double-check recovery and inheritance addresses before submission. These settings are one-time decisions and should not be treated as trading or transfer tools.
                 </p>
             </div>
 
@@ -1259,12 +1284,75 @@
         </section>
 
         <section class="faq-section" id="official-addresses">
-            <h2>Official Contract Addresses</h2>
+            <h2>Verification &amp; Trust</h2>
+            <div class="faq-item">
+                <h4>What is live right now, and what should I treat as canonical?</h4>
+                <p>
+                    Use this section as the short due-diligence checkpoint.
+                </p>
+                <ul>
+                    <li><strong>Mainnet status:</strong> production deployment window and address publication happen at launch</li>
+                    <li><strong>Testnet status:</strong> public validation network remains available for final checks</li>
+                    <li><strong>Canonical frontend:</strong> perpetualbitcoin.io</li>
+                    <li><strong>Primary docs:</strong> Home, PB Manifesto, Whitepaper, and this FAQ</li>
+                    <li><strong>Transparent execution view:</strong> the <a href="Dapp.html" style="color: var(--primary-color); text-decoration: underline;">Dapp</a> includes a Buy / Sell Trust Terminal so users can inspect the route they are taking</li>
+                </ul>
+                <p>
+                    The goal is simple: confirm the addresses, confirm the rules being claimed, and make sure the frontend language matches what the contracts are actually enforcing.
+                </p>
+            </div>
+
+            <div class="faq-item">
+                <h4>What should I verify first before trusting PB?</h4>
+                <ul>
+                    <li>The official addresses shown <a href="#official-addresses" style="color: var(--primary-color); text-decoration: underline;">here</a> match the contracts users are actually pointed to.</li>
+                    <li>The immutability claims match the real deployment architecture.</li>
+                    <li>The docs say price-based unlocks because the contracts actually enforce price-based unlocks.</li>
+                    <li>The trust claim is about rule enforcement, not promises about price outcome.</li>
+                    <li>The buy and sell path shown in the Trust Terminal matches the real on-chain flow instead of hiding the route behind vague UI language.</li>
+                    <li>The live site at perpetualbitcoin.io is the canonical frontend users are routed through.</li>
+                </ul>
+            </div>
+
+            <div class="faq-item">
+                <h4>Is PB decentralized?</h4>
+                <p>
+                    Yes. The core decentralization claim is at the <strong>protocol level</strong>: no admin keys, no governance, no upgrade path, no pause, no freeze, and no discretionary supply changes after deployment.
+                </p>
+                <p>
+                    It also applies to <strong>execution visibility</strong>. The <a href="Dapp.html" style="color: var(--primary-color); text-decoration: underline;">Dapp</a> exposes the Buy / Sell Trust Terminal so users can inspect the route they are taking instead of relying on opaque frontend wording.
+                </p>
+                <p>
+                    And it applies to <strong>frontend redundancy</strong>. If you want a decentralized or independently preserved copy of the site, use the published IPFS copy or the downloadable site package when available.
+                    <a id="faq-verify-ipfs-link" href="#" style="color: var(--primary-color); text-decoration: underline; display: none;">Open IPFS copy</a>
+                    <span id="faq-verify-separator" style="display: none; color: #888;"> | </span>
+                    <a id="faq-verify-download-link" href="#" style="color: var(--primary-color); text-decoration: underline; display: none;">Download site package</a>
+                </p>
+                <p>
+                    The real check is whether all three layers still line up: the published addresses, the frontend behavior, and the on-chain contracts.
+                </p>
+            </div>
+
+            <div class="faq-item">
+                <h4>What rules should remain true if PB is still really PB?</h4>
+                <ul>
+                    <li><strong>Fixed supply:</strong> PB supply stays fixed after genesis, with no discretionary inflation.</li>
+                    <li><strong>Separated position state:</strong> liquid PB, locked PBc, and PBt tracking remain distinct and are not blurred by the UI.</li>
+                    <li><strong>Vault discipline:</strong> the vault reserve remains sufficient to cover outstanding PBc obligations.</li>
+                    <li><strong>Price-based unlocks:</strong> unlock progression depends on price checkpoints, not time cliffs.</li>
+                    <li><strong>Deterministic tranches:</strong> each unlock settles a fixed fraction of the remaining PBc claim.</li>
+                    <li><strong>Netting first:</strong> internal netting should happen before unnecessary AMM routing.</li>
+                    <li><strong>No admin rewrite:</strong> nobody can pause, remint, freeze, or silently rewrite the mechanism after deployment.</li>
+                    <li><strong>No upgrade backdoor:</strong> if PB is presented as immutable, the live path cannot depend on upgradeable control.</li>
+                    <li><strong>Frontend honesty:</strong> frontend claims should match contract reality, not just marketing language.</li>
+                </ul>
+            </div>
+
             <div class="faq-item">
                 <h4>Where can I verify the official PB contracts?</h4>
                 <p>
                     Use the cards below to click any published address to copy it, open it on the official block explorer,
-                    add the correct PulseChain network to MetaMask, and import PB or PBc directly into your wallet. If you want the canonical trust and verification hub, use the <a href="trust-center.html" style="color: var(--primary-color); text-decoration: underline;">Trust Center</a>.
+                    add the correct PulseChain network to MetaMask, and import PB or PBc directly into your wallet.
                 </p>
                 <div class="address-panels">
                     <div class="address-panel">
@@ -1296,17 +1384,40 @@
                         </div>
                         <div id="testnet-address-list" class="address-list"></div>
                         <div id="testnet-address-status" class="address-status"></div>
-                        <p class="address-note">These values come from the live site config used by the test dapp and are intended for wallet import, explorer verification, and manual contract interaction.</p>
+                        <p class="address-note">These values come from the live site config used by the dapp and are intended for wallet import, explorer verification, and manual contract interaction.</p>
                     </div>
                 </div>
+                <script>
+                    (function () {
+                        const ipfsLink = document.getElementById('faq-verify-ipfs-link');
+                        const downloadLink = document.getElementById('faq-verify-download-link');
+                        const separator = document.getElementById('faq-verify-separator');
+                        let visibleLinks = 0;
+
+                        if (ipfsLink && typeof IPFS_CID !== 'undefined' && IPFS_CID) {
+                            ipfsLink.href = 'https://ipfs.io/ipfs/' + IPFS_CID + '/site/';
+                            ipfsLink.style.display = 'inline';
+                            visibleLinks += 1;
+                        }
+
+                        if (downloadLink && typeof GITHUB_DOWNLOAD !== 'undefined' && GITHUB_DOWNLOAD) {
+                            downloadLink.href = GITHUB_DOWNLOAD;
+                            downloadLink.style.display = 'inline';
+                            visibleLinks += 1;
+                        }
+
+                        if (separator && visibleLinks === 2) {
+                            separator.style.display = 'inline';
+                        }
+                    })();
+                </script>
             </div>
         </section>
 
-        <section class="cta-section">
-            <h2>Still Have Questions?</h2>
-            <p>Join our community channels to discuss PB with other participants.</p>
-            <div class="cta-buttons">
-                <a href="https://twitter.com/PerpetualB67383" class="btn btn-primary">Follow Twitter</a>
+        <section class="cta-section" style="text-align: left;">
+            <div class="cta-buttons" style="justify-content: space-between; gap: 1rem;">
+                <a href="whitepaper.html" class="btn btn-secondary">&laquo; Whitepaper</a>
+                <a href="Dapp.html" class="btn btn-primary">Dapp &raquo;</a>
             </div>
         </section>
     </div>
@@ -1531,6 +1642,30 @@
     <script src="https://cdn.jsdelivr.net/npm/ethers@6/dist/ethers.umd.js"></script>
     <script src="config.js"></script>
     <script src="price-ticker.js"></script>
+    <script>
+    (function() {
+        const btn = document.getElementById('hamburger-btn');
+        const menu = document.getElementById('nav-menu');
+
+        if (!btn || !menu) {
+            return;
+        }
+
+        btn.addEventListener('click', function() {
+            const isOpen = btn.classList.toggle('open');
+            menu.classList.toggle('open', isOpen);
+            btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        });
+
+        menu.querySelectorAll('.nav-link').forEach(function(link) {
+            link.addEventListener('click', function() {
+                btn.classList.remove('open');
+                menu.classList.remove('open');
+                btn.setAttribute('aria-expanded', 'false');
+            });
+        });
+    })();
+    </script>
     <script>window.gtranslateSettings = {"default_language":"en","native_language_names":true,"detect_browser_language":true,"languages":["en","zh-CN","fr","de","hi","es","pt","nl","el"],"wrapper_selector":".gtranslate_wrapper","flag_style":"3d","alt_flags":{"en":"usa"}}</script>
     <script src="https://cdn.gtranslate.net/widgets/latest/float.js" defer></script>
 </body>

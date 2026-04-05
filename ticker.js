@@ -4,16 +4,23 @@
 // Injects its own HTML + CSS — pages only need the <script> tag
 // ================================================================
 (function () {
+    var TICKER_NETWORK = (typeof NETWORKS !== 'undefined' && NETWORKS && NETWORKS.mainnet)
+        ? NETWORKS.mainnet
+        : { rpc: 'https://rpc.pulsechain.com', chainId: 369 };
+    var TICKER_ADDRESSES = (typeof ADDRESSES_MAINNET !== 'undefined' && ADDRESSES_MAINNET)
+        ? ADDRESSES_MAINNET
+        : (typeof ADDRESSES !== 'undefined' ? ADDRESSES : {});
+
     // ── Ticker items: edit this array to add/remove/reorder stats ──
     // id = unique element id, label = display text, color = value color
     // bold = true for larger/bolder values
     var ITEMS = [
         { id: 'tick-price',       label: 'Price',       color: '#4CAF50', bold: true  },
+        { id: 'tick-gain',        label: '% Since Deploy', color: '#4CAF50', bold: true },
+        { id: 'tick-distributed', label: 'Distributed to Holders', color: '#4CAF50', bold: true  },
         { id: 'tick-lp',          label: 'LP',          color: '#FFD700', bold: false },
-        { id: 'tick-gain',        label: '% Since Deploy', color: '',       bold: false },
         { id: 'tick-mc',          label: 'Total MC',    color: '#FFD700', bold: false },
         { id: 'tick-mc-users',    label: 'MC Users',    color: '#4CAF50', bold: false },
-        { id: 'tick-distributed', label: 'Distributed to Holders', color: '#F39004', bold: true  },
     ];
 
     // ── Build HTML from ITEMS array ──
@@ -24,7 +31,7 @@
             if (item.color) valStyle += 'color:' + item.color + ';';
             var attr = useId ? 'id="' + item.id + '"' : 'class="' + item.id + '-dup"';
             return '<span class="tick-item">' + item.label + ': <span ' + attr + ' style="' + valStyle + '">$\u2014</span></span>';
-        }).join('') + '<span class="tick-sep" style="color:#FF4444;font-weight:700;letter-spacing:2px;">TESTNET</span>';
+        }).join('');
     }
 
     function injectTicker() {
@@ -46,6 +53,8 @@
     ];
     var VAULT_ABI = [
         'function totalUSDLDistributed() view returns (uint256)',
+    ];
+    var VAULT_VIEWS_ABI = [
         'function totalOutstandingPBc() view returns (uint256)',
     ];
 
@@ -53,8 +62,8 @@
     function isV6() { return typeof ethers.JsonRpcProvider === 'function'; }
     function makeProvider() {
         return isV6()
-            ? new ethers.JsonRpcProvider(ACTIVE_NETWORK.rpc, ACTIVE_NETWORK.chainId)
-            : new ethers.providers.JsonRpcProvider(ACTIVE_NETWORK.rpc, ACTIVE_NETWORK.chainId);
+            ? new ethers.JsonRpcProvider(TICKER_NETWORK.rpc, TICKER_NETWORK.chainId)
+            : new ethers.providers.JsonRpcProvider(TICKER_NETWORK.rpc, TICKER_NETWORK.chainId);
     }
     function fmtEther(val) {
         return isV6() ? ethers.formatEther(val) : ethers.utils.formatEther(val);
@@ -84,18 +93,19 @@
         try {
             if (typeof ethers === 'undefined') return;
             var rpc = makeProvider();
-            var pairC  = new ethers.Contract(ADDRESSES.PB_USDL_PAIR, PAIR_ABI, rpc);
-            var vaultC = new ethers.Contract(ADDRESSES.Vault, VAULT_ABI, rpc);
+            var pairC  = new ethers.Contract(TICKER_ADDRESSES.PB_USDL_PAIR, PAIR_ABI, rpc);
+            var vaultC = new ethers.Contract(TICKER_ADDRESSES.Vault, VAULT_ABI, rpc);
+            var vaultViewsC = new ethers.Contract(TICKER_ADDRESSES.VaultViews, VAULT_VIEWS_ABI, rpc);
 
             var results = await Promise.all([
                 pairC.getReserves(), pairC.token0(),
-                vaultC.totalUSDLDistributed(), vaultC.totalOutstandingPBc()
+                vaultC.totalUSDLDistributed(), vaultViewsC.totalOutstandingPBc()
             ]);
             var reserves = results[0], token0 = results[1],
                 totalUSDLDist = results[2], totalOutPBc = results[3];
 
             var pbRes, usdlRes;
-            if (token0.toLowerCase() === ADDRESSES.PB.toLowerCase()) {
+            if (token0.toLowerCase() === TICKER_ADDRESSES.PB.toLowerCase()) {
                 pbRes  = Number(fmtEther(reserves[0]));
                 usdlRes = Number(fmtEther(reserves[1]));
             } else {

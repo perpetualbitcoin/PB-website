@@ -1,12 +1,13 @@
 (function () {
     const { INDEXER_URL } = window.PBTestDapp;
+    const HISTORY_STORAGE_KEY = `pb_tick_history_${typeof ACTIVE_NETWORK_KEY === 'string' ? ACTIVE_NETWORK_KEY : 'default'}`;
 
     function create() {
         let priceChart;
         let candleSeries;
         let volumeSeries;
         let lineSeries;
-        let chartType = 'candle';
+        let chartType = 'line';
         let currentTimeframeMin = 60;
         let tickHistory = [];
 
@@ -29,7 +30,7 @@
                 console.warn('[chart] DB price fetch failed, falling back to localStorage:', e.message);
             }
 
-            const stored = localStorage.getItem('pb_tick_history');
+            const stored = localStorage.getItem(HISTORY_STORAGE_KEY);
             if (stored) {
                 try {
                     const localTicks = JSON.parse(stored);
@@ -46,7 +47,7 @@
 
         function savePriceHistory() {
             if (tickHistory.length > 10000) tickHistory = tickHistory.slice(-10000);
-            localStorage.setItem('pb_tick_history', JSON.stringify(tickHistory));
+            localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(tickHistory));
         }
 
         function aggregateCandles(ticks, tfMinutes) {
@@ -199,7 +200,7 @@
                 priceLineVisible: false,
                 priceFormat: { type: 'price', precision: 8, minMove: 0.00000001 },
             });
-            lineSeries.applyOptions({ visible: false });
+            lineSeries.applyOptions({ visible: true });
 
             const resizeObserver = new ResizeObserver((entries) => {
                 for (const entry of entries) {
@@ -223,6 +224,7 @@
                 switchChartType('line');
             });
 
+            switchChartType(chartType);
             updateChartDisplay(true);
         }
 

@@ -1,46 +1,58 @@
 (function () {
-    const CHAIN_ID = 943;
-    const CHAIN_NAME = 'PulseChain Testnet v4';
-    const RPC_URL = 'https://rpc.v4.testnet.pulsechain.com';
-    const INDEXER_URL = 'https://perpetualbitcoin.io/api';
+    const CHAIN_ID = ACTIVE_NETWORK.chainId;
+    const CHAIN_NAME = ACTIVE_NETWORK.name;
+    const RPC_URL = ACTIVE_NETWORK.rpc;
+    const INDEXER_URL = ACTIVE_NETWORK.apiBase;
 
-    const TVault = ADDRESSES_TESTNET.Vault;
-    const TPB = ADDRESSES_TESTNET.PB;
-    const TPBc = ADDRESSES_TESTNET.PBc;
-    const TPBt = ADDRESSES_TESTNET.PBt;
-    const TPBr = ADDRESSES_TESTNET.PBr;
-    const TPBi = ADDRESSES_TESTNET.PBi;
-    const TUSDL = ADDRESSES_TESTNET.USDL;
-    const PULSEX_ROUTER = ADDRESSES_TESTNET.PULSEX_ROUTER;
-    const PULSEX_PAIR = ADDRESSES_TESTNET.PB_USDL_PAIR;
+    const TVault = ADDRESSES.Vault;
+    const TVaultViews = ADDRESSES.VaultViews;
+    const TPB = ADDRESSES.PB;
+    const TPBc = ADDRESSES.PBc;
+    const TPBt = ADDRESSES.PBt;
+    const TPBr = ADDRESSES.PBr;
+    const TPBi = ADDRESSES.PBi;
+    const TUSDL = ADDRESSES.USDL;
+    const TPBRemoveUserLP = ADDRESSES.PBRemoveUserLP;
+    const PULSEX_ROUTER = ADDRESSES.PULSEX_ROUTER;
+    const PULSEX_PAIR = ADDRESSES.PB_USDL_PAIR;
 
     const VAULT_ABI = [
         'function buyPBDirect(uint256 usdlAmount, uint256 minPBOut, address recipient, uint256[] unlockIds) returns (uint256)',
-        'function getUserPBtIds(address user) view returns (uint256[])',
-        'function getPositionUnlockStatus(uint256 pbtId) view returns (uint256 index, uint256 nextPrice, bool eligible, uint256 pbcRemaining)',
         'function pbtRegistry(uint256 pbtId) view returns (uint256 buyPrice, uint256 pbAmount, uint256 pbcLocked, uint256 nextUnlockIndex, uint256 nextTriggerPrice, uint256 mintBlock, address holder, address payoutAddress)',
-        'function computeNextTriggerPrice(uint256 buyPrice, uint256 unlockIndex) view returns (uint256)',
         'function setRecoveryAddress(uint256 pbtId, address recoveryAddr, bytes32 passwordHash, string message)',
         'function activateRecovery(uint256 pbtId, string password)',
         'function setInheritanceAddress(uint256 pbtId, address inheritanceAddr, bytes32 passwordHash, string message)',
         'function activateInheritance(uint256 pbtId, string password)',
-        'function getPBQuote(uint256 usdlAmount) view returns (uint256 pb, uint256 liquid, uint256 locked)',
-        'function getUserTotalValue(address user) view returns (uint256 total, uint256 liquid, uint256 locked, uint256 usdl)',
-        'function getCurrentLPProceeds() view returns (uint256 usdl, uint256 pb)',
         'function voluntaryLock(uint256 pbAmount) returns (uint256)',
         'function harvestLPRewards()',
         'function claimLPFeesFor(uint256 pbtId) returns (uint256 usdlPaid, uint256 pbPaid)',
-        'function getLPTokenBalance() view returns (uint256)',
         'function vaultPBBalance() view returns (uint256)',
         'function vaultPBcBalance() view returns (uint256)',
         'function totalUSDLDistributed() view returns (uint256)',
         'function isDistributionPhase() view returns (bool)',
-        'function getActivePositionCount() view returns (uint256)',
-        'function totalOutstandingPBc() view returns (uint256)',
         'function pbtIdCounter() view returns (uint256)',
         'function buyCount() view returns (uint256)',
+        'event VLockExecuted(address indexed user, uint256 indexed pbtId, uint256 pbAmount, uint256 usdlBonusPaid, uint256 pbBonusPaid)',
+        'event VLockBonusPaid(address indexed user, uint256 usdlAmount, uint256 pbAmount)',
         'event UnlockTriggered(uint256 indexed pbtId, uint256 unlockIndex, uint256 pbUnlocked, uint256 usdlProceeds, address payoutAddress, uint256 newTriggerPrice, uint256 remainingPBcLocked)',
         'event UnlockNetted(uint256 indexed pbtId, uint256 unlockIndex, uint256 pbcSettled, uint256 usdlPaid, address payoutAddress, uint256 settlementPrice, uint256 newTriggerPrice, uint256 remainingPBcLocked)'
+    ];
+
+    const VAULT_VIEWS_ABI = [
+        'function getUserPBtIds(address user) view returns (uint256[])',
+        'function getPositionUnlockStatus(uint256 pbtId) view returns (uint256 index, uint256 nextPrice, bool eligible, uint256 pbcRemaining)',
+        'function computeNextTriggerPrice(uint256 buyPrice, uint256 unlockIndex) view returns (uint256)',
+        'function getPBQuote(uint256 usdlAmount) view returns (uint256 pb, uint256 liquid, uint256 locked)',
+        'function getUserTotalValue(address user) view returns (uint256 total, uint256 liquid, uint256 locked, uint256 usdl)',
+        'function getCurrentLPProceeds() view returns (uint256 usdl, uint256 pb)',
+        'function getLPTokenBalance() view returns (uint256)',
+        'function getActivePositionCount() view returns (uint256)',
+        'function totalOutstandingPBc() view returns (uint256)',
+        'function totalOutstandingPB() view returns (uint256)',
+        'function getPBtData(uint256 pbtId) view returns (uint256 buyPrice, uint256 pbAmount, uint256 pbcLocked, uint256 nextUnlockIndex, uint256 nextTriggerPrice, uint256 mintBlock, address holder, address payoutAddress)',
+        'function getRecoveryData(uint256 pbtId) view returns (address recoveryAddress, bytes32 passwordHash, bool activated)',
+        'function getInheritanceData(uint256 pbtId) view returns (address inheritanceAddress, bytes32 passwordHash, bool activated)',
+        'function getVlockParameters() view returns (uint256 minBonusUsdl, uint256 bonusPct, uint256 pctDenom, uint256 minTwapWindow)'
     ];
 
     const TOKEN_ABI = [
@@ -54,7 +66,16 @@
     const PAIR_ABI = [
         'function getReserves() view returns (uint112 reserve0, uint112 reserve1, uint32)',
         'function token0() view returns (address)',
-        'function token1() view returns (address)'
+        'function token1() view returns (address)',
+        'function totalSupply() view returns (uint256)',
+        'function balanceOf(address owner) view returns (uint256)',
+        'function allowance(address owner, address spender) view returns (uint256)',
+        'function approve(address spender, uint256 amount) returns (bool)'
+    ];
+
+    const REMOVE_USER_LP_ABI = [
+        'function removeUserPBLP(uint256 lpAmount, uint256 minPB, uint256 minUSDL, uint256 deadline) returns (uint256 pbAmount, uint256 usdlAmount)',
+        'event UserLPRemoved(address indexed user, uint256 lpAmount, uint256 pbAmount, uint256 usdlAmount)'
     ];
 
     const ROUTER_ABI = [
@@ -301,25 +322,188 @@
         }
     }
 
+    function escapeTerminalHtml(value) {
+        return String(value ?? '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    function formatTerminalInline(value) {
+        const text = String(value ?? '');
+        if (/^0x[a-fA-F0-9]{40}$/.test(text) || /^0x[a-fA-F0-9]{64}$/.test(text)) {
+            return `<span class="terminal-address">${escapeTerminalHtml(text)}</span>`;
+        }
+        if (/^(approve|voluntaryLock|harvestLPRewards|addLiquidity|removeUserPBLP|setRecoveryAddress|setInheritanceAddress|activateRecovery|activateInheritance)$/.test(text)) {
+            return `<span class="terminal-function">${escapeTerminalHtml(text)}</span>`;
+        }
+        return `<span class="terminal-value">${escapeTerminalHtml(text)}</span>`;
+    }
+
+    function renderOperationTerminalPreview(state) {
+        const lines = [];
+        lines.push(`<div class="terminal-line"><span class="terminal-prefix">$</span><span class="terminal-function">mode</span> <span class="terminal-key">=</span> ${formatTerminalInline(state.mode || 'Waiting')}</div>`);
+
+        (state.summaryRows || []).forEach(([label, value]) => {
+            lines.push(`<div class="terminal-line"><span class="terminal-prefix">></span><span class="terminal-key">${escapeTerminalHtml(label)}:</span> ${formatTerminalInline(value)}</div>`);
+        });
+
+        if ((state.steps || []).length) {
+            lines.push('<div class="terminal-line"><span class="terminal-prefix">#</span><span class="terminal-muted">predicted sequence</span></div>');
+        }
+
+        (state.steps || []).forEach((step, index) => {
+            lines.push(`<div class="terminal-line"><span class="terminal-prefix">${index + 1}.</span><span class="terminal-function">${escapeTerminalHtml(step.title)}</span> <span class="terminal-muted">[${escapeTerminalHtml(step.badge || 'Step')}]</span></div>`);
+            lines.push(`<div class="terminal-line"><span class="terminal-prefix">|</span><span class="terminal-muted">${escapeTerminalHtml(step.body || '')}</span></div>`);
+            (step.details || []).forEach(([detailLabel, detailValue]) => {
+                lines.push(`<div class="terminal-line"><span class="terminal-prefix">|</span><span class="terminal-key">${escapeTerminalHtml(detailLabel)}:</span> ${formatTerminalInline(detailValue)}</div>`);
+            });
+        });
+
+        if ((state.addresses || []).length) {
+            lines.push('<div class="terminal-line"><span class="terminal-prefix">@</span><span class="terminal-muted">addresses / contracts</span></div>');
+        }
+
+        (state.addresses || []).forEach(([label, value]) => {
+            lines.push(`<div class="terminal-line"><span class="terminal-prefix">@</span><span class="terminal-key">${escapeTerminalHtml(label)}:</span> ${formatTerminalInline(value)}</div>`);
+        });
+
+        return lines.join('');
+    }
+
+    function renderOperationTerminalChain(entries) {
+        if (!entries.length) {
+            return '<div class="terminal-line"><span class="terminal-prefix">$</span><span class="terminal-muted">No execution yet.</span></div>';
+        }
+
+        return entries.map((entry) => {
+            const toneClass = entry.tone === 'success'
+                ? 'terminal-success'
+                : entry.tone === 'error'
+                    ? 'terminal-error'
+                    : entry.tone === 'warning'
+                        ? 'terminal-warning'
+                        : 'terminal-value';
+
+            const detailsHtml = (entry.details || []).map(([label, value]) => `
+                <div class="terminal-line"><span class="terminal-prefix">|</span><span class="terminal-key">${escapeTerminalHtml(label)}:</span> ${formatTerminalInline(value)}</div>
+            `).join('');
+
+            return `
+                <div class="terminal-line"><span class="terminal-prefix">$</span><span class="${toneClass}">${escapeTerminalHtml(entry.title)}</span></div>
+                <div class="terminal-line"><span class="terminal-prefix">|</span><span class="terminal-muted">${escapeTerminalHtml(entry.body || '')}</span></div>
+                ${detailsHtml}
+            `;
+        }).join('');
+    }
+
+    function createOperationTerminal(config) {
+        const defaultMode = config?.defaultMode || 'Operation';
+        const defaultStatus = config?.defaultStatus || 'Waiting for input';
+        const containerId = config?.containerId;
+        const modeId = config?.modeId;
+        let previewState = {
+            mode: `${defaultMode} preview`,
+            summaryRows: [['Status', defaultStatus]],
+            steps: [],
+            addresses: config?.addresses || [],
+        };
+        let chainEntries = [];
+
+        function render() {
+            const container = document.getElementById(containerId);
+            const modeEl = modeId ? document.getElementById(modeId) : null;
+            if (modeEl) modeEl.textContent = previewState.modeLabel || defaultMode;
+            if (!container) return;
+            container.innerHTML = `
+                <div class="terminal-divider">Prediction</div>
+                ${renderOperationTerminalPreview(previewState)}
+                <div class="terminal-divider">On-Chain</div>
+                ${renderOperationTerminalChain(chainEntries)}
+            `;
+        }
+
+        function setMode(label) {
+            previewState.modeLabel = label || defaultMode;
+            previewState.mode = `${previewState.modeLabel} preview`;
+            render();
+        }
+
+        function setPreview(nextState) {
+            previewState = {
+                mode: nextState?.mode || previewState.mode || `${defaultMode} preview`,
+                modeLabel: nextState?.modeLabel || previewState.modeLabel || defaultMode,
+                summaryRows: nextState?.summaryRows || [],
+                steps: nextState?.steps || [],
+                addresses: nextState?.addresses || config?.addresses || [],
+            };
+            render();
+        }
+
+        function resetChain() {
+            chainEntries = [];
+            render();
+        }
+
+        function pushChainEvent(title, body, tone, details) {
+            chainEntries.push({
+                title,
+                body,
+                tone: tone || 'info',
+                details: details || [],
+            });
+            render();
+        }
+
+        function resetPreview(statusMessage) {
+            previewState = {
+                mode: `${previewState.modeLabel || defaultMode} preview`,
+                modeLabel: previewState.modeLabel || defaultMode,
+                summaryRows: [['Status', statusMessage || defaultStatus]],
+                steps: [],
+                addresses: config?.addresses || [],
+            };
+            render();
+        }
+
+        render();
+
+        return {
+            setMode,
+            setPreview,
+            resetPreview,
+            resetChain,
+            pushChainEvent,
+            render,
+        };
+    }
+
     window.addPulseMainnet = addPulseMainnet;
     window.addPulseTestnet = addPulseTestnet;
     window.PBTestDapp = {
+        ACTIVE_NETWORK_KEY,
         CHAIN_ID,
         CHAIN_NAME,
         RPC_URL,
         INDEXER_URL,
         TVault,
+        TVaultViews,
         TPB,
         TPBc,
         TPBt,
         TPBr,
         TPBi,
         TUSDL,
+        TPBRemoveUserLP,
         PULSEX_ROUTER,
         PULSEX_PAIR,
         VAULT_ABI,
+        VAULT_VIEWS_ABI,
         TOKEN_ABI,
         PAIR_ABI,
+        REMOVE_USER_LP_ABI,
         ROUTER_ABI,
         NFT_ABI,
         BADGE_ABI,
@@ -337,6 +521,7 @@
         formatPrice,
         showStatus,
         showQuoteStatus,
-        showTransactionStatus
+        showTransactionStatus,
+        createOperationTerminal
     };
 })();

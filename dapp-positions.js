@@ -1,17 +1,143 @@
 (function () {
     const {
         TPB,
+        TUSDL,
+        TVault,
         formatNumber,
         formatPrice,
     } = window.PBTestDapp;
 
+    const ERC20_TRANSFER_TOPIC = ethers.id('Transfer(address,address,uint256)');
+    const erc20TransferInterface = new ethers.Interface([
+        'event Transfer(address indexed from, address indexed to, uint256 value)'
+    ]);
+
+    function getParsedEventName(parsed) {
+        return parsed?.name || parsed?.fragment?.name || '';
+    }
+
+    function getLogIndexValue(log) {
+        const raw = log?.logIndex ?? log?.index;
+        if (raw === undefined || raw === null) return null;
+        const value = Number(raw);
+        return Number.isFinite(value) ? value : null;
+    }
+
+    function getTxHashValue(log) {
+        return log?.transactionHash || log?.hash || '';
+    }
+
     function create(app) {
+        const payoutReceiptCache = new Map();
+        const MATRIX_GREEN = '#00ff41';
+
         function localTriggerPrice(buyPriceNum, unlockIndex) {
             let price = buyPriceNum;
             for (let i = 0; i <= unlockIndex; i++) {
                 price = price * 1.5555;
             }
             return price;
+        }
+
+        async function getReceiptPayoutAdjustments(txHash, vaultContract) {
+            if (!txHash) return new Map();
+            if (payoutReceiptCache.has(txHash)) return payoutReceiptCache.get(txHash);
+
+            const adjustments = new Map();
+            try {
+                const provider = vaultContract.runner?.provider;
+                const receipt = provider ? await provider.getTransactionReceipt(txHash) : null;
+                if (!receipt) {
+                    payoutReceiptCache.set(txHash, adjustments);
+                    return adjustments;
+                }
+
+                const unlockRows = [];
+                for (const log of receipt.logs) {
+                    if (String(log.address).toLowerCase() !== String(TVault).toLowerCase()) continue;
+                    try {
+                        const parsed = vaultContract.interface.parseLog(log);
+                        if (getParsedEventName(parsed) !== 'UnlockNetted') continue;
+                        const logIndex = getLogIndexValue(log);
+                        if (!Number.isFinite(logIndex)) continue;
+                        unlockRows.push({
+                            logIndex,
+                            payoutAddress: String(parsed.args[4]).toLowerCase(),
+                        });
+                    } catch {
+                        continue;
+                    }
+                }
+
+                const outgoingTransfers = receipt.logs
+                    .filter(log => String(log.address).toLowerCase() === String(TUSDL).toLowerCase() && log.topics[0] === ERC20_TRANSFER_TOPIC)
+                    .map(log => {
+                        try {
+                            const parsed = erc20TransferInterface.parseLog(log);
+                            const logIndex = getLogIndexValue(log);
+                            if (!Number.isFinite(logIndex)) return null;
+                            return {
+                                logIndex,
+                                from: String(parsed.args.from).toLowerCase(),
+                                to: String(parsed.args.to).toLowerCase(),
+                                value: Number(ethers.formatEther(parsed.args.value)),
+                                matched: false,
+                            };
+                        } catch {
+                            return null;
+                        }
+                    })
+                    .filter(Boolean)
+                    .filter(transfer => transfer.from === String(TVault).toLowerCase());
+
+                const sortedUnlockRows = unlockRows.sort((a, b) => a.logIndex - b.logIndex);
+                for (const row of sortedUnlockRows) {
+                    for (let idx = outgoingTransfers.length - 1; idx >= 0; idx--) {
+                        const transfer = outgoingTransfers[idx];
+                        if (transfer.matched) continue;
+                        if (transfer.to !== row.payoutAddress) continue;
+                        if (transfer.logIndex >= row.logIndex) continue;
+                        transfer.matched = true;
+                        break;
+                    }
+                }
+
+                for (const row of sortedUnlockRows) {
+                    const nextSameAddressRow = sortedUnlockRows.find(next => next.logIndex > row.logIndex && next.payoutAddress === row.payoutAddress);
+                    const upperBound = nextSameAddressRow ? nextSameAddressRow.logIndex : Number.POSITIVE_INFINITY;
+                    const extraValue = outgoingTransfers
+                        .filter(transfer => !transfer.matched && transfer.to === row.payoutAddress && transfer.logIndex > row.logIndex && transfer.logIndex < upperBound)
+                        .reduce((sum, transfer) => sum + transfer.value, 0);
+                    adjustments.set(row.logIndex, extraValue);
+                }
+            } catch (err) {
+                console.warn('Receipt payout adjustment failed for tx', txHash, err.message);
+            }
+
+            payoutReceiptCache.set(txHash, adjustments);
+            return adjustments;
+        }
+
+        async function applySplitPayoutAdjustments(eventMap, vaultContract) {
+            const rows = [];
+            Object.values(eventMap || {}).forEach(positionRows => {
+                Object.values(positionRows || {}).forEach(row => {
+                    if (!row || row.kind !== 'netted' || !row.txHash || !Number.isFinite(row.logIndex) || !row.payoutAddress) return;
+                    rows.push(row);
+                });
+            });
+
+            const txHashes = [...new Set(rows.map(row => row.txHash))];
+            await Promise.all(txHashes.map(txHash => getReceiptPayoutAdjustments(txHash, vaultContract)));
+
+            for (const row of rows) {
+                const adjustments = payoutReceiptCache.get(row.txHash);
+                const extraProceeds = adjustments?.get(Number(row.logIndex)) || 0;
+                row.extraProceeds = extraProceeds;
+                row.loggedProceeds = row.loggedProceeds ?? row.proceeds ?? 0;
+                row.proceeds = row.loggedProceeds + extraProceeds;
+                row.txAdjusted = extraProceeds > 0;
+            }
         }
 
         async function updatePositions() {
@@ -23,7 +149,8 @@
 
             try {
                 const vaultContract = app.contractLayer.getReadContract('vault');
-                const pbtIds = await vaultContract.getUserPBtIds(account);
+                const vaultViewsContract = app.contractLayer.getReadContract('vaultviews');
+                const pbtIds = await vaultViewsContract.getUserPBtIds(account);
 
                 if (pbtIds.length === 0) {
                     document.getElementById('positions-list').innerHTML = '<div style="color: #aaa; text-align: center; padding: 30px;">No positions found.</div>';
@@ -37,7 +164,7 @@
                     pairContract.token0(),
                     ...pbtIds.flatMap((id) => [
                         vaultContract.pbtRegistry(id),
-                        vaultContract.getPositionUnlockStatus(id),
+                        vaultViewsContract.getPositionUnlockStatus(id),
                     ]),
                 ]);
 
@@ -63,6 +190,7 @@
 
                     for (const event of events) {
                         try {
+                            const eventName = event.fragment?.name || event.eventName || '';
                             const evPbtId = Number(event.args[0]);
                             const unlockIndex = Number(event.args[1]);
                             const pbcAmount = Number(ethers.formatEther(event.args[2]));
@@ -71,10 +199,20 @@
                             allEventMap[evPbtId][unlockIndex] = {
                                 pbcAmount,
                                 proceeds,
-                                executionPrice: pbcAmount > 0 ? proceeds / pbcAmount : 0,
+                                loggedProceeds: proceeds,
+                                extraProceeds: 0,
+                                executionPrice: eventName === 'UnlockNetted'
+                                    ? Number(ethers.formatEther(event.args[5]))
+                                    : (pbcAmount > 0 ? proceeds / pbcAmount : 0),
+                                txHash: getTxHashValue(event),
+                                logIndex: getLogIndexValue(event),
+                                payoutAddress: String(event.args[4] || ''),
+                                kind: eventName === 'UnlockNetted' ? 'netted' : 'triggered',
+                                txAdjusted: false,
                             };
                         } catch {}
                     }
+                    await applySplitPayoutAdjustments(allEventMap, vaultContract);
                 } catch (eventErr) {
                     console.warn('Event query failed (continuing without events):', eventErr.message);
                 }
@@ -88,11 +226,14 @@
                     const [buyPrice, pbAmount, pbcLocked, nextUnlockIndex, nextTriggerPrice] = positionResults[i * 2];
                     const [, , eligible, pbcRemaining] = positionResults[i * 2 + 1];
 
+                    const liquidPBWei = (pbAmount * 369n) / 10000n;
+                    const initialLockedPBcWei = pbAmount - liquidPBWei;
                     const pbcRemainingFormatted = ethers.formatEther(pbcRemaining);
                     const buyPriceNum = Number(ethers.formatEther(buyPrice));
                     const nextTriggerPriceNum = Number(ethers.formatEther(nextTriggerPrice));
                     const nextUnlockIndexNum = Number(nextUnlockIndex);
                     const pbAmountFormatted = ethers.formatEther(pbAmount);
+                    const initialLockedPBcFormatted = ethers.formatEther(initialLockedPBcWei);
 
                     totalLocked += parseFloat(pbcRemainingFormatted);
 
@@ -103,7 +244,7 @@
 
                     const eventMap = allEventMap[Number(pbtId)] || {};
                     let tableHtml = '';
-                    let cumulativePBcRemaining = parseFloat(pbAmountFormatted);
+                    let cumulativePBcRemaining = parseFloat(initialLockedPBcFormatted);
                     const hasPastUnlocks = nextUnlockIndexNum > 0;
 
                     tableHtml = `
@@ -122,32 +263,30 @@
 
                     for (let unlockIdx = 0; unlockIdx < nextUnlockIndexNum; unlockIdx++) {
                         const tNumber = unlockIdx + 1;
-                        let pbcSoldAmount = 0;
+                        let pbcSoldAmount = cumulativePBcRemaining / 3;
                         let executionPrice = 0;
                         let valuePaid = 0;
                         let isConfirmed = false;
 
                         if (eventMap[unlockIdx]) {
-                            pbcSoldAmount = eventMap[unlockIdx].pbcAmount;
                             executionPrice = eventMap[unlockIdx].executionPrice;
                             valuePaid = eventMap[unlockIdx].proceeds;
                             isConfirmed = true;
                         } else {
-                            pbcSoldAmount = cumulativePBcRemaining / 3;
                             executionPrice = localTriggerPrice(buyPriceNum, unlockIdx);
                             valuePaid = pbcSoldAmount * executionPrice;
                         }
                         cumulativePBcRemaining -= pbcSoldAmount;
 
                         const bgColor = isConfirmed ? 'rgba(76, 175, 80, 0.15)' : 'rgba(76, 175, 80, 0.05)';
-                        const textColor = isConfirmed ? '#4CAF50' : '#aaa';
+                        const textColor = isConfirmed ? MATRIX_GREEN : '#1bf408';
 
                         tableHtml += `
                             <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.1); background: ${bgColor};">
                                 <td style="padding: 8px; color: ${textColor}; font-weight: bold;">T${tNumber}${isConfirmed ? ' ✓' : ''}</td>
                                 <td style="padding: 8px; text-align: right; color: ${textColor};">${formatPrice(executionPrice)}</td>
                                 <td style="padding: 8px; text-align: right; color: ${textColor};">${formatNumber(pbcSoldAmount, 2)}</td>
-                                <td style="padding: 8px; text-align: right; color: ${textColor}; font-weight: bold;">$${formatNumber(valuePaid, 2)}</td>
+                                <td style="padding: 8px; text-align: right; color: ${textColor}; font-weight: bold;">$${formatNumber(valuePaid, 2)}${eventMap[unlockIdx]?.txAdjusted ? '<div style="font-size:0.72rem;color:#888;">tx-adjusted</div>' : ''}</td>
                                 <td style="padding: 8px; text-align: right; color: ${textColor};">${formatPrice(currentPrice)}</td>
                             </tr>
                         `;
@@ -174,7 +313,7 @@
                         }
 
                         const statusColor = isConfirmed ? 'rgba(76, 175, 80, 0.15)' : 'rgba(244, 152, 4, 0.1)';
-                        const textColor = isConfirmed ? '#4CAF50' : '#F39004';
+                        const textColor = isConfirmed ? MATRIX_GREEN : '#F39004';
                         const badge = isConfirmed ? ' ✓ PAID' : ' (next)';
 
                         tableHtml += `
@@ -239,7 +378,7 @@
                         const paidEvent = eventMap[t - 1];
 
                         if (t - 1 < nextUnlockIndexNum) {
-                            status = paidEvent && paidEvent.proceeds > 0 ? `✅ Unlocked & PAID $${formatNumber(paidEvent.proceeds, 2)}` : '✅ Unlocked & PAID';
+                            status = paidEvent && paidEvent.proceeds > 0 ? `✅ Unlocked & PAID $${formatNumber(paidEvent.proceeds, 2)}${paidEvent.txAdjusted ? ' (tx-adjusted)' : ''}` : '✅ Unlocked & PAID';
                             rowColor = 'rgba(76, 175, 80, 0.1)';
                         } else if (t - 1 === nextUnlockIndexNum) {
                             status = eligible ? '🎯 READY NOW' : '⏳ PENDING';
@@ -253,7 +392,7 @@
                             <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.1); background-color: ${rowColor};">
                                 <td style="padding: 8px; color: #F39004; font-weight: bold;">T${t}</td>
                                 <td style="padding: 8px; text-align: right; color: #aaa;">${formatPrice(triggerPrice)}</td>
-                                <td style="padding: 8px; text-align: center; color: ${t - 1 === nextUnlockIndexNum && eligible ? '#F44336' : '#aaa'}; font-weight: ${t - 1 === nextUnlockIndexNum ? 'bold' : 'normal'};">${status}</td>
+                                <td style="padding: 8px; text-align: center; color: ${t - 1 < nextUnlockIndexNum ? MATRIX_GREEN : (t - 1 === nextUnlockIndexNum && eligible ? '#F44336' : '#aaa')}; font-weight: ${t - 1 === nextUnlockIndexNum || t - 1 < nextUnlockIndexNum ? 'bold' : 'normal'};">${status}</td>
                             </tr>
                         `;
                     }

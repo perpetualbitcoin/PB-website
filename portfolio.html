@@ -24,22 +24,415 @@
     <script src="https://cdn.jsdelivr.net/npm/ethers@6/dist/ethers.umd.js"></script>
     <script src="config.js"></script>
     <script defer src="ticker.js"></script>
+        <!-- Google tag (gtag.js) -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-LK69CE9C9C"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+
+            gtag('config', 'G-LK69CE9C9C');
+        </script>
+    <style>
+        body,
+        .card,
+        .section-title,
+        .dapp-hero,
+        .dapp-container {
+            font-family: var(--font-ui);
+        }
+
+        #totals-section,
+        #wallet-results,
+        #pbt-result,
+        #reporting-section,
+        #grand-price,
+        #export-code-value,
+        .portfolio-mobile-metric__value,
+        .report-summary-card__value,
+        .report-table__num {
+            font-variant-numeric: tabular-nums lining-nums;
+            font-feature-settings: "tnum" 1, "lnum" 1;
+        }
+
+        .portfolio-saved-addresses {
+            margin-top: 8px;
+        }
+
+        .portfolio-saved-addresses > summary {
+            list-style: none;
+            cursor: pointer;
+            padding: 10px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            background: #0f0f14;
+            border: 1px solid rgba(255, 165, 0, 0.04);
+            border-radius: 6px;
+            color: #aaa;
+            font-size: 0.85rem;
+            user-select: none;
+        }
+
+        .portfolio-saved-addresses > summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .portfolio-saved-addresses__label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .portfolio-saved-addresses__title {
+            color: #F39004;
+            font-weight: 700;
+        }
+
+        .portfolio-saved-addresses__count {
+            color: #666;
+        }
+
+        .portfolio-saved-addresses__icon {
+            color: #F39004;
+            font-weight: 700;
+            font-size: 1.05rem;
+            line-height: 1;
+        }
+
+        .portfolio-saved-addresses__icon::before {
+            content: '+';
+        }
+
+        .portfolio-saved-addresses[open] .portfolio-saved-addresses__icon::before {
+            content: '−';
+        }
+
+        .alert-wallet-picker {
+            margin: 0;
+        }
+
+        .alert-wallet-picker > summary {
+            list-style: none;
+            cursor: pointer;
+            padding: 10px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            background: #0f0f14;
+            border: 1px solid rgba(255, 165, 0, 0.16);
+            border-radius: 8px;
+            color: #ddd;
+            font-size: 0.85rem;
+            user-select: none;
+        }
+
+        .alert-wallet-picker > summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .alert-wallet-picker__label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 0;
+        }
+
+        .alert-wallet-picker__count {
+            color: #F39004;
+            font-weight: 700;
+        }
+
+        .alert-wallet-picker__hint {
+            color: #777;
+            font-size: 0.78rem;
+        }
+
+        .alert-wallet-picker__icon {
+            color: #F39004;
+            font-weight: 700;
+            font-size: 1.05rem;
+            line-height: 1;
+        }
+
+        .alert-wallet-picker__icon::before {
+            content: '+';
+        }
+
+        .alert-wallet-picker[open] .alert-wallet-picker__icon::before {
+            content: '−';
+        }
+
+        .alert-wallet-picker__body {
+            margin-top: 8px;
+        }
+
+        .alert-wallet-list {
+            display: grid;
+            gap: 6px;
+        }
+
+        .alert-wallet-item {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 10px;
+            align-items: start;
+            padding: 8px 10px;
+            border: 1px solid rgba(255, 165, 0, 0.12);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.02);
+            color: #ddd;
+            font-family: var(--font-data);
+            font-size: 0.8rem;
+            line-height: 1.35;
+            overflow-wrap: anywhere;
+        }
+
+        .alert-wallet-item input {
+            margin-top: 2px;
+            accent-color: #F39004;
+        }
+
+        .alert-wallet-empty {
+            padding: 10px 12px;
+            border: 1px dashed rgba(255, 255, 255, 0.12);
+            border-radius: 8px;
+            color: #777;
+            font-size: 0.8rem;
+        }
+
+        .report-panel {
+            margin-top: 22px;
+            border: 1px solid rgba(243, 144, 4, 0.2);
+            border-radius: 14px;
+            background: linear-gradient(180deg, rgba(243, 144, 4, 0.08), rgba(10, 10, 12, 0.92));
+            padding: 18px;
+        }
+
+        .report-panel__intro {
+            margin: 0 0 16px;
+            color: #aaa;
+            font-size: 0.92rem;
+            line-height: 1.55;
+        }
+
+        .report-controls-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 14px;
+            margin-bottom: 16px;
+        }
+
+        .report-control-card {
+            background: rgba(0, 0, 0, 0.24);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 12px;
+            padding: 14px;
+        }
+
+        .report-control-card label,
+        .report-control-card legend {
+            display: block;
+            margin-bottom: 8px;
+            color: #F39004;
+            font-size: 0.82rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+        }
+
+        .report-scope-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            border: 0;
+            margin: 0;
+            padding: 0;
+        }
+
+        .report-choice {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: #ddd;
+            font-size: 0.88rem;
+        }
+
+        .report-filter-box {
+            margin-top: 12px;
+            max-height: 210px;
+            overflow: auto;
+            padding: 12px;
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .report-filter-box[hidden] {
+            display: none;
+        }
+
+        .report-filter-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 8px;
+        }
+
+        .report-filter-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            color: #ddd;
+            font-size: 0.84rem;
+            line-height: 1.35;
+        }
+
+        .report-filter-item small {
+            display: block;
+            color: #777;
+            font-size: 0.75rem;
+        }
+
+        .report-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .report-status {
+            color: #888;
+            font-size: 0.84rem;
+        }
+
+        .report-summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .report-summary-card {
+            padding: 12px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .report-summary-card__label {
+            color: #888;
+            font-size: 0.76rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            margin-bottom: 6px;
+        }
+
+        .report-summary-card__value {
+            color: #f6f6f6;
+            font-size: 1.05rem;
+            font-weight: 700;
+        }
+
+        .report-subsection-title {
+            margin: 18px 0 10px;
+            color: #F39004;
+            font-size: 0.92rem;
+            font-weight: 700;
+        }
+
+        .report-empty {
+            padding: 14px;
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.22);
+            border: 1px dashed rgba(255, 255, 255, 0.12);
+            color: #888;
+            font-size: 0.86rem;
+        }
+
+        .report-table-wrap {
+            overflow-x: auto;
+        }
+
+        .report-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.86rem;
+        }
+
+        .report-table th,
+        .report-table td {
+            padding: 9px 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            vertical-align: top;
+        }
+
+        .report-table th {
+            color: #F39004;
+            text-align: left;
+            white-space: nowrap;
+        }
+
+        .report-table td {
+            color: #ddd;
+        }
+
+        .report-table td.report-table__num,
+        .report-table th.report-table__num {
+            text-align: right;
+        }
+
+        .report-table td.report-table__mono {
+            font-family: var(--font-data);
+            white-space: nowrap;
+        }
+
+        .portfolio-mobile-metric__label {
+            color: #8d8d8d;
+            font-size: 0.78rem;
+            letter-spacing: 0.02em;
+        }
+
+        .portfolio-mobile-metric__value {
+            font-family: var(--font-ui);
+            font-weight: 700;
+            line-height: 1.15;
+        }
+
+        .report-note {
+            margin-top: 12px;
+            color: #777;
+            font-size: 0.8rem;
+            line-height: 1.5;
+        }
+
+        @media (max-width: 720px) {
+            .report-panel {
+                padding: 16px 14px;
+            }
+
+            .report-filter-list {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 </head>
 <body class="presale-dapp-bg">
     <nav class="navbar" style="padding: 0.4rem 0;">
         <div class="nav-container" style="padding: 0 2rem;">
-            <div class="logo"><img src="Pic/PB1.png" alt="Perpetual Bitcoin PB logo" style="width:40px;height:40px;"></div>
-            <button class="hamburger" id="hamburger-btn" aria-label="Toggle menu">
+            <div class="logo"><a href="DEV.html" title="Developer Access"><img src="Pic/PB1.png" alt="Perpetual Bitcoin PB logo" style="width:40px;height:40px;"></a></div>
+            <div class="gtranslate_wrapper"></div>
+            <button class="hamburger" id="hamburger-btn" aria-label="Toggle menu" aria-controls="nav-menu" aria-expanded="false">
                 <span></span><span></span><span></span>
             </button>
-            <ul class="nav-menu" id="nav-menu">
+            <ul class="nav-menu" id="nav-menu" style="text-align: center;">
                 <li><a href="index.html#home" class="nav-link">Home</a></li>
-                <li><a href="faq.html" class="nav-link">FAQ</a></li>
-                <li><a href="whitepaperLite.html" class="nav-link">Whitepaper Lite</a></li>
                 <li><a href="PBManifesto.html" class="nav-link">PB Manifesto</a></li>
-                <li><a href="presale-dapp.html" class="nav-link">Presale</a></li>
-                <li><a href="testDapp.html" class="nav-link">Full testDapp</a></li>
+                <li><a href="whitepaper.html" class="nav-link">Whitepaper</a></li>
+                <li><a href="faq.html" class="nav-link">FAQ</a></li>
                 <li><a href="portfolio.html" class="nav-link" style="color: #F39004; font-weight:600;">Portfolio</a></li>
+                <li><a href="Dapp.html" class="nav-link">Dapp</a></li>
             </ul>
         </div>
     </nav>
@@ -67,27 +460,64 @@
                 <label style="color: #aaa; font-size: 0.85rem; display: block; margin-bottom: 8px;">
                     Enter one or more wallet addresses (comma, space, or newline separated)
                 </label>
-                <textarea id="address-input" class="input-field" rows="3" placeholder="0xABC...123&#10;0xDEF...456&#10;0x789...012" style="width: 100%; resize: vertical; font-family: monospace; font-size: 0.85rem;"></textarea>
+                <textarea id="address-input" class="input-field" rows="3" placeholder="0xABC...123&#10;0xDEF...456&#10;0x789...012" style="width: 100%; resize: vertical; font-family: var(--font-data); font-size: 0.85rem; line-height: 1.45;"></textarea>
             </div>
             <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
                 <button class="btn btn-primary" id="btn-load" style="padding: 10px 24px; font-size: 0.95rem;">Load Portfolio</button>
+                <button class="btn btn-secondary" id="btn-add-wallets" style="padding: 10px 18px; font-size: 0.85rem;">Add wallet(s)</button>
                 <button class="btn btn-secondary" id="btn-clear" style="padding: 10px 18px; font-size: 0.85rem;">Clear All</button>
                 <span id="load-status" style="font-size: 0.85rem; color: #aaa;"></span>
             </div>
             <div id="saved-addresses" style="margin-top: 15px;"></div>
 
+            <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid #333;">
+                <h4 style="margin: 0 0 10px 0; color: #F39004;">Email Settlement Alerts</h4>
+                <div style="font-size: 0.82rem; color: #aaa; margin-bottom: 12px; line-height: 1.5;">
+                    Get an automated email when a PBt settlement hits any saved wallet you choose below. Each email includes the matched wallet address, PBt number, and USDL amount settled.
+                </div>
+                <div style="display:grid;grid-template-columns:minmax(220px, 320px) minmax(260px, 1fr);gap:12px;align-items:start;">
+                    <div>
+                        <label for="alert-email" style="color:#aaa;font-size:0.8rem;display:block;margin-bottom:6px;">Notification email</label>
+                        <input type="email" id="alert-email" class="input-field" placeholder="name@example.com" style="width:100%;" />
+                        <div style="font-size:0.75rem;color:#777;margin-top:6px;">Stored in your browser for convenience. Delivery is handled server-side.</div>
+                    </div>
+                    <div>
+                        <label for="alert-wallet-select" style="color:#aaa;font-size:0.8rem;display:block;margin-bottom:6px;">Saved wallets to watch</label>
+                        <details id="alert-wallet-picker" class="alert-wallet-picker">
+                            <summary>
+                                <span class="alert-wallet-picker__label">
+                                    <span id="alert-wallet-summary" class="alert-wallet-picker__count">0 addresses</span>
+                                    <span class="alert-wallet-picker__hint">expand to select or deselect</span>
+                                </span>
+                                <span class="alert-wallet-picker__icon" aria-hidden="true"></span>
+                            </summary>
+                            <div class="alert-wallet-picker__body">
+                                <div id="alert-wallet-list" class="alert-wallet-list"></div>
+                                <div style="font-size:0.75rem;color:#777;margin-top:6px;">All saved wallets are shown here at once. Checked wallets are watched for email alerts.</div>
+                            </div>
+                        </details>
+                    </div>
+                </div>
+                <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:12px;">
+                    <button class="btn btn-secondary" id="btn-alert-select-all" style="padding:8px 14px;font-size:0.82rem;">Use All Saved Wallets</button>
+                    <button class="btn btn-primary" id="btn-alert-save" style="padding:8px 16px;font-size:0.85rem;">Save Email Alerts</button>
+                    <button class="btn btn-secondary" id="btn-alert-disable" style="padding:8px 16px;font-size:0.82rem;">Disable Alerts</button>
+                    <span id="alert-status" style="font-size:0.82rem;color:#aaa;"></span>
+                </div>
+            </div>
+
             <!-- EXPORT / IMPORT -->
             <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid #333;">
                 <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
-                    <button class="btn btn-primary" id="btn-export" style="padding:8px 16px;font-size:0.85rem;">📤 Get Share Code</button>
+                    <button class="btn btn-primary" id="btn-export" style="padding:8px 16px;font-size:0.85rem;">📤 Save/Export</button>
                     <span style="color:#555;font-size:0.85rem;">or</span>
                     <input type="text" id="import-code" class="input-field" placeholder="Enter code" style="width:100px;flex:none;font-size:1rem;text-transform:uppercase;letter-spacing:2px;text-align:center;font-weight:700;" maxlength="5" />
                     <button class="btn btn-primary" id="btn-import" style="padding:8px 16px;font-size:0.85rem;">📥 Import</button>
                 </div>
                 <div id="share-status" style="font-size:0.85rem;margin-top:8px;"></div>
                 <div id="export-code-display" style="display:none;margin-top:10px;padding:12px;background:rgba(243,144,4,0.1);border:1px solid rgba(243,144,4,0.3);border-radius:8px;text-align:center;">
-                    <div style="font-size:0.75rem;color:#aaa;margin-bottom:4px;">Your share code:</div>
-                    <div id="export-code-value" style="font-size:2rem;font-weight:900;letter-spacing:6px;color:#F39004;font-family:monospace;cursor:pointer;" onclick="navigator.clipboard.writeText(this.textContent.trim());document.getElementById('share-status').innerHTML='<span style=color:#4CAF50>Copied!</span>'" title="Click to copy"></div>
+                    <div style="font-size:0.75rem;color:#aaa;margin-bottom:4px;">Current share code:</div>
+                    <div id="export-code-value" style="font-size:2rem;font-weight:900;letter-spacing:6px;color:#F39004;font-family:var(--font-data);cursor:pointer;line-height:1.1;" onclick="navigator.clipboard.writeText(this.textContent.trim());document.getElementById('share-status').innerHTML='<span style=color:#4CAF50>Copied!</span>'" title="Click to copy"></div>
                     <div style="font-size:0.75rem;color:#888;margin-top:4px;">Enter this code on any device to load your portfolio</div>
                 </div>
             </div>
@@ -114,7 +544,7 @@
                 <h3 class="section-title" style="margin:0;">💰 Portfolio</h3>
                 <div style="font-size:0.9rem;color:#aaa;">PB Price: <span id="grand-price" style="color:#F39004;font-weight:700;">-</span></div>
             </div>
-            <div style="overflow-x:auto;">
+            <div class="portfolio-table-wrap" style="overflow-x:auto;">
                 <table id="portfolio-table" style="width:100%;border-collapse:collapse;font-size:0.9rem;table-layout:fixed;">
                     <colgroup>
                         <col style="width:130px;">
@@ -142,10 +572,55 @@
                     <tfoot id="portfolio-tfoot" style="border-top:2px solid #F39004;"></tfoot>
                 </table>
             </div>
+            <div id="portfolio-mobile-list" class="portfolio-mobile-list"></div>
         </section>
 
         <!-- EXPANDED POSITION DETAILS -->
         <div id="wallet-results"></div>
+
+        <section class="card" id="reporting-section" style="display:none;">
+            <h3 class="section-title">Statement / Export Preview - UNDER CONSTRUCTION</h3>
+            <div class="report-panel">
+                <p class="report-panel__intro">This is a separate reporting layer under the live portfolio view so you can evaluate it first. It reads from the wallets already loaded above, leaves the main portfolio table untouched, and is aimed at recordkeeping rather than tax advice.</p>
+
+                <div class="report-controls-grid">
+                    <div class="report-control-card">
+                        <label for="report-year">Calendar period</label>
+                        <select id="report-year" class="input-field" style="width:100%;">
+                            <option value="all">All activity</option>
+                        </select>
+                        <div class="report-note">Only completed years are listed. Example: on 2028-01-01 the latest year shown is 2027.</div>
+                    </div>
+
+                    <div class="report-control-card">
+                        <fieldset class="report-scope-group">
+                            <legend>Scope</legend>
+                            <label class="report-choice"><input type="radio" name="report-scope" value="all" checked> All loaded wallets</label>
+                            <label class="report-choice"><input type="radio" name="report-scope" value="wallets"> Selected wallets</label>
+                            <label class="report-choice"><input type="radio" name="report-scope" value="positions"> Selected positions</label>
+                        </fieldset>
+                    </div>
+
+                </div>
+
+                <div id="report-wallet-filter" class="report-filter-box" hidden></div>
+                <div id="report-position-filter" class="report-filter-box" hidden></div>
+
+                <div class="report-actions">
+                    <button class="btn btn-primary" id="btn-report-refresh" style="padding:8px 16px;font-size:0.85rem;">Refresh Preview</button>
+                    <button class="btn btn-secondary" id="btn-export-report-activity" style="padding:8px 16px;font-size:0.85rem;">Export Activity CSV</button>
+                    <button class="btn btn-secondary" id="btn-export-report-positions" style="padding:8px 16px;font-size:0.85rem;">Export Positions CSV</button>
+                    <button class="btn btn-secondary" id="btn-print-report" style="padding:8px 16px;font-size:0.85rem;">Print / PDF</button>
+                    <span id="report-status" class="report-status"></span>
+                </div>
+
+                <div id="report-summary" class="report-summary-grid"></div>
+                <div id="report-position-summary"></div>
+                <div id="report-activity-ledger"></div>
+                <div id="report-note" class="report-note"></div>
+            </div>
+        </section>
+
     </div>
 
     <footer class="footer">
@@ -183,10 +658,14 @@
     // CONSTANTS & ABIs
     // ========================
     const VAULT_ABI = [
-        'function getUserPBtIds(address user) view returns (uint256[])',
-        'function getPositionUnlockStatus(uint256 pbtId) view returns (uint256 index, uint256 nextPrice, bool eligible, uint256 pbcRemaining)',
         'function pbtRegistry(uint256 pbtId) view returns (uint256 buyPrice, uint256 pbAmount, uint256 pbcLocked, uint256 nextUnlockIndex, uint256 nextTriggerPrice, uint256 mintBlock, address holder, address payoutAddress)',
         'event UnlockTriggered(uint256 indexed pbtId, uint256 unlockIndex, uint256 pbUnlocked, uint256 usdlProceeds, address payoutAddress, uint256 newTriggerPrice, uint256 remainingPBcLocked)',
+        'event UnlockNetted(uint256 indexed pbtId, uint256 unlockIndex, uint256 pbcSettled, uint256 usdlPaid, address payoutAddress, uint256 triggerPrice, uint256 newTriggerPrice, uint256 remainingPBcLocked)',
+    ];
+
+    const VAULT_VIEWS_ABI = [
+        'function getUserPBtIds(address user) view returns (uint256[])',
+        'function getPositionUnlockStatus(uint256 pbtId) view returns (uint256 index, uint256 nextPrice, bool eligible, uint256 pbcRemaining)',
     ];
 
     const TOKEN_ABI = [
@@ -200,7 +679,7 @@
 
     // ── Dynamic network state ──
     let activeNet = NETWORK; // 'testnet' or 'mainnet'
-    let provider, vault, pbToken, pbcToken, pair, TVault, TPB, TPBc, TUSDL, PAIR;
+    let provider, vault, vaultViews, pbToken, pbcToken, pair, TVault, TPB, TPBc, TUSDL, PAIR;
 
     function initContracts(net) {
         activeNet = net;
@@ -210,6 +689,7 @@
         TVault = addrs.Vault;  TPB = addrs.PB;  TPBc = addrs.PBc;
         TUSDL = addrs.USDL;   PAIR = addrs.PB_USDL_PAIR;
         vault    = new ethers.Contract(TVault, VAULT_ABI, provider);
+        vaultViews = new ethers.Contract(addrs.VaultViews, VAULT_VIEWS_ABI, provider);
         pbToken  = new ethers.Contract(TPB, TOKEN_ABI, provider);
         pbcToken = new ethers.Contract(TPBc, TOKEN_ABI, provider);
         pair     = new ethers.Contract(PAIR, PAIR_ABI, provider);
@@ -217,6 +697,15 @@
     initContracts(activeNet);
 
     const STORAGE_KEY = 'pb_portfolio_addresses';
+    const ALERT_EMAIL_KEY = 'pb_settlement_alert_email';
+    const SHARE_CODE_STORAGE_PREFIX = 'pb_portfolio_share_code_';
+    const REPORT_START_YEAR = 2026;
+    const blockTimestampCache = new Map();
+    let lastAllEvents = {};
+    let currentReportData = null;
+    let lastReportFilterSignature = '';
+    let currentReportActivitySortCol = 'pbt';
+    let currentReportActivitySortDir = 1;
 
     // ── Network toggle ──
     document.getElementById('network-toggle').addEventListener('change', function() {
@@ -228,10 +717,16 @@
             return;
         }
         initContracts(net);
+        blockTimestampCache.clear();
         document.getElementById('label-testnet').style.color = net === 'testnet' ? '#F39004' : '#666';
         document.getElementById('label-mainnet').style.color = net === 'mainnet' ? '#F39004' : '#666';
         document.getElementById('toggle-knob').style.left = this.checked ? '25px' : '3px';
         document.querySelector('#network-toggle + span').style.background = this.checked ? '#F39004' : '#555';
+        updateAlertWalletOptions(loadSavedAddresses());
+        syncPersistedShareCode(loadSavedAddresses());
+        if (loadAlertEmail()) {
+            loadSettlementAlertsForEmail(loadAlertEmail());
+        }
         // Reload if addresses exist
         if (loadSavedAddresses().length > 0) loadPortfolio();
     });
@@ -261,6 +756,11 @@
         return price;
     }
 
+    function getInitialLockedPBcFromWei(pbAmountWei) {
+        const liquidPBWei = (pbAmountWei * 369n) / 10000n;
+        return pbAmountWei - liquidPBWei;
+    }
+
     function parseAddresses(text) {
         return text
             .split(/[\s,;]+/)
@@ -271,6 +771,7 @@
 
     function saveAddresses(addrs) {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(addrs));
+        syncPersistedShareCode(addrs);
     }
 
     function loadSavedAddresses() {
@@ -279,24 +780,228 @@
         } catch { return []; }
     }
 
-    function getUnlockHistoryForPosition(pbAmountNum, nextUnlockIdx, buyPriceNum, eventMap) {
+    function saveAlertEmail(email) {
+        localStorage.setItem(ALERT_EMAIL_KEY, email || '');
+    }
+
+    function loadAlertEmail() {
+        return localStorage.getItem(ALERT_EMAIL_KEY) || '';
+    }
+
+    function getApiBase() {
+        return (NETWORKS[activeNet] && NETWORKS[activeNet].apiBase) || ACTIVE_NETWORK.apiBase;
+    }
+
+    function getShareCodeStorageKey(networkKey = activeNet) {
+        return SHARE_CODE_STORAGE_PREFIX + networkKey;
+    }
+
+    function canonicalizePortfolioAddresses(addrs) {
+        return [...new Set((addrs || []).map(addr => String(addr || '').trim().toLowerCase()).filter(Boolean))].sort();
+    }
+
+    function getShareCodeSignature(addrs) {
+        return canonicalizePortfolioAddresses(addrs).join('|');
+    }
+
+    function setShareCodeDisplay(code) {
+        document.getElementById('export-code-display').style.display = '';
+        document.getElementById('export-code-value').textContent = code;
+    }
+
+    function hideShareCodeDisplay() {
+        document.getElementById('export-code-display').style.display = 'none';
+        document.getElementById('export-code-value').textContent = '';
+    }
+
+    function rememberShareCode(code, addrs, networkKey = activeNet) {
+        localStorage.setItem(getShareCodeStorageKey(networkKey), JSON.stringify({
+            code,
+            signature: getShareCodeSignature(addrs),
+            addresses: canonicalizePortfolioAddresses(addrs),
+            updatedAt: new Date().toISOString(),
+        }));
+    }
+
+    function loadRememberedShareCode(networkKey = activeNet) {
+        try {
+            const raw = localStorage.getItem(getShareCodeStorageKey(networkKey));
+            return raw ? JSON.parse(raw) : null;
+        } catch {
+            return null;
+        }
+    }
+
+    function clearRememberedShareCode(networkKey = activeNet) {
+        localStorage.removeItem(getShareCodeStorageKey(networkKey));
+    }
+
+    function clearAllRememberedShareCodes() {
+        clearRememberedShareCode('testnet');
+        clearRememberedShareCode('mainnet');
+    }
+
+    function syncPersistedShareCode(addrs = loadSavedAddresses()) {
+        const remembered = loadRememberedShareCode();
+        const currentSignature = getShareCodeSignature(addrs);
+        if (remembered && remembered.code && remembered.signature === currentSignature && currentSignature) {
+            setShareCodeDisplay(remembered.code);
+            return true;
+        }
+        hideShareCodeDisplay();
+        return false;
+    }
+
+    function updateAlertWalletSummary() {
+        const list = document.getElementById('alert-wallet-list');
+        const summaryEl = document.getElementById('alert-wallet-summary');
+        const picker = document.getElementById('alert-wallet-picker');
+        if (!list || !summaryEl || !picker) return;
+
+        const checkboxes = Array.from(list.querySelectorAll('input[type="checkbox"][data-alert-wallet]'));
+
+        if (!checkboxes.length) {
+            summaryEl.textContent = '0 addresses';
+            picker.open = false;
+            return;
+        }
+
+        const total = checkboxes.length;
+        const selectedCount = checkboxes.filter(input => input.checked).length;
+        summaryEl.textContent = selectedCount === total
+            ? `${total} address${total === 1 ? '' : 'es'}`
+            : `${selectedCount} of ${total} address${total === 1 ? '' : 'es'}`;
+    }
+
+    function updateAlertWalletOptions(addrs, selected = null) {
+        const list = document.getElementById('alert-wallet-list');
+        if (!list) return;
+
+        const selectedSet = new Set((selected || getSelectedAlertWallets()).map(addr => addr.toLowerCase()));
+        if (!addrs || addrs.length === 0) {
+            list.innerHTML = '<div class="alert-wallet-empty">No saved wallets loaded yet.</div>';
+            updateAlertWalletSummary();
+            return;
+        }
+
+        list.innerHTML = addrs.map((addr, index) => {
+            const isSelected = selectedSet.size === 0 || selectedSet.has(addr.toLowerCase());
+            return `<label class="alert-wallet-item" for="alert-wallet-${index}"><input id="alert-wallet-${index}" type="checkbox" data-alert-wallet value="${addr}"${isSelected ? ' checked' : ''}><span>${addr}</span></label>`;
+        }).join('');
+        updateAlertWalletSummary();
+    }
+
+    function getSelectedAlertWallets() {
+        const list = document.getElementById('alert-wallet-list');
+        if (!list) return [];
+        return Array.from(list.querySelectorAll('input[type="checkbox"][data-alert-wallet]:checked')).map(input => input.value);
+    }
+
+    function selectAllAlertWallets() {
+        const list = document.getElementById('alert-wallet-list');
+        if (!list) return;
+        Array.from(list.querySelectorAll('input[type="checkbox"][data-alert-wallet]')).forEach((input) => { input.checked = true; });
+        updateAlertWalletSummary();
+    }
+
+    async function loadSettlementAlertsForEmail(email) {
+        const normalized = (email || '').trim();
+        if (!normalized) return;
+        try {
+            const resp = await fetch(getApiBase() + '/settlement-alerts?email=' + encodeURIComponent(normalized));
+            if (!resp.ok) return;
+            const data = await resp.json();
+            if (Array.isArray(data.walletAddresses) && data.walletAddresses.length > 0) {
+                updateAlertWalletOptions(loadSavedAddresses(), data.walletAddresses);
+            }
+        } catch (_) {
+            // Ignore fetch failures here; local UI still works and save action will surface errors.
+        }
+    }
+
+    async function saveSettlementAlerts() {
+        const emailInput = document.getElementById('alert-email');
+        const statusEl = document.getElementById('alert-status');
+        const email = (emailInput?.value || '').trim();
+        const walletAddresses = getSelectedAlertWallets();
+
+        if (!email) {
+            statusEl.innerHTML = '<span style="color:#ff6b6b;">Enter an email address first.</span>';
+            return;
+        }
+        if (walletAddresses.length === 0) {
+            statusEl.innerHTML = '<span style="color:#ff6b6b;">Select at least one saved wallet.</span>';
+            return;
+        }
+
+        saveAlertEmail(email);
+        statusEl.innerHTML = '<span style="color:#F39004;">⏳ Saving alerts...</span>';
+        try {
+            const resp = await fetch(getApiBase() + '/settlement-alerts', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, walletAddresses }),
+            });
+            const data = await resp.json();
+            if (!resp.ok) throw new Error(data.error || data.message || 'Save failed');
+            updateAlertWalletOptions(loadSavedAddresses(), data.walletAddresses || walletAddresses);
+            statusEl.innerHTML = `<span style="color:#4CAF50;">📬 Alerts saved for ${walletAddresses.length} wallet${walletAddresses.length === 1 ? '' : 's'}.</span>`;
+        } catch (err) {
+            statusEl.innerHTML = `<span style="color:#ff6b6b;">Error: ${err.message}</span>`;
+        }
+    }
+
+    async function disableSettlementAlerts() {
+        const emailInput = document.getElementById('alert-email');
+        const statusEl = document.getElementById('alert-status');
+        const email = (emailInput?.value || loadAlertEmail() || '').trim();
+        if (!email) {
+            statusEl.innerHTML = '<span style="color:#ff6b6b;">Enter the email address you want to disable.</span>';
+            return;
+        }
+
+        statusEl.innerHTML = '<span style="color:#F39004;">⏳ Disabling alerts...</span>';
+        try {
+            const resp = await fetch(getApiBase() + '/settlement-alerts', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, walletAddresses: [] }),
+            });
+            const data = await resp.json();
+            if (!resp.ok) throw new Error(data.error || data.message || 'Disable failed');
+            updateAlertWalletOptions(loadSavedAddresses());
+            statusEl.innerHTML = '<span style="color:#4CAF50;">Alerts disabled for that email.</span>';
+        } catch (err) {
+            statusEl.innerHTML = `<span style="color:#ff6b6b;">Error: ${err.message}</span>`;
+        }
+    }
+
+    function getUnlockHistoryForPosition(initialLockedPBcNum, nextUnlockIdx, buyPriceNum, eventMap) {
         let usdlPaid = 0;
-        let rem = pbAmountNum;
+        let rem = initialLockedPBcNum;
         const history = [];
 
         for (let t = 0; t < nextUnlockIdx; t++) {
+            const tranchePbcAmount = rem / 3;
             if (eventMap[t]) {
                 usdlPaid += eventMap[t].proceeds;
-                rem -= eventMap[t].pbcAmount;
+                rem -= tranchePbcAmount;
                 history.push({
                     unlockIndex: t,
-                    pbcAmount: eventMap[t].pbcAmount,
+                    pbcAmount: tranchePbcAmount,
+                    loggedPbcAmount: eventMap[t].pbcAmount,
                     proceeds: eventMap[t].proceeds,
+                    loggedProceeds: eventMap[t].loggedProceeds ?? eventMap[t].proceeds,
+                    extraProceeds: eventMap[t].extraProceeds || 0,
                     executionPrice: eventMap[t].executionPrice,
+                    timestamp: eventMap[t].timestamp || null,
+                    txHash: eventMap[t].txHash || '',
                     estimated: false,
+                    txAdjusted: Boolean(eventMap[t].txAdjusted),
+                    source: eventMap[t].source || 'on-chain',
                 });
             } else {
-                const pbcSold = rem / 3;
+                const pbcSold = tranchePbcAmount;
                 const proceeds = pbcSold * localTriggerPrice(buyPriceNum, t);
                 usdlPaid += proceeds;
                 rem -= pbcSold;
@@ -305,12 +1010,882 @@
                     pbcAmount: pbcSold,
                     proceeds,
                     executionPrice: pbcSold > 0 ? proceeds / pbcSold : 0,
+                    timestamp: null,
+                    txHash: '',
                     estimated: true,
+                    txAdjusted: false,
+                    source: 'estimated',
                 });
             }
         }
 
         return { usdlPaid, history };
+    }
+
+    async function getBlockTimestamp(blockNumber) {
+        const normalized = Number(blockNumber);
+        if (!Number.isFinite(normalized) || normalized <= 0) return null;
+        if (blockTimestampCache.has(normalized)) {
+            return blockTimestampCache.get(normalized);
+        }
+        try {
+            const block = await provider.getBlock(normalized);
+            const timestamp = block && block.timestamp ? Number(block.timestamp) : null;
+            blockTimestampCache.set(normalized, timestamp);
+            return timestamp;
+        } catch (err) {
+            console.warn('Block lookup failed for', normalized, err.message);
+            blockTimestampCache.set(normalized, null);
+            return null;
+        }
+    }
+
+    function formatDateUTC(timestamp) {
+        if (!timestamp) return '-';
+        return new Date(timestamp * 1000).toISOString().slice(0, 10);
+    }
+
+    function formatDateTimeUTC(timestamp) {
+        if (!timestamp) return '-';
+        return new Date(timestamp * 1000).toISOString().replace('T', ' ').slice(0, 16) + ' UTC';
+    }
+
+    function escapeHtml(value) {
+        return String(value ?? '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    function csvEscape(value) {
+        const text = value === undefined || value === null ? '' : String(value);
+        return /[",\n]/.test(text) ? '"' + text.replace(/"/g, '""') + '"' : text;
+    }
+
+    const ERC20_TRANSFER_TOPIC = ethers.id('Transfer(address,address,uint256)');
+    const erc20TransferInterface = new ethers.Interface([
+        'event Transfer(address indexed from, address indexed to, uint256 value)'
+    ]);
+    const payoutReceiptCache = new Map();
+
+    function getParsedEventName(parsed) {
+        return parsed?.name || parsed?.fragment?.name || '';
+    }
+
+    function getLogIndexValue(log) {
+        const raw = log?.logIndex ?? log?.index;
+        if (raw === undefined || raw === null) return null;
+        const value = Number(raw);
+        return Number.isFinite(value) ? value : null;
+    }
+
+    function getTxHashValue(log) {
+        return log?.transactionHash || log?.hash || '';
+    }
+
+    async function getReceiptPayoutAdjustments(txHash) {
+        if (!txHash) return new Map();
+        if (payoutReceiptCache.has(txHash)) return payoutReceiptCache.get(txHash);
+
+        const adjustments = new Map();
+        try {
+            const receipt = await provider.getTransactionReceipt(txHash);
+            if (!receipt) {
+                payoutReceiptCache.set(txHash, adjustments);
+                return adjustments;
+            }
+
+            const unlockRows = [];
+            for (const log of receipt.logs) {
+                if (String(log.address).toLowerCase() !== String(ADDRESSES.Vault).toLowerCase()) continue;
+                try {
+                    const parsed = vault.interface.parseLog(log);
+                        if (getParsedEventName(parsed) !== 'UnlockNetted') continue;
+                        const logIndex = getLogIndexValue(log);
+                        if (!Number.isFinite(logIndex)) continue;
+                    unlockRows.push({
+                            logIndex,
+                        payoutAddress: String(parsed.args[4]).toLowerCase(),
+                    });
+                } catch {
+                    continue;
+                }
+            }
+
+            const outgoingTransfers = receipt.logs
+                .filter(log => String(log.address).toLowerCase() === String(ADDRESSES.USDL).toLowerCase() && log.topics[0] === ERC20_TRANSFER_TOPIC)
+                .map(log => {
+                    try {
+                        const parsed = erc20TransferInterface.parseLog(log);
+                            const logIndex = getLogIndexValue(log);
+                            if (!Number.isFinite(logIndex)) return null;
+                        return {
+                                logIndex,
+                            from: String(parsed.args.from).toLowerCase(),
+                            to: String(parsed.args.to).toLowerCase(),
+                            value: Number(ethers.formatEther(parsed.args.value)),
+                            matched: false,
+                        };
+                    } catch {
+                        return null;
+                    }
+                })
+                .filter(Boolean)
+                .filter(transfer => transfer.from === String(ADDRESSES.Vault).toLowerCase());
+
+            const sortedUnlockRows = unlockRows.sort((a, b) => a.logIndex - b.logIndex);
+            for (const row of sortedUnlockRows) {
+                for (let idx = outgoingTransfers.length - 1; idx >= 0; idx--) {
+                    const transfer = outgoingTransfers[idx];
+                    if (transfer.matched) continue;
+                    if (transfer.to !== row.payoutAddress) continue;
+                    if (transfer.logIndex >= row.logIndex) continue;
+                    transfer.matched = true;
+                    break;
+                }
+            }
+
+            for (let i = 0; i < sortedUnlockRows.length; i++) {
+                const row = sortedUnlockRows[i];
+                const nextSameAddressRow = sortedUnlockRows.find(next => next.logIndex > row.logIndex && next.payoutAddress === row.payoutAddress);
+                const upperBound = nextSameAddressRow ? nextSameAddressRow.logIndex : Number.POSITIVE_INFINITY;
+                const extraValue = outgoingTransfers
+                    .filter(transfer => !transfer.matched && transfer.to === row.payoutAddress && transfer.logIndex > row.logIndex && transfer.logIndex < upperBound)
+                    .reduce((sum, transfer) => sum + transfer.value, 0);
+                adjustments.set(row.logIndex, extraValue);
+            }
+        } catch (err) {
+            console.warn('Receipt payout adjustment failed for tx', txHash, err.message);
+        }
+
+        payoutReceiptCache.set(txHash, adjustments);
+        return adjustments;
+    }
+
+    async function applySplitPayoutAdjustments(eventMap) {
+        const rows = [];
+        Object.values(eventMap || {}).forEach(positionRows => {
+            Object.values(positionRows || {}).forEach(row => {
+                if (!row || row.kind !== 'netted' || !row.txHash || !Number.isFinite(row.logIndex) || !row.payoutAddress) return;
+                rows.push(row);
+            });
+        });
+
+        const txHashes = [...new Set(rows.map(row => row.txHash))];
+        await Promise.all(txHashes.map(txHash => getReceiptPayoutAdjustments(txHash)));
+
+        for (const row of rows) {
+            const adjustments = payoutReceiptCache.get(row.txHash);
+            const extraProceeds = adjustments?.get(Number(row.logIndex)) || 0;
+            row.extraProceeds = extraProceeds;
+            row.loggedProceeds = row.loggedProceeds ?? row.proceeds ?? 0;
+            row.proceeds = row.loggedProceeds + extraProceeds;
+            row.txAdjusted = extraProceeds > 0;
+        }
+
+        return eventMap;
+    }
+
+    async function fetchBuyNettingForPbt(pbtId) {
+        try {
+            const response = await fetch(`${API_BASE}/buy-netting?affectedPbtId=${encodeURIComponent(pbtId)}`);
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            return await response.json();
+        } catch (err) {
+            console.warn('Buy-netting fetch failed for PBt', pbtId, err.message);
+            return { count: 0, buys: [] };
+        }
+    }
+
+    function mergeIndexedNettingIntoEventMap(eventMap, nettingData, pbtId) {
+        const merged = { ...(eventMap || {}) };
+        const buys = Array.isArray(nettingData?.buys) ? nettingData.buys : [];
+        for (const buy of buys) {
+            for (const link of (buy.links || [])) {
+                if (Number(link.affectedPbtId) !== Number(pbtId)) continue;
+                const unlockIndex = Number(link.unlockIndex);
+                const prev = merged[unlockIndex] || {};
+                const pbcAmount = Number.isFinite(prev?.pbcAmount)
+                    ? prev.pbcAmount
+                    : Number(ethers.formatEther(link.pbcSettled ?? link.pbAmount ?? 0));
+                const loggedProceeds = Number.isFinite(prev?.loggedProceeds)
+                    ? prev.loggedProceeds
+                    : Number(ethers.formatEther(link.usdlAmount ?? 0));
+                const extraProceeds = Number.isFinite(prev?.extraProceeds) ? prev.extraProceeds : 0;
+                const executionPrice = Number.isFinite(prev?.executionPrice)
+                    ? prev.executionPrice
+                    : Number(ethers.formatEther(link.settlementPrice ?? 0));
+                const logIndex = Number.isFinite(prev?.logIndex)
+                    ? prev.logIndex
+                    : Number(link.logIndex);
+                merged[unlockIndex] = {
+                    pbcAmount,
+                    proceeds: loggedProceeds + extraProceeds,
+                    loggedProceeds,
+                    extraProceeds,
+                    executionPrice,
+                    blockNumber: Number.isFinite(prev?.blockNumber) ? prev.blockNumber : (Number(buy.blockNumber) || null),
+                    timestamp: Number.isFinite(prev?.timestamp) ? prev.timestamp : (Number(buy.timestamp) || null),
+                    txHash: prev?.txHash || buy.txHash || '',
+                    logIndex,
+                    payoutAddress: link.payoutAddress || prev?.payoutAddress || '',
+                    kind: 'netted',
+                    txAdjusted: Boolean(prev?.txAdjusted),
+                    source: 'db/netted',
+                };
+            }
+        }
+        return merged;
+    }
+
+    function downloadCsv(filename, headers, rows) {
+        const csv = [headers.join(','), ...rows.map(row => row.map(csvEscape).join(','))].join('\n');
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(url);
+    }
+
+    function getCompletedReportYears() {
+        const years = [];
+        const currentYear = new Date().getUTCFullYear();
+        for (let year = REPORT_START_YEAR; year < currentYear; year++) {
+            years.push(year);
+        }
+        return years;
+    }
+
+    function getReportPeriodLabel(yearValue) {
+        return yearValue === 'all' ? 'All activity' : `Calendar ${yearValue}`;
+    }
+
+    function reportPositionKey(address, pbtId) {
+        return `${address.toLowerCase()}:${pbtId}`;
+    }
+
+    function getSelectedReportScope() {
+        const scopeEl = document.querySelector('input[name="report-scope"]:checked');
+        return scopeEl ? scopeEl.value : 'all';
+    }
+
+    function getSelectedReportYear() {
+        const yearValue = document.getElementById('report-year').value;
+        return yearValue === 'all' ? 'all' : Number(yearValue);
+    }
+
+    function populateReportYearOptions() {
+        const select = document.getElementById('report-year');
+        const previous = select.value || 'all';
+        const years = getCompletedReportYears();
+        select.innerHTML = '<option value="all">All activity</option>' + years.map(year => `<option value="${year}">${year}</option>`).join('');
+        select.value = Array.from(select.options).some(option => option.value === previous) ? previous : 'all';
+    }
+
+    function populateReportFilters(wallets) {
+        const walletContainer = document.getElementById('report-wallet-filter');
+        const positionContainer = document.getElementById('report-position-filter');
+        const existingWalletSelection = new Set(Array.from(walletContainer.querySelectorAll('input[type="checkbox"]:checked')).map(input => input.value.toLowerCase()));
+        const existingPositionSelection = new Set(Array.from(positionContainer.querySelectorAll('input[type="checkbox"]:checked')).map(input => input.value));
+
+        walletContainer.innerHTML = `
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px;">
+                <div style="color:#F39004;font-size:0.8rem;font-weight:700;">Choose wallet(s)</div>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                    <button type="button" class="btn btn-secondary" data-report-action="select-all" style="padding:5px 10px;font-size:0.75rem;">Select all</button>
+                    <button type="button" class="btn btn-secondary" data-report-action="clear-all" style="padding:5px 10px;font-size:0.75rem;">Clear all</button>
+                </div>
+            </div>
+            <div class="report-filter-list">
+                ${wallets.map(wallet => {
+                    const checked = existingWalletSelection.size === 0 || existingWalletSelection.has(wallet.address.toLowerCase()) ? 'checked' : '';
+                    return `<label class="report-filter-item"><input type="checkbox" value="${wallet.address}" ${checked}><span>${shortAddr(wallet.address)}<small>${wallet.address}</small></span></label>`;
+                }).join('')}
+            </div>`;
+
+        const positionOptions = wallets.flatMap(wallet => wallet.positions.map(position => ({ wallet, position })));
+        positionContainer.innerHTML = `
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px;">
+                <div style="color:#F39004;font-size:0.8rem;font-weight:700;">Choose position(s)</div>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                    <button type="button" class="btn btn-secondary" data-report-action="select-all" style="padding:5px 10px;font-size:0.75rem;">Select all</button>
+                    <button type="button" class="btn btn-secondary" data-report-action="clear-all" style="padding:5px 10px;font-size:0.75rem;">Clear all</button>
+                </div>
+            </div>
+            <div class="report-filter-list">
+                ${positionOptions.map(({ wallet, position }) => {
+                    const key = reportPositionKey(wallet.address, position.pbtId);
+                    const checked = existingPositionSelection.size === 0 || existingPositionSelection.has(key) ? 'checked' : '';
+                    return `<label class="report-filter-item"><input type="checkbox" value="${key}" ${checked}><span>PBt #${position.pbtId} - ${shortAddr(wallet.address)}<small>$${fmt(position.usdlIn)} in | ${fmtPB(position.pbcRemaining)} PBc remaining</small></span></label>`;
+                }).join('') || '<div class="report-empty">No positions available for position-level filtering.</div>'}
+            </div>`;
+    }
+
+    function getReportFilterSignature(wallets) {
+        return wallets
+            .map(wallet => `${wallet.address.toLowerCase()}:${wallet.positions.map(position => position.pbtId).join('.')}`)
+            .join('|');
+    }
+
+    function ensureReportFilters(wallets) {
+        const signature = getReportFilterSignature(wallets);
+        const walletContainer = document.getElementById('report-wallet-filter');
+        const positionContainer = document.getElementById('report-position-filter');
+        const needsPopulate = signature !== lastReportFilterSignature
+            || walletContainer.children.length === 0
+            || positionContainer.children.length === 0;
+
+        if (needsPopulate) {
+            populateReportFilters(wallets);
+            lastReportFilterSignature = signature;
+        }
+    }
+
+    function setReportFilterCheckboxes(containerId, checked) {
+        const container = document.getElementById(containerId);
+        const checkboxes = Array.from(container.querySelectorAll('input[type="checkbox"]'));
+        for (const checkbox of checkboxes) {
+            checkbox.checked = checked;
+        }
+        refreshReportSection();
+    }
+
+    function updateReportFilterVisibility() {
+        const scope = getSelectedReportScope();
+        document.getElementById('report-wallet-filter').hidden = scope !== 'wallets';
+        document.getElementById('report-position-filter').hidden = scope !== 'positions';
+    }
+
+    function getScopedWallets() {
+        const scope = getSelectedReportScope();
+        if (scope === 'all') return lastWallets;
+
+        if (scope === 'wallets') {
+            const selected = new Set(Array.from(document.querySelectorAll('#report-wallet-filter input[type="checkbox"]:checked')).map(input => input.value.toLowerCase()));
+            return lastWallets.filter(wallet => selected.has(wallet.address.toLowerCase()));
+        }
+
+        const selectedPositions = new Set(Array.from(document.querySelectorAll('#report-position-filter input[type="checkbox"]:checked')).map(input => input.value));
+        return lastWallets
+            .map(wallet => ({
+                ...wallet,
+                positions: wallet.positions.filter(position => selectedPositions.has(reportPositionKey(wallet.address, position.pbtId))),
+            }))
+            .filter(wallet => wallet.positions.length > 0);
+    }
+
+    function matchesReportYear(timestamp, yearValue) {
+        if (yearValue === 'all') return true;
+        if (!timestamp) return false;
+        return new Date(timestamp * 1000).getUTCFullYear() === yearValue;
+    }
+
+    function getReportUnlockRows(position, walletAddress, yearValue) {
+        const rows = (position.unlockHistory || []).map(unlock => ({
+            timestamp: unlock.timestamp || null,
+            wallet: walletAddress,
+            pbtId: position.pbtId,
+            unlockIndex: Number(unlock.unlockIndex),
+            pbcAmount: unlock.pbcAmount,
+            proceeds: unlock.proceeds,
+            executionPrice: unlock.executionPrice,
+            source: unlock.estimated ? 'estimated' : (unlock.source || 'historical'),
+            txHash: unlock.txHash || '',
+            estimated: !!unlock.estimated,
+        }));
+
+        if (yearValue === 'all') {
+            return rows;
+        }
+
+        return rows.filter(entry => !entry.estimated && matchesReportYear(entry.timestamp, yearValue));
+    }
+
+    function getActivityTypeSortValue(type) {
+        if (type === 'ENTRY') return 0;
+        const unlockMatch = /^UNLOCK T(\d+)$/i.exec(type || '');
+        if (unlockMatch) return Number(unlockMatch[1]);
+        return 9999;
+    }
+
+    function getReportActivitySortArrow(col) {
+        if (currentReportActivitySortCol !== col) return '';
+        return currentReportActivitySortDir === 1 ? '▲' : '▼';
+    }
+
+    function compareReportActivities(left, right, col, dir) {
+        const multiplier = dir === 1 ? 1 : -1;
+
+        if (col === 'pbt') {
+            if ((left.pbtId || 0) !== (right.pbtId || 0)) {
+                return ((left.pbtId || 0) - (right.pbtId || 0)) * multiplier;
+            }
+            if (getActivityTypeSortValue(left.type) !== getActivityTypeSortValue(right.type)) {
+                return (getActivityTypeSortValue(left.type) - getActivityTypeSortValue(right.type)) * multiplier;
+            }
+            if (left.wallet !== right.wallet) {
+                return left.wallet.localeCompare(right.wallet) * multiplier;
+            }
+            return ((left.timestamp || 0) - (right.timestamp || 0)) * multiplier;
+        }
+
+        if (col === 'type') {
+            if (getActivityTypeSortValue(left.type) !== getActivityTypeSortValue(right.type)) {
+                return (getActivityTypeSortValue(left.type) - getActivityTypeSortValue(right.type)) * multiplier;
+            }
+            if ((left.pbtId || 0) !== (right.pbtId || 0)) {
+                return ((left.pbtId || 0) - (right.pbtId || 0)) * multiplier;
+            }
+            if (left.wallet !== right.wallet) {
+                return left.wallet.localeCompare(right.wallet) * multiplier;
+            }
+            return ((left.timestamp || 0) - (right.timestamp || 0)) * multiplier;
+        }
+
+        if (col === 'wallet') {
+            if (left.wallet !== right.wallet) {
+                return left.wallet.localeCompare(right.wallet) * multiplier;
+            }
+            if ((left.pbtId || 0) !== (right.pbtId || 0)) {
+                return ((left.pbtId || 0) - (right.pbtId || 0)) * multiplier;
+            }
+            return (getActivityTypeSortValue(left.type) - getActivityTypeSortValue(right.type)) * multiplier;
+        }
+
+        const timestampDelta = ((left.timestamp || 0) - (right.timestamp || 0)) * multiplier;
+        if (timestampDelta !== 0) return timestampDelta;
+        if ((left.pbtId || 0) !== (right.pbtId || 0)) {
+            return ((left.pbtId || 0) - (right.pbtId || 0)) * multiplier;
+        }
+        return (getActivityTypeSortValue(left.type) - getActivityTypeSortValue(right.type)) * multiplier;
+    }
+
+    function sortReportActivities(activities) {
+        return [...activities].sort((left, right) => compareReportActivities(left, right, currentReportActivitySortCol, currentReportActivitySortDir));
+    }
+
+    function sortReportActivityTable(col) {
+        if (currentReportActivitySortCol === col) {
+            currentReportActivitySortDir *= -1;
+        } else {
+            currentReportActivitySortCol = col;
+            currentReportActivitySortDir = col === 'date' ? -1 : 1;
+        }
+        refreshReportSection();
+    }
+
+    function buildReportData(wallets, yearValue) {
+        const activities = [];
+        const positions = [];
+        let periodEntryValue = 0;
+        let periodUnlockValue = 0;
+        let periodEntryCount = 0;
+        let periodUnlockCount = 0;
+        let lifetimeEntryValue = 0;
+        let lifetimeUnlockValue = 0;
+        let currentRemainingValue = 0;
+        let estimatedPositionCount = 0;
+
+        for (const wallet of wallets) {
+            for (const position of wallet.positions) {
+                lifetimeEntryValue += position.usdlIn;
+                lifetimeUnlockValue += position.usdlPaid;
+                currentRemainingValue += position.pbcRemaining * lastPrice;
+
+                const hasEstimatedHistory = position.unlockHistory.some(entry => entry.estimated);
+                if (hasEstimatedHistory) estimatedPositionCount += 1;
+
+                const periodOpenIncluded = yearValue === 'all' || matchesReportYear(position.mintTimestamp, yearValue);
+                if (periodOpenIncluded) {
+                    periodEntryValue += position.usdlIn;
+                    periodEntryCount += 1;
+                    activities.push({
+                        timestamp: position.mintTimestamp,
+                        wallet: wallet.address,
+                        pbtId: position.pbtId,
+                        type: 'ENTRY',
+                        pbAmount: position.pbAmount,
+                        unitPrice: position.buyPrice,
+                        usdlValue: position.usdlIn,
+                        source: 'mint block',
+                        txHash: '',
+                    });
+                }
+
+                const periodUnlocks = getReportUnlockRows(position, wallet.address, yearValue);
+                periodUnlockCount += periodUnlocks.length;
+                periodUnlockValue += periodUnlocks.reduce((sum, entry) => sum + entry.proceeds, 0);
+
+                for (const unlock of periodUnlocks) {
+                    activities.push({
+                        timestamp: unlock.timestamp,
+                        wallet: wallet.address,
+                        pbtId: position.pbtId,
+                        type: `UNLOCK T${unlock.unlockIndex + 1}`,
+                        pbAmount: unlock.pbcAmount,
+                        unitPrice: unlock.executionPrice,
+                        usdlValue: unlock.proceeds,
+                        source: unlock.source,
+                        txHash: unlock.txHash || '',
+                        estimated: !!unlock.estimated,
+                    });
+                }
+
+                positions.push({
+                    wallet: wallet.address,
+                    pbtId: position.pbtId,
+                    openedAt: position.mintTimestamp,
+                    buyPrice: position.buyPrice,
+                    pbAmount: position.pbAmount,
+                    usdlIn: position.usdlIn,
+                    lifetimeUsdlPaid: position.usdlPaid,
+                    periodUsdlPaid: periodUnlocks.reduce((sum, entry) => sum + entry.proceeds, 0),
+                    lifetimeUnlockCount: position.nextUnlockIdx,
+                    periodUnlockCount: periodUnlocks.length,
+                    pbcRemaining: position.pbcRemaining,
+                    remainingValue: position.pbcRemaining * lastPrice,
+                    status: position.eligible ? 'READY' : `${Math.round(position.progressPct)}% to trigger`,
+                    hasEstimatedHistory,
+                });
+            }
+        }
+
+        const sortedActivities = sortReportActivities(activities);
+        positions.sort((left, right) => (right.openedAt || 0) - (left.openedAt || 0));
+
+        return {
+            activeNet,
+            periodLabel: getReportPeriodLabel(yearValue),
+            yearValue,
+            scope: getSelectedReportScope(),
+            wallets,
+            positions,
+            activities: sortedActivities,
+            summary: {
+                walletCount: new Set(positions.map(position => position.wallet.toLowerCase())).size,
+                positionCount: positions.length,
+                periodEntryCount,
+                periodUnlockCount,
+                periodEntryValue,
+                periodUnlockValue,
+                lifetimeEntryValue,
+                lifetimeUnlockValue,
+                currentRemainingValue,
+                currentPortfolioValue: currentRemainingValue + periodUnlockValue,
+                estimatedPositionCount,
+            },
+        };
+    }
+
+    function renderReportSummary(data) {
+        const summaryEl = document.getElementById('report-summary');
+        const positionEl = document.getElementById('report-position-summary');
+        const activityEl = document.getElementById('report-activity-ledger');
+        const noteEl = document.getElementById('report-note');
+        const statusEl = document.getElementById('report-status');
+
+        if (!data || data.positions.length === 0) {
+            summaryEl.innerHTML = '<div class="report-empty">No wallets or positions match the current report filter.</div>';
+            positionEl.innerHTML = '';
+            activityEl.innerHTML = '';
+            noteEl.textContent = '';
+            statusEl.textContent = 'Adjust wallet or position filters.';
+            return;
+        }
+
+        const { summary } = data;
+        summaryEl.innerHTML = [
+            ['Period', data.periodLabel],
+            ['Wallets', summary.walletCount],
+            ['Positions', summary.positionCount],
+            ['Opens In Period', summary.periodEntryCount],
+            ['Unlocks In Period', summary.periodUnlockCount],
+            ['USDL In Period', '$' + fmt(summary.periodEntryValue)],
+            ['USDL Paid In Period', '$' + fmt(summary.periodUnlockValue)],
+            ['Remaining Value', '$' + fmt(summary.currentRemainingValue)],
+        ].map(([label, value]) => `
+            <div class="report-summary-card">
+                <div class="report-summary-card__label">${escapeHtml(label)}</div>
+                <div class="report-summary-card__value">${escapeHtml(value)}</div>
+            </div>`).join('');
+
+        positionEl.innerHTML = `
+            <div class="report-subsection-title">Position Summary</div>
+            <div class="report-table-wrap">
+                <table class="report-table">
+                    <thead>
+                        <tr>
+                            <th>Wallet</th>
+                            <th>PBt</th>
+                            <th>Opened</th>
+                            <th class="report-table__num">$ In</th>
+                            <th class="report-table__num">Lifetime $ Paid</th>
+                            <th class="report-table__num">Period $ Paid</th>
+                            <th class="report-table__num">Lifetime T</th>
+                            <th class="report-table__num">Period T</th>
+                            <th class="report-table__num">PBc Left</th>
+                            <th class="report-table__num">Value Left</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${data.positions.map(position => `
+                            <tr>
+                                <td class="report-table__mono">${escapeHtml(shortAddr(position.wallet))}</td>
+                                <td class="report-table__mono">#${escapeHtml(position.pbtId)}</td>
+                                <td>${escapeHtml(formatDateUTC(position.openedAt))}</td>
+                                <td class="report-table__num">$${escapeHtml(fmt(position.usdlIn))}</td>
+                                <td class="report-table__num">$${escapeHtml(fmt(position.lifetimeUsdlPaid))}</td>
+                                <td class="report-table__num">$${escapeHtml(fmt(position.periodUsdlPaid))}</td>
+                                <td class="report-table__num">${escapeHtml(position.lifetimeUnlockCount)}</td>
+                                <td class="report-table__num">${escapeHtml(position.periodUnlockCount)}</td>
+                                <td class="report-table__num">${escapeHtml(fmtPB(position.pbcRemaining))}</td>
+                                <td class="report-table__num">$${escapeHtml(fmt(position.remainingValue))}</td>
+                                <td>${escapeHtml(position.status)}${position.hasEstimatedHistory ? ' *' : ''}</td>
+                            </tr>`).join('')}
+                    </tbody>
+                </table>
+            </div>`;
+
+        activityEl.innerHTML = `
+            <div class="report-subsection-title">Activity Ledger</div>
+            ${data.activities.length === 0 ? '<div class="report-empty">No activity matches the current report filter.</div>' : `
+                <div class="report-table-wrap">
+                    <table class="report-table">
+                        <thead>
+                            <tr>
+                                <th style="cursor:pointer;user-select:none;" onclick="sortReportActivityTable('date')">Date <span style="font-size:0.7rem;">${getReportActivitySortArrow('date')}</span></th>
+                                <th style="cursor:pointer;user-select:none;" onclick="sortReportActivityTable('wallet')">Wallet <span style="font-size:0.7rem;">${getReportActivitySortArrow('wallet')}</span></th>
+                                <th style="cursor:pointer;user-select:none;" onclick="sortReportActivityTable('pbt')">PBt <span style="font-size:0.7rem;">${getReportActivitySortArrow('pbt')}</span></th>
+                                <th style="cursor:pointer;user-select:none;" onclick="sortReportActivityTable('type')">Type <span style="font-size:0.7rem;">${getReportActivitySortArrow('type')}</span></th>
+                                <th class="report-table__num">PB</th>
+                                <th class="report-table__num">Unit Price</th>
+                                <th class="report-table__num">USDL</th>
+                                <th>Source</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${data.activities.map(activity => `
+                                <tr>
+                                    <td>${escapeHtml(activity.timestamp ? formatDateTimeUTC(activity.timestamp) : 'Undated / derived')}</td>
+                                    <td class="report-table__mono">${escapeHtml(shortAddr(activity.wallet))}</td>
+                                    <td class="report-table__mono">#${escapeHtml(activity.pbtId)}</td>
+                                    <td>${escapeHtml(activity.type)}</td>
+                                    <td class="report-table__num">${escapeHtml(fmtPB(activity.pbAmount))}</td>
+                                    <td class="report-table__num">$${escapeHtml(fmt(activity.unitPrice, 5))}</td>
+                                    <td class="report-table__num">$${escapeHtml(fmt(activity.usdlValue))}</td>
+                                    <td>${escapeHtml(activity.source)}${activity.estimated ? ' *' : ''}</td>
+                                </tr>`).join('')}
+                        </tbody>
+                    </table>
+                </div>`}
+        `;
+
+        noteEl.textContent = summary.estimatedPositionCount > 0
+            ? `${summary.estimatedPositionCount} position(s) still rely on estimated lifetime unlock history for older gaps. All activity includes those derived unlocks. Year-specific filters only count dated mint blocks and dated on-chain unlock events.`
+            : 'All activity uses full known lifetime history. Year-specific filters only count dated mint blocks and dated on-chain unlock events.';
+
+        const activitySortLabel = currentReportActivitySortCol === 'pbt'
+            ? `sorted by PBt/event ${currentReportActivitySortDir === 1 ? 'asc' : 'desc'}`
+            : currentReportActivitySortCol === 'type'
+                ? `sorted by type/event ${currentReportActivitySortDir === 1 ? 'asc' : 'desc'}`
+                : currentReportActivitySortCol === 'wallet'
+                    ? `sorted by wallet ${currentReportActivitySortDir === 1 ? 'asc' : 'desc'}`
+                    : `sorted by date ${currentReportActivitySortDir === 1 ? 'asc' : 'desc'}`;
+
+        statusEl.textContent = `${data.periodLabel} | ${data.activeNet} | ${data.activities.length} activity row(s) | ${activitySortLabel}`;
+    }
+
+    function refreshReportSection() {
+        const reportSection = document.getElementById('reporting-section');
+        if (!lastWallets.length) {
+            reportSection.style.display = 'none';
+            currentReportData = null;
+            return;
+        }
+
+        reportSection.style.display = '';
+        populateReportYearOptions();
+        ensureReportFilters(lastWallets);
+        updateReportFilterVisibility();
+
+        const scopedWallets = getScopedWallets();
+        currentReportData = buildReportData(scopedWallets, getSelectedReportYear());
+        renderReportSummary(currentReportData);
+    }
+
+    function exportReportActivityCsv() {
+        if (!currentReportData || currentReportData.activities.length === 0) {
+            document.getElementById('report-status').textContent = 'No activity rows to export.';
+            return;
+        }
+
+        downloadCsv(
+            `pb-report-activity-${activeNet}-${currentReportData.yearValue === 'all' ? 'all' : currentReportData.yearValue}.csv`,
+            ['network', 'period', 'date_utc', 'wallet', 'pbt_id', 'type', 'pb_amount', 'unit_price_usdl', 'usdl_value', 'source', 'tx_hash'],
+            currentReportData.activities.map(activity => [
+                currentReportData.activeNet,
+                currentReportData.periodLabel,
+                formatDateTimeUTC(activity.timestamp),
+                activity.wallet,
+                activity.pbtId,
+                activity.type,
+                fmtPB(activity.pbAmount),
+                fmt(activity.unitPrice, 5),
+                fmt(activity.usdlValue),
+                activity.source,
+                activity.txHash,
+            ])
+        );
+        document.getElementById('report-status').textContent = 'Activity CSV exported.';
+    }
+
+    function exportReportPositionsCsv() {
+        if (!currentReportData || currentReportData.positions.length === 0) {
+            document.getElementById('report-status').textContent = 'No position rows to export.';
+            return;
+        }
+
+        downloadCsv(
+            `pb-report-positions-${activeNet}-${currentReportData.yearValue === 'all' ? 'all' : currentReportData.yearValue}.csv`,
+            ['network', 'period', 'wallet', 'pbt_id', 'opened_utc', 'buy_price', 'pb_amount', 'usdl_in', 'lifetime_usdl_paid', 'period_usdl_paid', 'lifetime_unlock_count', 'period_unlock_count', 'pbc_remaining', 'remaining_value', 'status', 'estimated_history'],
+            currentReportData.positions.map(position => [
+                currentReportData.activeNet,
+                currentReportData.periodLabel,
+                position.wallet,
+                position.pbtId,
+                formatDateUTC(position.openedAt),
+                fmt(position.buyPrice, 5),
+                fmtPB(position.pbAmount),
+                fmt(position.usdlIn),
+                fmt(position.lifetimeUsdlPaid),
+                fmt(position.periodUsdlPaid),
+                position.lifetimeUnlockCount,
+                position.periodUnlockCount,
+                fmtPB(position.pbcRemaining),
+                fmt(position.remainingValue),
+                position.status,
+                position.hasEstimatedHistory ? 'yes' : 'no',
+            ])
+        );
+        document.getElementById('report-status').textContent = 'Position CSV exported.';
+    }
+
+    function printReportPreview() {
+        if (!currentReportData || currentReportData.positions.length === 0) {
+            document.getElementById('report-status').textContent = 'Load portfolio data before printing the report.';
+            return;
+        }
+
+        const printWindow = window.open('', '_blank', 'width=1200,height=900');
+        if (!printWindow) {
+            document.getElementById('report-status').textContent = 'Popup blocked. Allow popups to print the report.';
+            return;
+        }
+
+        const summaryRows = [
+            ['Network', currentReportData.activeNet],
+            ['Period', currentReportData.periodLabel],
+            ['Wallets', currentReportData.summary.walletCount],
+            ['Positions', currentReportData.summary.positionCount],
+            ['Opens In Period', currentReportData.summary.periodEntryCount],
+            ['Unlocks In Period', currentReportData.summary.periodUnlockCount],
+            ['USDL In Period', '$' + fmt(currentReportData.summary.periodEntryValue)],
+            ['USDL Paid In Period', '$' + fmt(currentReportData.summary.periodUnlockValue)],
+            ['Remaining Value', '$' + fmt(currentReportData.summary.currentRemainingValue)],
+        ];
+
+        printWindow.document.write(`<!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <title>PB Statement Preview</title>
+                <style>
+                    body { font-family: "Segoe UI", "Trebuchet MS", Arial, sans-serif; color: #111; margin: 24px; }
+                    h1, h2 { margin-bottom: 10px; }
+                    .muted { color: #555; margin-bottom: 16px; }
+                    table { width: 100%; border-collapse: collapse; margin-bottom: 22px; }
+                    th, td { border: 1px solid #d0d0d0; padding: 8px; text-align: left; font-size: 12px; }
+                    th { background: #f2f2f2; }
+                    .num { text-align: right; font-variant-numeric: tabular-nums lining-nums; }
+                    .summary td:first-child { width: 220px; font-weight: 700; }
+                </style>
+            </head>
+            <body>
+                <h1>PB Statement Preview</h1>
+                <div class="muted">Generated ${escapeHtml(formatDateTimeUTC(Math.floor(Date.now() / 1000)))} | ${escapeHtml(currentReportData.periodLabel)} | ${escapeHtml(currentReportData.activeNet)}</div>
+                <table class="summary">
+                    <tbody>
+                        ${summaryRows.map(([label, value]) => `<tr><td>${escapeHtml(label)}</td><td>${escapeHtml(value)}</td></tr>`).join('')}
+                    </tbody>
+                </table>
+                <h2>Position Summary</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Wallet</th>
+                            <th>PBt</th>
+                            <th>Opened</th>
+                            <th class="num">$ In</th>
+                            <th class="num">Lifetime $ Paid</th>
+                            <th class="num">Period $ Paid</th>
+                            <th class="num">PBc Left</th>
+                            <th class="num">Value Left</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${currentReportData.positions.map(position => `<tr>
+                            <td>${escapeHtml(position.wallet)}</td>
+                            <td>${escapeHtml(position.pbtId)}</td>
+                            <td>${escapeHtml(formatDateUTC(position.openedAt))}</td>
+                            <td class="num">$${escapeHtml(fmt(position.usdlIn))}</td>
+                            <td class="num">$${escapeHtml(fmt(position.lifetimeUsdlPaid))}</td>
+                            <td class="num">$${escapeHtml(fmt(position.periodUsdlPaid))}</td>
+                            <td class="num">${escapeHtml(fmtPB(position.pbcRemaining))}</td>
+                            <td class="num">$${escapeHtml(fmt(position.remainingValue))}</td>
+                            <td>${escapeHtml(position.status)}</td>
+                        </tr>`).join('')}
+                    </tbody>
+                </table>
+                <h2>Activity Ledger</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Wallet</th>
+                            <th>PBt</th>
+                            <th>Type</th>
+                            <th class="num">PB</th>
+                            <th class="num">Unit Price</th>
+                            <th class="num">USDL</th>
+                            <th>Source</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${(currentReportData.activities.length > 0 ? currentReportData.activities : [{ timestamp: null, wallet: '-', pbtId: '-', type: 'No dated activity', pbAmount: 0, unitPrice: 0, usdlValue: 0, source: '-' }]).map(activity => `<tr>
+                            <td>${escapeHtml(formatDateTimeUTC(activity.timestamp))}</td>
+                            <td>${escapeHtml(activity.wallet)}</td>
+                            <td>${escapeHtml(activity.pbtId)}</td>
+                            <td>${escapeHtml(activity.type)}</td>
+                            <td class="num">${escapeHtml(fmtPB(activity.pbAmount))}</td>
+                            <td class="num">$${escapeHtml(fmt(activity.unitPrice, 5))}</td>
+                            <td class="num">$${escapeHtml(fmt(activity.usdlValue))}</td>
+                            <td>${escapeHtml(activity.source)}</td>
+                        </tr>`).join('')}
+                    </tbody>
+                </table>
+            </body>
+            </html>`);
+        printWindow.document.close();
+        printWindow.focus();
+        printWindow.print();
     }
 
     // ========================
@@ -340,7 +1915,7 @@
 
         // Parallel: PBt IDs + PB balance + PBc balance
         const [pbtIds, pbBal, pbcBal] = await Promise.all([
-            vault.getUserPBtIds(checksumAddr),
+            vaultViews.getUserPBtIds(checksumAddr),
             pbToken.balanceOf(checksumAddr),
             pbcToken.balanceOf(checksumAddr),
         ]);
@@ -364,7 +1939,7 @@
         const positionResults = await Promise.all(
             pbtIds.flatMap(id => [
                 vault.pbtRegistry(id),
-                vault.getPositionUnlockStatus(id),
+                vaultViews.getPositionUnlockStatus(id),
             ])
         );
 
@@ -372,6 +1947,9 @@
         let totalUsdlIn = 0;
         let totalUsdlPaid = 0;
         let totalPBc = 0;
+        const mintBlocks = [...new Set(pbtIds.map((_, index) => Number(positionResults[index * 2][5])))].filter(blockNumber => blockNumber > 0);
+
+        await Promise.all(mintBlocks.map(blockNumber => getBlockTimestamp(blockNumber)));
 
         for (let i = 0; i < pbtIds.length; i++) {
             const pbtId = pbtIds[i];
@@ -380,6 +1958,7 @@
 
             const buyPriceNum = Number(ethers.formatEther(buyPrice));
             const pbAmountNum = Number(ethers.formatEther(pbAmount));
+            const initialLockedPBcNum = Number(ethers.formatEther(getInitialLockedPBcFromWei(pbAmount)));
             const pbcRemainingNum = Number(ethers.formatEther(pbcRemaining));
             const nextUnlockIdx = Number(nextUnlockIndex);
 
@@ -389,7 +1968,7 @@
 
             // Calculate USDL paid from events, fallback to estimates
             const eventMap = allEvents[Number(pbtId)] || {};
-            const unlockHistory = getUnlockHistoryForPosition(pbAmountNum, nextUnlockIdx, buyPriceNum, eventMap);
+            const unlockHistory = getUnlockHistoryForPosition(initialLockedPBcNum, nextUnlockIdx, buyPriceNum, eventMap);
             const usdlPaid = unlockHistory.usdlPaid;
             totalUsdlPaid += usdlPaid;
 
@@ -401,9 +1980,12 @@
                 pbtId: Number(pbtId),
                 buyPrice: buyPriceNum,
                 pbAmount: pbAmountNum,
+                initialLockedPBc: initialLockedPBcNum,
                 pbcRemaining: pbcRemainingNum,
                 nextUnlockIdx,
                 eligible,
+                mintBlock: Number(mintBlock),
+                mintTimestamp: blockTimestampCache.get(Number(mintBlock)) || null,
                 usdlIn,
                 usdlPaid,
                 progressPct,
@@ -432,7 +2014,7 @@
         const rowId = 'detail-' + wallet.address.slice(2, 10);
 
         return `<tr style="border-bottom:1px solid rgba(255,255,255,0.08);cursor:pointer;" onclick="toggleDetail('${rowId}','${wallet.address}')" title="Click to expand positions">
-            <td style="padding:10px 8px;font-family:monospace;color:#ddd;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+            <td style="padding:10px 8px;font-family:var(--font-data);color:#ddd;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
                 ${shortAddr(wallet.address)}
                 <span style="font-size:0.7rem;color:#555;margin-left:4px;cursor:pointer;" onclick="event.stopPropagation();navigator.clipboard.writeText('${wallet.address}')" title="Copy">📋</span>
             </td>
@@ -467,6 +2049,101 @@
             <td style="padding:12px 8px;text-align:center;color:#4CAF50;">${tT}</td>
             <td></td>
         </tr>`;
+    }
+
+    function buildMobileTotalsCard(wallets, currentPrice) {
+        let tIn = 0, tPaid = 0, tPB = 0, tPBc = 0, tT = 0;
+        for (const w of wallets) {
+            tIn += w.totalUsdlIn;
+            tPaid += w.totalUsdlPaid;
+            tPB += w.pbLiquid;
+            tPBc += w.totalPBc;
+            tT += w.positions.reduce((s, p) => s + p.nextUnlockIdx, 0);
+        }
+        const tVal = (tPB + tPBc) * currentPrice;
+        return `<div class="portfolio-mobile-card portfolio-mobile-card--totals">
+            <div class="portfolio-mobile-card__header">
+                <div>
+                    <div class="portfolio-mobile-card__title">Portfolio Total</div>
+                    <div class="portfolio-mobile-card__subtitle">All loaded wallets combined</div>
+                </div>
+            </div>
+            <div class="portfolio-mobile-grid">
+                <div class="portfolio-mobile-metric"><span class="portfolio-mobile-metric__label">$ In</span><span class="portfolio-mobile-metric__value">$${fmt(tIn)}</span></div>
+                <div class="portfolio-mobile-metric"><span class="portfolio-mobile-metric__label">$ Paid</span><span class="portfolio-mobile-metric__value portfolio-mobile-metric__value--green">$${fmt(tPaid)}</span></div>
+                <div class="portfolio-mobile-metric"><span class="portfolio-mobile-metric__label">PB</span><span class="portfolio-mobile-metric__value">${fmtPB(tPB)}</span></div>
+                <div class="portfolio-mobile-metric"><span class="portfolio-mobile-metric__label">PBc</span><span class="portfolio-mobile-metric__value portfolio-mobile-metric__value--orange">${fmtPB(tPBc)}</span></div>
+                <div class="portfolio-mobile-metric"><span class="portfolio-mobile-metric__label">Total $</span><span class="portfolio-mobile-metric__value portfolio-mobile-metric__value--green">$${fmt(tVal)}</span></div>
+                <div class="portfolio-mobile-metric"><span class="portfolio-mobile-metric__label"># T</span><span class="portfolio-mobile-metric__value">${tT}</span></div>
+            </div>
+        </div>`;
+    }
+
+    function buildMobilePositionCards(wallet, currentPrice) {
+        if (wallet.positions.length === 0) {
+            return '<div class="portfolio-mobile-empty">No positions.</div>';
+        }
+
+        return wallet.positions.map((pos) => {
+            const readyText = pos.eligible ? 'READY' : `${Math.round(pos.progressPct)}% to trigger`;
+            const readyClass = pos.eligible ? ' portfolio-mobile-badge--green' : '';
+            const soldPB = pos.pbAmount - pos.pbcRemaining;
+            const soldValue = soldPB * currentPrice;
+            const remainingValue = pos.pbcRemaining * currentPrice;
+            return `<div class="portfolio-position-card">
+                <div class="portfolio-position-card__header">
+                    <div class="portfolio-position-card__title">PBt #${pos.pbtId}</div>
+                    <div class="portfolio-mobile-badge${readyClass}">${readyText}</div>
+                </div>
+                <div class="portfolio-mobile-grid portfolio-mobile-grid--positions">
+                    <div class="portfolio-mobile-metric"><span class="portfolio-mobile-metric__label">$ In</span><span class="portfolio-mobile-metric__value">$${fmt(pos.usdlIn)}</span></div>
+                    <div class="portfolio-mobile-metric"><span class="portfolio-mobile-metric__label">$ Paid</span><span class="portfolio-mobile-metric__value portfolio-mobile-metric__value--green">$${fmt(pos.usdlPaid)}</span></div>
+                    <div class="portfolio-mobile-metric"><span class="portfolio-mobile-metric__label">Total PB</span><span class="portfolio-mobile-metric__value">${fmtPB(pos.pbAmount)}</span></div>
+                    <div class="portfolio-mobile-metric"><span class="portfolio-mobile-metric__label">Remaining PBc</span><span class="portfolio-mobile-metric__value portfolio-mobile-metric__value--orange">${fmtPB(pos.pbcRemaining)}</span></div>
+                    <div class="portfolio-mobile-metric"><span class="portfolio-mobile-metric__label">Sold</span><span class="portfolio-mobile-metric__value portfolio-mobile-metric__value--green">${fmtPB(soldPB)}</span></div>
+                    <div class="portfolio-mobile-metric"><span class="portfolio-mobile-metric__label">Remaining $</span><span class="portfolio-mobile-metric__value">$${fmt(remainingValue)}</span></div>
+                    <div class="portfolio-mobile-metric"><span class="portfolio-mobile-metric__label">Sold $</span><span class="portfolio-mobile-metric__value portfolio-mobile-metric__value--green">$${fmt(soldValue)}</span></div>
+                    <div class="portfolio-mobile-metric"><span class="portfolio-mobile-metric__label"># T</span><span class="portfolio-mobile-metric__value">${pos.nextUnlockIdx}</span></div>
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    function buildMobileCard(wallet, currentPrice) {
+        const totalValue = (wallet.pbLiquid + wallet.totalPBc) * currentPrice;
+        const totalT = wallet.positions.reduce((s, p) => s + p.nextUnlockIdx, 0);
+        const detailId = 'mobile-detail-' + wallet.address.slice(2, 10);
+
+        return `<div class="portfolio-mobile-card">
+            <div class="portfolio-mobile-card__header">
+                <div>
+                    <div class="portfolio-mobile-card__title">${shortAddr(wallet.address)}</div>
+                    <div class="portfolio-mobile-card__subtitle">${wallet.address}</div>
+                </div>
+                <div class="portfolio-mobile-actions">
+                    <button class="portfolio-mobile-icon-btn" onclick="navigator.clipboard.writeText('${wallet.address}')" title="Copy address">📋</button>
+                    <button class="portfolio-mobile-icon-btn portfolio-mobile-icon-btn--danger" onclick="removeAddress('${wallet.address}')" title="Remove address">✕</button>
+                </div>
+            </div>
+            <div class="portfolio-mobile-grid">
+                <div class="portfolio-mobile-metric"><span class="portfolio-mobile-metric__label">$ In</span><span class="portfolio-mobile-metric__value">$${fmt(wallet.totalUsdlIn)}</span></div>
+                <div class="portfolio-mobile-metric"><span class="portfolio-mobile-metric__label">$ Paid</span><span class="portfolio-mobile-metric__value portfolio-mobile-metric__value--green">$${fmt(wallet.totalUsdlPaid)}</span></div>
+                <div class="portfolio-mobile-metric"><span class="portfolio-mobile-metric__label">PB</span><span class="portfolio-mobile-metric__value">${fmtPB(wallet.pbLiquid)}</span></div>
+                <div class="portfolio-mobile-metric"><span class="portfolio-mobile-metric__label">PBc</span><span class="portfolio-mobile-metric__value portfolio-mobile-metric__value--orange">${fmtPB(wallet.totalPBc)}</span></div>
+                <div class="portfolio-mobile-metric"><span class="portfolio-mobile-metric__label">Total $</span><span class="portfolio-mobile-metric__value portfolio-mobile-metric__value--green">$${fmt(totalValue)}</span></div>
+                <div class="portfolio-mobile-metric"><span class="portfolio-mobile-metric__label"># T</span><span class="portfolio-mobile-metric__value">${totalT}</span></div>
+            </div>
+            <button class="portfolio-mobile-toggle" onclick="toggleMobileDetail('${detailId}', this)">Show positions</button>
+            <div id="${detailId}" class="portfolio-mobile-detail">${buildMobilePositionCards(wallet, currentPrice)}</div>
+        </div>`;
+    }
+
+    function renderPortfolioMobile(wallets, currentPrice) {
+        const mobileList = document.getElementById('portfolio-mobile-list');
+        if (!mobileList) return;
+
+        const cards = wallets.map((wallet) => buildMobileCard(wallet, currentPrice)).join('');
+        mobileList.innerHTML = buildMobileTotalsCard(wallets, currentPrice) + cards;
     }
 
     // ========================
@@ -519,8 +2196,16 @@
             rowsHtml += buildTableRow(w, lastPrice);
         }
         document.getElementById('portfolio-tbody').innerHTML = rowsHtml;
+        renderPortfolioMobile(sorted, lastPrice);
         clearSortArrows();
         document.getElementById('sort-' + col).textContent = currentSortDir === 1 ? '▲' : '▼';
+    }
+
+    function toggleMobileDetail(detailId, btn) {
+        const detail = document.getElementById(detailId);
+        if (!detail) return;
+        const isOpen = detail.classList.toggle('open');
+        btn.textContent = isOpen ? 'Hide positions' : 'Show positions';
     }
 
     // Expand/collapse position detail below a table row
@@ -613,6 +2298,7 @@
                 getCurrentPrice(),
                 fetchAllEvents(),
             ]);
+            lastAllEvents = allEvents;
 
             // Load all wallets in parallel
             const wallets = await Promise.all(
@@ -642,8 +2328,10 @@
             }
             document.getElementById('portfolio-tbody').innerHTML = rowsHtml;
             document.getElementById('portfolio-tfoot').innerHTML = buildTotalsRow(validWallets, currentPrice);
+            renderPortfolioMobile(validWallets, currentPrice);
             clearSortArrows();
             document.getElementById('wallet-results').innerHTML = '';
+            refreshReportSection();
 
             renderSavedAddresses(allAddrs);
             statusEl.innerHTML = `<span style="color:#4CAF50;">✅ Loaded ${validWallets.length} wallet${validWallets.length > 1 ? 's' : ''} — ${validWallets.reduce((s, w) => s + w.positions.length, 0)} positions</span>`;
@@ -669,11 +2357,12 @@
         resultEl.innerHTML = '';
 
         try {
-            const [currentPrice, allEvents, registry, unlockStatus] = await Promise.all([
+            const [currentPrice, allEvents, registry, unlockStatus, indexedNetting] = await Promise.all([
                 getCurrentPrice(),
                 fetchAllEvents(),
                 vault.pbtRegistry(pbtId),
-                vault.getPositionUnlockStatus(pbtId),
+                vaultViews.getPositionUnlockStatus(pbtId),
+                fetchBuyNettingForPbt(pbtId),
             ]);
 
             const holder = registry.holder;
@@ -684,26 +2373,48 @@
 
             const buyPriceNum = Number(ethers.formatEther(registry.buyPrice));
             const pbAmountNum = Number(ethers.formatEther(registry.pbAmount));
+            const initialLockedPBcNum = Number(ethers.formatEther(getInitialLockedPBcFromWei(registry.pbAmount)));
             const pbcLockedNum = Number(ethers.formatEther(registry.pbcLocked));
             const nextTriggerNum = Number(ethers.formatEther(registry.nextTriggerPrice));
             const nextUnlockIdx = Number(registry.nextUnlockIndex);
             const [unlockIndex, nextPrice, eligible, pbcRemaining] = unlockStatus;
             const pbcRemainingNum = Number(ethers.formatEther(pbcRemaining));
-            const eventMap = allEvents[pbtId] || {};
-            const unlockHistory = getUnlockHistoryForPosition(pbAmountNum, nextUnlockIdx, buyPriceNum, eventMap);
+            const eventMap = mergeIndexedNettingIntoEventMap(allEvents[pbtId] || {}, indexedNetting, pbtId);
+            await applySplitPayoutAdjustments({ [pbtId]: eventMap });
+            const unlockHistory = getUnlockHistoryForPosition(initialLockedPBcNum, nextUnlockIdx, buyPriceNum, eventMap);
             const currentValue = pbcRemainingNum * currentPrice;
             const progressPct = nextTriggerNum > 0 ? Math.min((currentPrice / nextTriggerNum) * 100, 100) : 0;
-            const soldPB = pbAmountNum - pbcRemainingNum;
+            const settledPBc = initialLockedPBcNum - pbcRemainingNum;
+            const initialInvestment = buyPriceNum * pbAmountNum;
 
-            const historyRows = unlockHistory.history.length === 0
-                ? '<tr><td colspan="5" style="padding:10px;color:#888;">No executed unlocks yet.</td></tr>'
-                : unlockHistory.history.map(h => `
+            let projectedRemaining = pbcRemainingNum;
+            const futureUnlockRows = [];
+            for (let futureIdx = nextUnlockIdx; futureIdx < nextUnlockIdx + 2; futureIdx++) {
+                const projectedPbcAmount = projectedRemaining / 3;
+                const projectedExecPrice = localTriggerPrice(buyPriceNum, futureIdx);
+                const projectedProceeds = projectedPbcAmount * projectedExecPrice;
+                futureUnlockRows.push({
+                    unlockIndex: futureIdx,
+                    pbcAmount: projectedPbcAmount,
+                    proceeds: projectedProceeds,
+                    executionPrice: projectedExecPrice,
+                    estimated: true,
+                    upcoming: true,
+                });
+                projectedRemaining -= projectedPbcAmount;
+            }
+
+            const displayHistory = unlockHistory.history.concat(futureUnlockRows);
+
+            const historyRows = displayHistory.length === 0
+                ? '<tr><td colspan="5" style="padding:10px;color:#888;">No unlock data available yet.</td></tr>'
+                : displayHistory.map(h => `
                     <tr style="border-bottom:1px solid rgba(255,255,255,0.06);">
                         <td style="padding:8px;">T${h.unlockIndex + 1}</td>
                         <td style="padding:8px;text-align:right;">${fmtPB(h.pbcAmount)}</td>
-                        <td style="padding:8px;text-align:right;color:#4CAF50;">$${fmt(h.proceeds)}</td>
+                        <td style="padding:8px;text-align:right;color:${h.upcoming ? '#F39004' : '#4CAF50'};">$${fmt(h.proceeds)}${h.txAdjusted ? '<div style="font-size:0.72rem;color:#888;">tx-adjusted</div>' : ''}</td>
                         <td style="padding:8px;text-align:right;">$${fmt(h.executionPrice, 5)}</td>
-                        <td style="padding:8px;text-align:center;color:${h.estimated ? '#aaa' : '#4CAF50'};">${h.estimated ? 'est.' : 'on-chain'}</td>
+                        <td style="padding:8px;text-align:center;color:${h.upcoming ? '#F39004' : h.estimated ? '#aaa' : '#4CAF50'};">${h.upcoming ? 'next' : h.txAdjusted ? 'tx-adjusted' : h.source === 'db/netted' ? 'db/netted' : h.estimated ? 'est.' : 'on-chain'}</td>
                     </tr>
                 `).join('');
 
@@ -714,14 +2425,16 @@
                         <div style="font-size:0.9rem;color:${eligible ? '#4CAF50' : '#F39004'};font-weight:700;">${eligible ? 'READY TO UNLOCK' : `${Math.round(progressPct)}% to next trigger`}</div>
                     </div>
 
-                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-bottom:16px;">
-                        <div style="padding:10px;border:1px solid rgba(255,255,255,0.08);border-radius:8px;">
+                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:16px;align-items:stretch;grid-auto-flow:dense;">
+                        <div style="padding:10px;border:1px solid rgba(255,255,255,0.08);border-radius:8px;grid-column:span 2;grid-row:span 2;display:grid;gap:8px;align-content:start;">
                             <div style="font-size:0.75rem;color:#888;">Holder</div>
-                            <div style="font-family:monospace;color:#ddd;word-break:break-all;">${holder}</div>
+                            <div style="font-family:var(--font-data);font-size:0.76rem;line-height:1.45;color:#ddd;overflow-wrap:anywhere;">${holder}</div>
+                            <div style="font-size:0.75rem;color:#888;">Payout Address</div>
+                            <div style="font-family:var(--font-data);font-size:0.76rem;line-height:1.45;color:#ddd;overflow-wrap:anywhere;">${registry.payoutAddress}</div>
                         </div>
                         <div style="padding:10px;border:1px solid rgba(255,255,255,0.08);border-radius:8px;">
-                            <div style="font-size:0.75rem;color:#888;">Payout Address</div>
-                            <div style="font-family:monospace;color:#ddd;word-break:break-all;">${registry.payoutAddress}</div>
+                            <div style="font-size:0.75rem;color:#888;">Initial Investment</div>
+                            <div style="color:#4CAF50;">$${fmt(initialInvestment)}</div>
                         </div>
                         <div style="padding:10px;border:1px solid rgba(255,255,255,0.08);border-radius:8px;">
                             <div style="font-size:0.75rem;color:#888;">Entry Price</div>
@@ -740,8 +2453,8 @@
                             <div style="color:#ff9800;">${fmtPB(pbcRemainingNum)}</div>
                         </div>
                         <div style="padding:10px;border:1px solid rgba(255,255,255,0.08);border-radius:8px;">
-                            <div style="font-size:0.75rem;color:#888;">Sold / Settled</div>
-                            <div style="color:#4CAF50;">${fmtPB(soldPB)}</div>
+                            <div style="font-size:0.75rem;color:#888;">Settled PBc</div>
+                            <div style="color:#4CAF50;">${fmtPB(settledPBc)}</div>
                         </div>
                         <div style="padding:10px;border:1px solid rgba(255,255,255,0.08);border-radius:8px;">
                             <div style="font-size:0.75rem;color:#888;">USDL Paid So Far</div>
@@ -788,8 +2501,14 @@
     async function fetchAllEvents() {
         const eventMap = {};
         try {
-            const events = await vault.queryFilter(vault.filters.UnlockTriggered());
-            for (const event of events) {
+            const [triggeredEvents, nettedEvents] = await Promise.all([
+                vault.queryFilter(vault.filters.UnlockTriggered()),
+                vault.queryFilter(vault.filters.UnlockNetted()),
+            ]);
+            const events = [...triggeredEvents, ...nettedEvents];
+            const blockNumbers = [...new Set(events.map(event => Number(event.blockNumber)).filter(blockNumber => blockNumber > 0))];
+            await Promise.all(blockNumbers.map(blockNumber => getBlockTimestamp(blockNumber)));
+            for (const event of triggeredEvents) {
                 try {
                     const pbtId = Number(event.args[0]);
                     const unlockIndex = Number(event.args[1]);
@@ -799,10 +2518,46 @@
                     eventMap[pbtId][unlockIndex] = {
                         pbcAmount: pbUnlocked,
                         proceeds: usdlProceeds,
+                        loggedProceeds: usdlProceeds,
+                        extraProceeds: 0,
                         executionPrice: pbUnlocked > 0 ? usdlProceeds / pbUnlocked : 0,
+                        blockNumber: Number(event.blockNumber),
+                        timestamp: blockTimestampCache.get(Number(event.blockNumber)) || null,
+                        txHash: getTxHashValue(event),
+                        logIndex: getLogIndexValue(event),
+                        payoutAddress: String(event.args[4] || ''),
+                        kind: 'triggered',
+                        txAdjusted: false,
+                        source: 'on-chain',
                     };
                 } catch { /* skip */ }
             }
+            for (const event of nettedEvents) {
+                try {
+                    const pbtId = Number(event.args[0]);
+                    const unlockIndex = Number(event.args[1]);
+                    const pbcSettled = Number(ethers.formatEther(event.args[2]));
+                    const usdlPaid = Number(ethers.formatEther(event.args[3]));
+                    const triggerPrice = Number(ethers.formatEther(event.args[5]));
+                    if (!eventMap[pbtId]) eventMap[pbtId] = {};
+                    eventMap[pbtId][unlockIndex] = {
+                        pbcAmount: pbcSettled,
+                        proceeds: usdlPaid,
+                        loggedProceeds: usdlPaid,
+                        extraProceeds: 0,
+                        executionPrice: triggerPrice,
+                        blockNumber: Number(event.blockNumber),
+                        timestamp: blockTimestampCache.get(Number(event.blockNumber)) || null,
+                        txHash: getTxHashValue(event),
+                        logIndex: getLogIndexValue(event),
+                        payoutAddress: String(event.args[4] || ''),
+                        kind: 'netted',
+                        txAdjusted: false,
+                        source: 'on-chain/netted',
+                    };
+                } catch { /* skip */ }
+            }
+            await applySplitPayoutAdjustments(eventMap);
         } catch (e) {
             console.warn('Event fetch failed:', e.message);
         }
@@ -815,15 +2570,27 @@
     function renderSavedAddresses(addrs) {
         if (!addrs || addrs.length === 0) {
             document.getElementById('saved-addresses').innerHTML = '';
+            updateAlertWalletOptions([]);
             return;
         }
         const chips = addrs.map(a => `
-            <span style="display:inline-flex;align-items:center;gap:6px;background:rgba(243,144,4,0.1);border:1px solid rgba(243,144,4,0.3);border-radius:20px;padding:4px 12px;font-size:0.8rem;font-family:monospace;color:#ddd;">
+            <span style="display:inline-flex;align-items:center;gap:6px;background:rgba(243,144,4,0.1);border:1px solid rgba(243,144,4,0.3);border-radius:20px;padding:4px 12px;font-size:0.8rem;font-family:var(--font-data);color:#ddd;">
                 ${shortAddr(a)}
                 <span style="cursor:pointer;color:#ff6b6b;font-weight:bold;" onclick="removeAddress('${a}')" title="Remove">&times;</span>
             </span>
         `).join(' ');
-        document.getElementById('saved-addresses').innerHTML = `<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;">${chips}</div>`;
+        document.getElementById('saved-addresses').innerHTML = `
+            <details class="portfolio-saved-addresses">
+                <summary>
+                    <span class="portfolio-saved-addresses__label">
+                        <span class="portfolio-saved-addresses__title">Loaded addresses</span>
+                        <span class="portfolio-saved-addresses__count">(${addrs.length})</span>
+                    </span>
+                    <span class="portfolio-saved-addresses__icon" aria-hidden="true"></span>
+                </summary>
+                <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;">${chips}</div>
+            </details>`;
+            updateAlertWalletOptions(addrs);
     }
 
     function removeAddress(addr) {
@@ -833,16 +2600,67 @@
             loadPortfolio();
         } else {
             document.getElementById('totals-section').style.display = 'none';
+            document.getElementById('reporting-section').style.display = 'none';
             document.getElementById('wallet-results').innerHTML = '';
             document.getElementById('saved-addresses').innerHTML = '';
             document.getElementById('load-status').innerHTML = '';
+            document.getElementById('report-status').textContent = '';
+            currentReportData = null;
+            lastWallets = [];
+            lastReportFilterSignature = '';
         }
     }
 
     // ========================
     // EXPORT / IMPORT (Short Code via API)
     // ========================
-    const API_BASE = 'https://perpetualbitcoin.io/api';
+    async function parseApiJsonResponse(resp, unavailableMessage) {
+        const raw = await resp.text();
+        const contentType = (resp.headers.get('content-type') || '').toLowerCase();
+
+        if (contentType.includes('application/json')) {
+            try {
+                return JSON.parse(raw || '{}');
+            } catch {
+                throw new Error('Server returned invalid JSON.');
+            }
+        }
+
+        const trimmed = (raw || '').trim();
+        if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+            try {
+                return JSON.parse(trimmed);
+            } catch {
+                throw new Error('Server returned invalid JSON.');
+            }
+        }
+
+        if (trimmed.startsWith('<')) {
+            throw new Error(unavailableMessage);
+        }
+
+        throw new Error('Unexpected server response.');
+    }
+
+    function downloadJsonFile(filename, payload) {
+        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    }
+
+    function exportAddressesLocally(addrs) {
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+        downloadJsonFile(`pb-portfolio-wallets-${timestamp}.json`, {
+            exportedAt: new Date().toISOString(),
+            addresses: addrs,
+        });
+    }
 
     document.getElementById('btn-export').addEventListener('click', async () => {
         const addrs = loadSavedAddresses();
@@ -850,18 +2668,20 @@
         if (addrs.length === 0) { statusEl.innerHTML = '<span style="color:#ff6b6b;">No addresses to export.</span>'; return; }
         statusEl.innerHTML = '<span style="color:#F39004;">⏳ Saving...</span>';
         try {
-            const resp = await fetch(API_BASE + '/portfolio', {
+            const resp = await fetch(getApiBase() + '/portfolio', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ addresses: addrs }),
             });
-            const data = await resp.json();
+            const data = await parseApiJsonResponse(resp, 'Share-code API is not available on this site right now.');
             if (!resp.ok) throw new Error(data.error || 'Save failed');
-            document.getElementById('export-code-display').style.display = '';
-            document.getElementById('export-code-value').textContent = data.code;
-            statusEl.innerHTML = `<span style="color:#4CAF50;">📤 Saved ${addrs.length} address${addrs.length>1?'es':''}. Click code to copy.</span>`;
+            rememberShareCode(data.code, addrs);
+            setShareCodeDisplay(data.code);
+            statusEl.innerHTML = `<span style="color:#4CAF50;">📤 ${data.reused ? 'Loaded' : 'Saved'} ${addrs.length} address${addrs.length>1?'es':''}. Click code to copy.</span>`;
         } catch (e) {
-            statusEl.innerHTML = `<span style="color:#ff6b6b;">Error: ${e.message}</span>`;
+            hideShareCodeDisplay();
+            exportAddressesLocally(addrs);
+            statusEl.innerHTML = `<span style="color:#F39004;">Local export downloaded. ${e.message}</span>`;
         }
     });
 
@@ -871,19 +2691,21 @@
         if (!code || code.length !== 5) { statusEl.innerHTML = '<span style="color:#ff6b6b;">Enter a 5-character code.</span>'; return; }
         statusEl.innerHTML = '<span style="color:#F39004;">⏳ Loading...</span>';
         try {
-            const resp = await fetch(API_BASE + '/portfolio/' + encodeURIComponent(code));
-            const data = await resp.json();
+            const resp = await fetch(getApiBase() + '/portfolio/' + encodeURIComponent(code));
+            const data = await parseApiJsonResponse(resp, 'Share-code import is not available on this site right now.');
             if (!resp.ok) throw new Error(data.error || 'Not found');
             const addrs = (data.addresses || []).filter(a => /^0x[0-9a-fA-F]{40}$/.test(a));
             if (addrs.length === 0) { statusEl.innerHTML = '<span style="color:#ff6b6b;">No valid addresses in that code.</span>'; return; }
             const existing = loadSavedAddresses();
             const merged = [...new Set([...existing, ...addrs].map(a => { try { return ethers.getAddress(a); } catch { return null; } }).filter(Boolean))];
             saveAddresses(merged);
+            rememberShareCode(data.code || code, merged);
+            setShareCodeDisplay(data.code || code);
             document.getElementById('import-code').value = '';
             statusEl.innerHTML = `<span style="color:#4CAF50;">📥 Imported ${addrs.length} address${addrs.length>1?'es':''}!</span>`;
             loadPortfolio();
         } catch (e) {
-            statusEl.innerHTML = `<span style="color:#ff6b6b;">${e.message === 'code not found' ? 'Code not found. Check and try again.' : 'Error: ' + e.message}</span>`;
+            statusEl.innerHTML = `<span style="color:#ff6b6b;">${e.message === 'code not found' ? 'Code not found. Check and try again.' : e.message}</span>`;
         }
     });
 
@@ -892,20 +2714,67 @@
         if (e.key === 'Enter') { e.preventDefault(); document.getElementById('btn-import').click(); }
     });
 
+    document.getElementById('report-year').addEventListener('change', refreshReportSection);
+    document.querySelectorAll('input[name="report-scope"]').forEach(input => input.addEventListener('change', refreshReportSection));
+    document.getElementById('report-wallet-filter').addEventListener('change', refreshReportSection);
+    document.getElementById('report-position-filter').addEventListener('change', refreshReportSection);
+    document.getElementById('report-wallet-filter').addEventListener('click', (event) => {
+        const button = event.target.closest('[data-report-action]');
+        if (!button) return;
+        event.preventDefault();
+        setReportFilterCheckboxes('report-wallet-filter', button.dataset.reportAction === 'select-all');
+    });
+    document.getElementById('report-position-filter').addEventListener('click', (event) => {
+        const button = event.target.closest('[data-report-action]');
+        if (!button) return;
+        event.preventDefault();
+        setReportFilterCheckboxes('report-position-filter', button.dataset.reportAction === 'select-all');
+    });
+    document.getElementById('btn-report-refresh').addEventListener('click', refreshReportSection);
+    document.getElementById('btn-export-report-activity').addEventListener('click', exportReportActivityCsv);
+    document.getElementById('btn-export-report-positions').addEventListener('click', exportReportPositionsCsv);
+    document.getElementById('btn-print-report').addEventListener('click', printReportPreview);
+
     document.getElementById('btn-load').addEventListener('click', loadPortfolio);
+    document.getElementById('btn-add-wallets').addEventListener('click', loadPortfolio);
+    document.getElementById('alert-wallet-list').addEventListener('change', updateAlertWalletSummary);
+    document.getElementById('btn-alert-select-all').addEventListener('click', () => {
+        selectAllAlertWallets();
+        document.getElementById('alert-status').textContent = '';
+    });
+    document.getElementById('btn-alert-save').addEventListener('click', saveSettlementAlerts);
+    document.getElementById('btn-alert-disable').addEventListener('click', disableSettlementAlerts);
+    document.getElementById('alert-email').addEventListener('change', (event) => {
+        const email = event.target.value.trim();
+        saveAlertEmail(email);
+        loadSettlementAlertsForEmail(email);
+    });
     document.getElementById('btn-pbt-load').addEventListener('click', loadSinglePbt);
     document.getElementById('btn-clear').addEventListener('click', () => {
         localStorage.removeItem(STORAGE_KEY);
         document.getElementById('address-input').value = '';
         document.getElementById('pbt-input').value = '';
         document.getElementById('totals-section').style.display = 'none';
+        document.getElementById('reporting-section').style.display = 'none';
         document.getElementById('wallet-results').innerHTML = '';
         document.getElementById('saved-addresses').innerHTML = '';
         document.getElementById('load-status').innerHTML = '';
         document.getElementById('pbt-status').innerHTML = '';
         document.getElementById('pbt-result').innerHTML = '';
-        document.getElementById('export-code-display').style.display = 'none';
+        clearAllRememberedShareCodes();
+        hideShareCodeDisplay();
         document.getElementById('share-status').innerHTML = '';
+        document.getElementById('alert-status').innerHTML = '';
+        updateAlertWalletOptions([]);
+        document.getElementById('report-summary').innerHTML = '';
+        document.getElementById('report-position-summary').innerHTML = '';
+        document.getElementById('report-activity-ledger').innerHTML = '';
+        document.getElementById('report-note').textContent = '';
+        document.getElementById('report-status').textContent = '';
+        currentReportData = null;
+        lastWallets = [];
+        lastAllEvents = {};
+        lastReportFilterSignature = '';
     });
 
     // Enter key triggers load
@@ -926,11 +2795,19 @@
     // Auto-load saved addresses on page load
     (function() {
         const saved = loadSavedAddresses();
+        document.getElementById('alert-email').value = loadAlertEmail();
+        updateAlertWalletOptions(saved);
+        syncPersistedShareCode(saved);
+        if (loadAlertEmail()) {
+            loadSettlementAlertsForEmail(loadAlertEmail());
+        }
         if (saved.length > 0) {
             renderSavedAddresses(saved);
             loadPortfolio();
         }
     })();
     </script>
+    <script>window.gtranslateSettings = {"default_language":"en","native_language_names":true,"detect_browser_language":true,"languages":["en","zh-CN","fr","de","hi","es","pt","nl","el"],"wrapper_selector":".gtranslate_wrapper","flag_style":"3d","alt_flags":{"en":"usa"}}</script>
+    <script src="https://cdn.gtranslate.net/widgets/latest/float.js" defer></script>
 </body>
 </html>

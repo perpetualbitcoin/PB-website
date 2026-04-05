@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DEV - Perpetual Bitcoin</title>
+    <meta name="description" content="Restricted Perpetual Bitcoin developer page." />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="theme-color" content="#F39004" />
+    <link rel="canonical" href="https://perpetualbitcoin.io/DEV.html" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://perpetualbitcoin.io/DEV.html" />
+    <meta property="og:title" content="DEV - Perpetual Bitcoin" />
+    <meta property="og:description" content="Restricted Perpetual Bitcoin developer page." />
+    <meta property="og:image" content="https://perpetualbitcoin.io/Pic/PB_logo.jpg" />
+    <meta property="og:site_name" content="Perpetual Bitcoin" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="DEV - Perpetual Bitcoin" />
+    <meta name="twitter:description" content="Restricted Perpetual Bitcoin developer page." />
+    <meta name="twitter:image" content="https://perpetualbitcoin.io/Pic/PB_logo.jpg" />
+    <link rel="icon" href="Pic/favicon.ico" type="image/x-icon" />
+    <link rel="stylesheet" href="styles.css" />
+    <script src="https://cdn.jsdelivr.net/npm/ethers@6/dist/ethers.umd.js"></script>
+    <script src="config.js"></script>
+    <script defer src="ticker.js"></script>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-LK69CE9C9C"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-LK69CE9C9C');
+    </script>
+    <style>
+        .dev-gate-card,
+        .dev-info-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 165, 0, 0.12);
+            border-radius: 14px;
+            padding: 1.25rem;
+        }
+
+        .dev-gate-controls {
+            display: flex;
+            gap: 0.8rem;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-top: 1rem;
+        }
+
+        .dev-gate-controls input {
+            min-width: 220px;
+            flex: 1;
+            padding: 0.9rem 1rem;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 165, 0, 0.22);
+            background: rgba(15, 15, 20, 0.92);
+            color: #fff;
+            font-size: 1rem;
+        }
+
+        .dev-gate-status {
+            min-height: 1.4rem;
+            margin-top: 0.9rem;
+            color: rgba(255, 255, 255, 0.72);
+        }
+
+        .dev-hidden {
+            display: none;
+        }
+
+        .dev-surface-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .dev-surface-overview {
+            display: grid;
+            grid-template-columns: minmax(240px, 0.95fr) minmax(0, 1.55fr);
+            gap: 1.2rem;
+            align-items: start;
+        }
+
+        .dev-surface-intro h2 {
+            margin-bottom: 0.85rem;
+        }
+
+        .dev-surface-intro p {
+            margin: 0;
+            color: rgba(255, 255, 255, 0.82);
+            line-height: 1.7;
+            max-width: 28rem;
+        }
+
+        .dev-group-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 1rem;
+        }
+
+        .dev-group-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 165, 0, 0.12);
+            border-radius: 14px;
+            padding: 1rem 1rem 1.05rem;
+        }
+
+        .dev-group-card h3 {
+            margin: 0 0 0.4rem;
+            color: #fff;
+            font-size: 1.02rem;
+        }
+
+        .dev-group-card p {
+            margin: 0;
+            color: rgba(255, 255, 255, 0.68);
+            font-size: 0.92rem;
+            line-height: 1.55;
+        }
+
+        .dev-group-card .dev-chip-row {
+            margin-top: 0.85rem;
+        }
+
+        .dev-chip-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.6rem;
+            margin-top: 1rem;
+        }
+
+        .dev-chip {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.35rem 0.75rem;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 165, 0, 0.2);
+            background: rgba(255, 165, 0, 0.08);
+            color: #f5d19a;
+            font-size: 0.88rem;
+        }
+
+        a.dev-chip {
+            text-decoration: none;
+            transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
+        }
+
+        a.dev-chip:hover {
+            border-color: rgba(255, 165, 0, 0.4);
+            background: rgba(255, 165, 0, 0.14);
+            transform: translateY(-1px);
+        }
+
+        .dev-link-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.8rem;
+            margin-top: 1rem;
+        }
+
+        .dev-contracts details {
+            margin-bottom: 12px;
+        }
+
+        .dev-contracts details > summary {
+            list-style: none;
+            cursor: pointer;
+            padding: 10px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            background: #0f0f14;
+            border: 1px solid rgba(255, 165, 0, 0.04);
+            border-radius: 6px;
+        }
+
+        .dev-contracts details > summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .dev-contracts details > summary::after {
+            content: '+';
+            color: #F39004;
+            font-weight: 700;
+            font-size: 1.05rem;
+        }
+
+        .dev-contracts details[open] > summary::after {
+            content: '−';
+        }
+
+        .dev-contracts-body {
+            padding: 14px 12px 4px;
+            background: rgba(255, 255, 255, 0.02);
+            border-left: 1px solid rgba(255, 165, 0, 0.08);
+            border-right: 1px solid rgba(255, 165, 0, 0.08);
+            border-bottom: 1px solid rgba(255, 165, 0, 0.08);
+            border-radius: 0 0 10px 10px;
+        }
+
+        .dev-contracts-body h4 {
+            margin: 0 0 0.55rem;
+            color: #F39004;
+            font-size: 0.95rem;
+        }
+
+        .dev-contracts-body p {
+            margin-bottom: 0.85rem;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .dev-contracts-body ul {
+            margin: 0 0 1rem 1.1rem;
+            color: rgba(255, 255, 255, 0.88);
+            line-height: 1.55;
+        }
+
+        .dev-contracts-body li {
+            margin-bottom: 0.28rem;
+        }
+
+        .dev-contracts-body code {
+            color: #ffd79a;
+        }
+
+        .logo a {
+            display: inline-flex;
+            align-items: center;
+        }
+
+        @media (max-width: 768px) {
+            .dev-surface-overview,
+            .dev-group-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .dev-gate-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .dev-gate-controls input,
+            .dev-gate-controls button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body class="presale-dapp-bg">
+    <nav class="navbar" style="padding: 0.4rem 0;">
+        <div class="nav-container" style="padding: 0 2rem;">
+            <div class="logo"><a href="DEV.html" title="Developer Access"><img src="Pic/PB1.png" alt="Perpetual Bitcoin PB logo" style="width:40px;height:40px;"></a></div>
+            <div class="gtranslate_wrapper"></div>
+            <button class="hamburger" id="hamburger-btn" aria-label="Toggle menu" aria-controls="nav-menu" aria-expanded="false">
+                <span></span><span></span><span></span>
+            </button>
+            <ul class="nav-menu" id="nav-menu" style="text-align: center;">
+                <li><a href="index.html#home" class="nav-link">Home</a></li>
+                <li><a href="PBManifesto.html" class="nav-link">PB Manifesto</a></li>
+                <li><a href="whitepaper.html" class="nav-link">Whitepaper</a></li>
+                <li><a href="faq.html" class="nav-link">FAQ</a></li>
+                <li><a href="portfolio.html" class="nav-link">Portfolio</a></li>
+                <li><a href="Dapp.html" class="nav-link">Dapp</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <section class="page-hero">
+        <h1>Developer Access</h1>
+        <p>Restricted internal notes and quick links for the current PB contract surface.</p>
+    </section>
+
+    <div class="page-container docs-grid-page">
+        <section class="presale-section docs-intro-card">
+            <h2>Restricted Entry</h2>
+            <div id="dev-gate" class="dev-gate-card">
+                <p>Enter the fixed developer password to reveal this page.</p>
+                <div class="dev-gate-controls">
+                    <input id="dev-password" type="password" placeholder="Enter password" autocomplete="off" />
+                    <button id="dev-unlock" class="btn btn-primary" type="button">Unlock</button>
+                </div>
+                <div id="dev-gate-status" class="dev-gate-status"></div>
+            </div>
+        </section>
+
+        <div id="dev-content" class="dev-hidden">
+            <section class="presale-section trust-hero-card">
+                <div class="dev-surface-overview">
+                    <div class="dev-surface-intro">
+                        <h2>Current Contract Surface</h2>
+                        <p>This page maps the live mainnet contracts in the order they are easiest to reason about: presale first, core operating contracts second, and helper tooling last.</p>
+                    </div>
+                    <div class="dev-group-grid">
+                        <article class="dev-group-card">
+                            <h3>Presale</h3>
+                            <p>Where allocation starts and how those presale positions get converted into live protocol state.</p>
+                            <div class="dev-chip-row">
+                                <a class="dev-chip" href="#contract-presaleiou">PresaleIOU</a>
+                                <a class="dev-chip" href="#contract-launchconverter">LaunchConverter</a>
+                            </div>
+                        </article>
+                        <article class="dev-group-card">
+                            <h3>Main Operating</h3>
+                            <p>The contracts users actually sit inside after launch: buy flow, locks, trackers, recovery, and inheritance.</p>
+                            <div class="dev-chip-row">
+                                <a class="dev-chip" href="#contract-vault">Vault</a>
+                                <a class="dev-chip" href="#contract-pb">PB</a>
+                                <a class="dev-chip" href="#contract-pbc">PBc</a>
+                                <a class="dev-chip" href="#contract-pbt">PBt</a>
+                                <a class="dev-chip" href="#contract-pbr">PBr</a>
+                                <a class="dev-chip" href="#contract-pbi">PBi</a>
+                            </div>
+                        </article>
+                        <article class="dev-group-card">
+                            <h3>Helper</h3>
+                            <p>Support tooling around the core flow, mainly pricing, read-side views, and LP removal.</p>
+                            <div class="dev-chip-row">
+                                <a class="dev-chip" href="#contract-pulsexinterface">PulseXInterface</a>
+                                <a class="dev-chip" href="#contract-vaultviews">VaultViews</a>
+                                <a class="dev-chip" href="#contract-pbremoveuserlp">PBRemoveUserLP</a>
+                            </div>
+                        </article>
+                    </div>
+                </div>
+            </section>
+
+            <section class="presale-section">
+                <h2>Architecture Snapshot</h2>
+                <div class="dev-surface-grid">
+                    <div class="dev-info-card">
+                        <h3>Buy Path</h3>
+                        <p>All canonical buys route through <strong>Vault.buyPBDirect()</strong>. PB blocks direct pair-to-user delivery so the Vault stays in the middle of the protocol path.</p>
+                    </div>
+                    <div class="dev-info-card">
+                        <h3>Position Stack</h3>
+                        <p>Liquid PB is transferable, PBc is Vault-mediated only, and each position is tracked by a non-transferable PBt NFT.</p>
+                    </div>
+                    <div class="dev-info-card">
+                        <h3>Launch Flow</h3>
+                        <p>Presale blocks live in PresaleIOU, then the one-time LaunchConverter batches those blocks into live Vault allocations at launch.</p>
+                    </div>
+                    <div class="dev-info-card">
+                        <h3>Succession</h3>
+                        <p>Recovery and inheritance are password-based dual-party flows backed by non-transferable PBr and PBi badges.</p>
+                    </div>
+                    <div class="dev-info-card">
+                        <h3>Unlock Engine</h3>
+                        <p>Unlocks are geometric, trigger-price based, and permissionless through <strong>executeUnlock()</strong> when price reaches the next threshold.</p>
+                    </div>
+                    <div class="dev-info-card">
+                        <h3>VLock</h3>
+                        <p>VLock routes voluntary PB deposits into PBc + PBt and can claim a one-time share of harvested LP fees if the position meets the threshold.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="presale-section docs-intro-card">
+                <h2>Important Live Entry Points</h2>
+                <div class="dev-chip-row">
+                    <span class="dev-chip">PresaleIOU.buyBlock()</span>
+                    <span class="dev-chip">LaunchConverter.executeConversionBatch()</span>
+                    <span class="dev-chip">Vault.buyPBDirect()</span>
+                    <span class="dev-chip">Vault.executeUnlock()</span>
+                    <span class="dev-chip">Vault.voluntaryLock()</span>
+                    <span class="dev-chip">Vault.claimLPFeesFor()</span>
+                    <span class="dev-chip">Vault.activateRecovery()</span>
+                    <span class="dev-chip">Vault.activateInheritance()</span>
+                </div>
+            </section>
+
+            <section class="presale-section dev-contracts">
+                <h2>All Functions / Getters / Helpers / Events</h2>
+
+                <h3>1. Presale</h3>
+
+                <details id="contract-presaleiou">
+                    <summary><span><strong>PresaleIOU.sol</strong> • Presale IOU NFT</span></summary>
+                    <div class="dev-contracts-body">
+                        <p>Non-transferable presale NFT system for 555 blocks, founder reservations, treasury-controlled close, and batched FOAD distribution.</p>
+                        <h4>External / public</h4>
+                        <ul>
+                            <li><code>constructor(address usdl, address presaleTreasury, address[] memory founderRecipients, uint256[] memory founderBlocks)</code></li>
+                            <li><code>setLaunchConverter(address launchConverter)</code></li>
+                            <li><code>getEntryPriceAtBlock(uint256 blockNum)</code></li>
+                            <li><code>getPBPerBlock(uint256 blockNum)</code></li>
+                            <li><code>isFounderBlock(uint256 blockNum)</code></li>
+                            <li><code>closeSale()</code></li>
+                            <li><code>buyBlock(uint256 numBlocks)</code></li>
+                            <li><code>distributeUnsoldToFOAD(uint256 batchSize)</code></li>
+                            <li><code>markConverted(uint256 blockNum)</code></li>
+                            <li><code>getPresaleData()</code></li>
+                            <li><code>supportsInterface(bytes4 interfaceId)</code></li>
+                            <li><code>balanceOf(address owner)</code></li>
+                            <li><code>ownerOf(uint256 tokenId)</code></li>
+                            <li><code>approve(address, uint256)</code> (override, reverts)</li>
+                            <li><code>getApproved(uint256 tokenId)</code></li>
+                            <li><code>setApprovalForAll(address, bool)</code> (override, reverts)</li>
+                            <li><code>isApprovedForAll(address owner, address operator)</code></li>
+                            <li><code>transferFrom(address, address, uint256)</code> (override, reverts)</li>
+                            <li><code>safeTransferFrom(address, address, uint256)</code> (override, reverts)</li>
+                            <li><code>safeTransferFrom(address, address, uint256, bytes memory)</code> (override, reverts)</li>
+                            <li><code>tokenURI(uint256 tokenId)</code></li>
+                        </ul>
+                        <h4>Getters / state surface</h4>
+                        <ul>
+                            <li><code>TOTAL_BLOCKS</code>, <code>FREE_BLOCKS</code>, <code>MAX_NFT_SUPPLY</code>, <code>PB_PER_BLOCK</code>, <code>MAX_BLOCKS_PER_ADDRESS</code>, <code>USDL_PER_BLOCK</code></li>
+                            <li><code>name</code>, <code>symbol</code>, <code>IOU_IMAGE_URI</code></li>
+                            <li><code>USDL</code>, <code>PRESALE_TREASURY</code>, <code>LAUNCH_CONVERTER</code></li>
+                            <li><code>blocksPurchased</code>, <code>nextAvailableBlock</code>, <code>totalRaised</code>, <code>isFounder</code>, <code>distributionNextBlock</code>, <code>distributionFOADIndex</code>, <code>saleClosed</code></li>
+                        </ul>
+                        <h4>Events</h4>
+                        <ul>
+                            <li><code>Transfer(address indexed from, address indexed to, uint256 indexed tokenId)</code></li>
+                            <li><code>Approval(address indexed owner, address indexed approved, uint256 indexed tokenId)</code></li>
+                            <li><code>ApprovalForAll(address indexed owner, address indexed operator, bool approved)</code></li>
+                        </ul>
+                        <h4>Internal helpers</h4>
+                        <ul>
+                            <li><code>_mint(address to, uint256 tokenId)</code></li>
+                            <li><code>_transfer(address from, address to, uint256 tokenId)</code></li>
+                            <li><code>_isApprovedOrOwner(address spender, uint256 tokenId)</code></li>
+                            <li><code>_checkOnERC721Received(address from, address to, uint256 tokenId, bytes memory data)</code></li>
+                            <li><code>_burn(uint256 tokenId)</code></li>
+                        </ul>
+                    </div>
+                </details>
+
+                <details id="contract-launchconverter">
+                    <summary><span><strong>LaunchConverter.sol</strong> • One-time launch migration</span></summary>
+                    <div class="dev-contracts-body">
+                        <p>Batched one-time presale conversion into live Vault allocations and PBt creation.</p>
+                        <h4>External / public</h4>
+                        <ul>
+                            <li><code>constructor(address _presaleIOU, address _vault)</code></li>
+                            <li><code>executeConversionBatch()</code></li>
+                            <li><code>setBatchSize(uint256 _batchSize)</code></li>
+                            <li><code>getProgress()</code></li>
+                            <li><code>getStatus()</code></li>
+                            <li><code>getBlocksRemaining()</code></li>
+                            <li><code>seedLP(uint256 a, uint256 b, uint256 c, uint256 d)</code></li>
+                        </ul>
+                        <h4>Getters / state surface</h4>
+                        <ul>
+                            <li><code>PRESALE_IOU</code>, <code>VAULT</code>, <code>deployer</code></li>
+                            <li><code>TOTAL_BLOCKS</code>, <code>batchSize</code>, <code>nextBlockToConvert</code>, <code>currentBatch</code>, <code>totalBatches</code>, <code>blocksConverted</code></li>
+                            <li><code>conversionStarted</code>, <code>conversionFinalized</code></li>
+                        </ul>
+                        <h4>Events</h4>
+                        <ul>
+                            <li><code>ConversionBatchExecuted(uint256 batchNumber, uint256 totalBatches, uint256 fromBlock, uint256 toBlock, uint256 totalConverted, bool finalized)</code></li>
+                            <li><code>BlockConverted(uint256 indexed blockNum, address indexed buyer, uint256 pbAmount, uint256 entryPrice)</code></li>
+                            <li><code>ConversionFinalized(uint256 timestamp, uint256 totalConverted)</code></li>
+                        </ul>
+                        <h4>Internal helpers</h4>
+                        <ul>
+                            <li><code>_convertBlock(IPresaleIOU.Block memory block_data)</code></li>
+                        </ul>
+                    </div>
+                </details>
+
+                <h3>2. Main Operating</h3>
+
+                <details id="contract-vault" open>
+                    <summary><span><strong>Vault.sol</strong> • Constitutional core</span></summary>
+                    <div class="dev-contracts-body">
+                        <p>Main immutable protocol core: deployment locking, LP seeding, presale allocation, live buys, unlocks, succession, and VLock / fee harvesting.</p>
+                        <h4>External / public deployment + init</h4>
+                        <ul>
+                            <li><code>constructor(address _pbToken, address _pbcToken, address _pbtToken, address _pbrToken, address _pbiToken, address _usdlToken, address _priceFeed, address _pulsexRouter)</code></li>
+                            <li><code>receive()</code></li>
+                            <li><code>lockImmutableReferences(address _launchConverter, address _pulsexPair, address _lpRemover)</code></li>
+                            <li><code>seedInitialLP(uint256 usdlAmount, uint256 minPB, uint256 minUSDL, uint256 deadline)</code></li>
+                        </ul>
+                        <h4>External / public protocol entrypoints</h4>
+                        <ul>
+                            <li><code>allocatePresaleUser(address user, uint256 pbAmount, uint256 entryPrice)</code></li>
+                            <li><code>executeUnlock(uint256 pbtId)</code></li>
+                            <li><code>setRecoveryAddress(uint256 pbtId, address recoveryAddr, bytes32 passwordHash, string calldata message)</code></li>
+                            <li><code>activateRecovery(uint256 pbtId, string calldata password)</code></li>
+                            <li><code>setInheritanceAddress(uint256 pbtId, address inheritanceAddr, bytes32 passwordHash, string calldata message)</code></li>
+                            <li><code>activateInheritance(uint256 pbtId, string calldata password)</code></li>
+                            <li><code>voluntaryLock(uint256 pbAmount)</code></li>
+                            <li><code>harvestLPRewards()</code></li>
+                            <li><code>claimLPFeesFor(uint256 pbtId)</code></li>
+                            <li><code>buyPBDirect(uint256 usdlAmount, uint256 minPBOut, address recipient, uint256[] calldata unlockIds)</code></li>
+                            <li><code>forwardLPTokensToUser(address recipient, uint256 amount0, uint256 amount1)</code> — LP_REMOVER-only</li>
+                        </ul>
+                        <h4>External / public getters / quotes</h4>
+                        <p><em>Note: 14 view functions have been relocated to <a href="#contract-vaultviews">VaultViews.sol</a> for bytecode optimization. See that contract for: computeNextTriggerPrice, totalOutstandingPBc/PB, getPBtData, getUserPBtIds, getRecoveryData, getInheritanceData, getCurrentLPProceeds, getVlockParameters, getLPTokenBalance, getPBQuote, getPositionUnlockStatus, getActivePositionCount, getUserTotalValue.</em></p>
+                        <h4>Internal helpers</h4>
+                        <ul>
+                            <li><code>_executeUnlock(uint256 pbtId, bool skipPriceCheck)</code></li>
+                            <li><code>_movePBtOwnership(uint256 pbtId, address oldHolder, address newHolder)</code></li>
+                            <li><code>_computeSplit(uint256 pbAmount)</code></li>
+                            <li><code>_addVaultPB(uint256 amount)</code></li>
+                            <li><code>_addVaultPBc(uint256 amount)</code></li>
+                            <li><code>_deductVaultPB(uint256 amount)</code></li>
+                            <li><code>_deductVaultPBc(uint256 amount)</code></li>
+                            <li><code>_transferPBFromVault(address recipient, uint256 amount)</code></li>
+                            <li><code>_transferPBcFromVault(address recipient, uint256 amount)</code></li>
+                            <li><code>_mintPBt(address recipient, uint256 pbAmount, uint256 lockedPBc, uint256 buyPrice)</code></li>
+                            <li><code>_sellPBtoAMM(uint256 pbAmount)</code></li>
+                            <li><code>_checkPhaseTransition()</code></li>
+                            <li><code>_getAmountOut(uint256 amountIn, uint256 reserveIn, uint256 reserveOut)</code></li>
+                            <li><code>_computeUSDLForPrice(uint256 reservePB, uint256 reserveUSDL, uint256 targetPrice)</code></li>
+                            <li><code>_sequentialNettingScan(...)</code></li>
+                            <li><code>_settleNettedPosition(NettingScanResult memory r)</code></li>
+                            <li><code>_directLPContribution(uint256 usdlForLP, uint256 reservePB, uint256 reserveUSDL)</code></li>
+                            <li><code>_getPairReserves()</code></li>
+                            <li><code>_harvestLPRewards()</code></li>
+                            <li><code>_sqrt(uint256 x)</code></li>
+                            <li><code>_claimLPFeesForInternal(uint256 pbtId)</code></li>
+                            <li><code>_executeBuyOnPulseX(uint256 usdlAmount, uint256 minPBOut)</code></li>
+                        </ul>
+                        <h4>Events</h4>
+                        <ul>
+                            <li><code>PresaleAllocated(address indexed user, uint256 indexed pbtId, uint256 pbAmount, uint256 buyPrice)</code></li>
+                            <li><code>UnlockTriggered(uint256 indexed pbtId, uint256 unlockIndex, uint256 pbUnlocked, uint256 usdlProceeds, address payoutAddress, uint256 newTriggerPrice, uint256 remainingPBcLocked)</code></li>
+                            <li><code>PBtBurned(uint256 indexed pbtId, uint256 remainingDust)</code></li>
+                            <li><code>PhaseTransitioned(bool wasDistribution, uint256 vaultPBBalance, uint256 totalOutstandingPBc)</code></li>
+                            <li><code>RecoveryAddressSet(uint256 indexed pbtId, address indexed recoveryAddress)</code></li>
+                            <li><code>RecoveryActivated(uint256 indexed pbtId, address indexed recoveryAddress)</code></li>
+                            <li><code>InheritanceAddressSet(uint256 indexed pbtId, address indexed inheritanceAddress)</code></li>
+                            <li><code>InheritanceActivated(uint256 indexed pbtId, address indexed inheritanceAddress)</code></li>
+                            <li><code>LPContributed(uint256 pbAmount, uint256 usdlAmount)</code></li>
+                            <li><code>FinalLPContribution(uint256 pbAmount, uint256 usdlAmount)</code></li>
+                            <li><code>ImmutableReferencesLocked(address indexed launchConverter, address indexed pulsexPair, address indexed lpRemover)</code></li>
+                            <li><code>UnlockNetted(uint256 indexed pbtId, uint256 unlockIndex, uint256 pbcSettled, uint256 usdlPaid, address payoutAddress, uint256 settlementPrice, uint256 newTriggerPrice, uint256 remainingPBcLocked)</code></li>
+                            <li><code>BuyWithNetting(address indexed buyer, address indexed recipient, uint256 indexed pbtId, uint256 usdlIn, uint256 totalPBOut, uint256 nettedPB, uint256 ammPB, uint256 lpPB, uint256 lpUSDL, uint256 unlocksNetted)</code></li>
+                            <li><code>InitialLPSeeded(uint256 usdlAmount, uint256 pbAmount, uint256 liquidity)</code></li>
+                            <li><code>LPRewardsHarvested(uint256 usdlAmount, uint256 pbAmount)</code></li>
+                            <li><code>VLockExecuted(address indexed user, uint256 indexed pbtId, uint256 pbAmount, uint256 usdlBonusPaid, uint256 pbBonusPaid)</code></li>
+                            <li><code>VLockBonusPaid(address indexed user, uint256 usdlAmount, uint256 pbAmount)</code></li>
+                        </ul>
+                        <h4>Key autogenerated getters / state surface</h4>
+                        <ul>
+                            <li><code>vaultPBBalance</code>, <code>vaultPBcBalance</code>, <code>vaultLPTokenBalance</code>, <code>totalUSDLDistributed</code>, <code>buyCount</code></li>
+                            <li><code>isDistributionPhase</code>, <code>phaseTransitionExecuted</code>, <code>immutableReferencesLocked</code>, <code>initialLPSeeded</code></li>
+                            <li><code>LP_REMOVER</code>, <code>LAUNCH_CONVERTER</code>, <code>PULSEX_PAIR</code></li>
+                            <li><code>pbtIdCounter</code>, <code>activePositionCount</code>, <code>pbtRegistry</code>, <code>userPBtIds</code></li>
+                            <li><code>recoveryRegistry</code>, <code>inheritanceRegistry</code>, <code>isVLockPosition</code>, <code>vlockBonusClaimed</code></li>
+                            <li><code>accumulatedFeesUSDL</code>, <code>accumulatedFeesPB</code>, <code>lastKPerLP</code></li>
+                        </ul>
+                    </div>
+                </details>
+
+                <details id="contract-pb">
+                    <summary><span><strong>PB.sol</strong> • Liquid token</span></summary>
+                    <div class="dev-contracts-body">
+                        <p>Transferable liquid token with canonical buy-path protection at the pair boundary.</p>
+                        <h4>External / public</h4>
+                        <ul>
+                            <li><code>constructor()</code></li>
+                            <li><code>lockVault(address _vault)</code></li>
+                            <li><code>setPairAddress(address _pair)</code></li>
+                            <li><code>transfer(address to, uint256 amount)</code></li>
+                            <li><code>transferFrom(address from, address to, uint256 amount)</code></li>
+                            <li><code>approve(address spender, uint256 amount)</code></li>
+                        </ul>
+                        <h4>Getters / state surface</h4>
+                        <ul>
+                            <li><code>name</code>, <code>symbol</code>, <code>decimals</code>, <code>totalSupply</code></li>
+                            <li><code>logoURI</code>, <code>website</code>, <code>description</code></li>
+                            <li><code>DEPLOYER</code>, <code>VAULT</code>, <code>vaultLocked</code>, <code>PAIR</code></li>
+                            <li><code>balanceOf</code>, <code>allowance</code></li>
+                        </ul>
+                        <h4>Events</h4>
+                        <ul>
+                            <li><code>Transfer(address indexed from, address indexed to, uint256 value)</code></li>
+                            <li><code>Approval(address indexed owner, address indexed spender, uint256 value)</code></li>
+                        </ul>
+                        <h4>Protocol rule</h4>
+                        <ul>
+                            <li>Direct pair-to-user routing reverts unless the Vault is the recipient.</li>
+                        </ul>
+                    </div>
+                </details>
+
+                <details id="contract-pbc">
+                    <summary><span><strong>PBc.sol</strong> • Locked claim token</span></summary>
+                    <div class="dev-contracts-body">
+                        <p>Non-transferable ERC20 claim token. Vault-mediated only.</p>
+                        <h4>External / public</h4>
+                        <ul>
+                            <li><code>constructor()</code></li>
+                            <li><code>lockVault(address _vault)</code></li>
+                            <li><code>transfer(address to, uint256 amount)</code></li>
+                            <li><code>transferFrom(address from, address to, uint256 amount)</code></li>
+                            <li><code>approve(address spender, uint256 amount)</code></li>
+                        </ul>
+                        <h4>Getters / state surface</h4>
+                        <ul>
+                            <li><code>name</code>, <code>symbol</code>, <code>decimals</code>, <code>totalSupply</code></li>
+                            <li><code>logoURI</code>, <code>website</code>, <code>description</code></li>
+                            <li><code>DEPLOYER</code>, <code>VAULT</code>, <code>vaultLocked</code></li>
+                            <li><code>balanceOf</code>, <code>allowance</code></li>
+                        </ul>
+                        <h4>Events</h4>
+                        <ul>
+                            <li><code>Transfer(address indexed from, address indexed to, uint256 value)</code></li>
+                            <li><code>Approval(address indexed owner, address indexed spender, uint256 value)</code></li>
+                        </ul>
+                    </div>
+                </details>
+
+                <details id="contract-pbt">
+                    <summary><span><strong>PBt.sol</strong> • Position tracker NFT</span></summary>
+                    <div class="dev-contracts-body">
+                        <p>Non-transferable ERC721 tracker for each position, with unlock history and succession state.</p>
+                        <h4>External / public</h4>
+                        <ul>
+                            <li><code>constructor()</code></li>
+                            <li><code>lockVault(address _vault)</code></li>
+                            <li><code>mint(address to, uint256 tokenId, uint256 buyPrice, uint256 allocatedPB, uint256 allocatedPBc)</code></li>
+                            <li><code>recordUnlock(uint256 tokenId, uint256 unlockedAmount, uint256 unlockPrice)</code></li>
+                            <li><code>recordDust(uint256 tokenId, uint256 dustAmount)</code></li>
+                            <li><code>burnTracker(uint256 tokenId)</code></li>
+                            <li><code>setRecoveryAddress(uint256 tokenId, address recoveryAddress)</code></li>
+                            <li><code>setInheritanceAddress(uint256 tokenId, address inheritanceAddress)</code></li>
+                            <li><code>activateRecovery(uint256 tokenId)</code></li>
+                            <li><code>activateInheritance(uint256 tokenId)</code></li>
+                            <li><code>getMetadata(uint256 tokenId)</code></li>
+                            <li><code>getUnlockHistory(uint256 tokenId)</code></li>
+                            <li><code>getUserTokenIds(address user)</code></li>
+                            <li><code>getUserTokenCount(address user)</code></li>
+                            <li><code>exists(uint256 tokenId)</code></li>
+                            <li><code>burn(uint256 tokenId)</code> (override, reverts)</li>
+                            <li><code>transferFrom(address, address, uint256)</code> (override, reverts)</li>
+                            <li><code>safeTransferFrom(address, address, uint256)</code> (override, reverts)</li>
+                            <li><code>safeTransferFrom(address, address, uint256, bytes memory)</code> (override, reverts)</li>
+                            <li><code>approve(address, uint256)</code> (override, reverts)</li>
+                            <li><code>setApprovalForAll(address, bool)</code> (override, reverts)</li>
+                            <li><code>tokenURI(uint256 tokenId)</code></li>
+                        </ul>
+                        <h4>Getters / state surface</h4>
+                        <ul>
+                            <li><code>DEPLOYER</code>, <code>VAULT</code>, <code>vaultLocked</code></li>
+                            <li><code>pbtMetadata</code>, <code>userTokenIds</code></li>
+                        </ul>
+                        <h4>Events</h4>
+                        <ul>
+                            <li><code>PBtMinted(uint256 indexed tokenId, address indexed owner, uint256 allocatedPB, uint256 allocatedPBc, uint256 buyPrice)</code></li>
+                            <li><code>UnlockRecorded(uint256 indexed tokenId, uint256 indexed unlockIndex, uint256 unlockedAmount, uint256 unlockPrice)</code></li>
+                            <li><code>DustRecorded(uint256 indexed tokenId, uint256 dustAmount)</code></li>
+                            <li><code>PBtBurned(uint256 indexed tokenId, uint256 finalDust)</code></li>
+                            <li><code>RecoveryAddressUpdated(uint256 indexed tokenId, address indexed recoveryAddress)</code></li>
+                            <li><code>InheritanceAddressUpdated(uint256 indexed tokenId, address indexed inheritanceAddress)</code></li>
+                            <li><code>RecoveryActivated(uint256 indexed tokenId, address indexed newOwner)</code></li>
+                            <li><code>InheritanceActivated(uint256 indexed tokenId, address indexed newOwner)</code></li>
+                        </ul>
+                        <h4>Internal helpers</h4>
+                        <ul>
+                            <li><code>_removeTokenFromUser(address user, uint256 tokenId)</code></li>
+                            <li><code>_exists(uint256 tokenId)</code></li>
+                            <li><code>_toString(uint256 value)</code></li>
+                        </ul>
+                    </div>
+                </details>
+
+                <details id="contract-pbr">
+                    <summary><span><strong>PBr.sol</strong> • Recovery badge</span></summary>
+                    <div class="dev-contracts-body">
+                        <p>Non-transferable ERC1155 recovery badge for one-time recovery activation.</p>
+                        <h4>External / public</h4>
+                        <ul>
+                            <li><code>constructor()</code></li>
+                            <li><code>lockVault(address _vault)</code></li>
+                            <li><code>mint(address recipient, uint256 pbtId, string calldata message)</code></li>
+                            <li><code>burn(address holder, uint256 pbtId)</code></li>
+                            <li><code>safeTransferFrom(...)</code> (override, reverts)</li>
+                            <li><code>safeBatchTransferFrom(...)</code> (override, reverts)</li>
+                            <li><code>uri(uint256 tokenId)</code></li>
+                            <li><code>hasRecoveryBadge(address holder, uint256 pbtId)</code></li>
+                            <li><code>getBadgeIds(address holder)</code></li>
+                        </ul>
+                        <h4>Getters / state surface</h4>
+                        <ul>
+                            <li><code>DEPLOYER</code>, <code>VAULT</code>, <code>vaultLocked</code></li>
+                            <li><code>userBadgeIds</code>, <code>badgeMessage</code></li>
+                        </ul>
+                        <h4>Events</h4>
+                        <ul>
+                            <li><code>BadgeMinted(address indexed recipient, uint256 indexed pbtId)</code></li>
+                            <li><code>BadgeBurned(address indexed holder, uint256 indexed pbtId)</code></li>
+                        </ul>
+                        <h4>Internal helpers</h4>
+                        <ul>
+                            <li><code>_toString(uint256 value)</code></li>
+                        </ul>
+                    </div>
+                </details>
+
+                <details id="contract-pbi">
+                    <summary><span><strong>PBi.sol</strong> • Inheritance badge</span></summary>
+                    <div class="dev-contracts-body">
+                        <p>Non-transferable ERC1155 inheritance badge with precedence over recovery once activated.</p>
+                        <h4>External / public</h4>
+                        <ul>
+                            <li><code>constructor()</code></li>
+                            <li><code>lockVault(address _vault)</code></li>
+                            <li><code>mint(address recipient, uint256 pbtId, string calldata message)</code></li>
+                            <li><code>burn(address holder, uint256 pbtId)</code></li>
+                            <li><code>safeTransferFrom(...)</code> (override, reverts)</li>
+                            <li><code>safeBatchTransferFrom(...)</code> (override, reverts)</li>
+                            <li><code>uri(uint256 tokenId)</code></li>
+                            <li><code>hasInheritanceBadge(address holder, uint256 pbtId)</code></li>
+                            <li><code>getBadgeIds(address holder)</code></li>
+                            <li><code>inheritanceTakesPrecedence()</code></li>
+                        </ul>
+                        <h4>Getters / state surface</h4>
+                        <ul>
+                            <li><code>DEPLOYER</code>, <code>VAULT</code>, <code>vaultLocked</code></li>
+                            <li><code>userBadgeIds</code>, <code>badgeMessage</code></li>
+                        </ul>
+                        <h4>Events</h4>
+                        <ul>
+                            <li><code>BadgeMinted(address indexed recipient, uint256 indexed pbtId)</code></li>
+                            <li><code>BadgeBurned(address indexed holder, uint256 indexed pbtId)</code></li>
+                        </ul>
+                        <h4>Internal helpers</h4>
+                        <ul>
+                            <li><code>_toString(uint256 value)</code></li>
+                        </ul>
+                    </div>
+                </details>
+
+
+                <h3>3. Helper</h3>
+
+                <details id="contract-pulsexinterface">
+                    <summary><span><strong>PulseXInterface.sol</strong> • Price helper</span></summary>
+                    <div class="dev-contracts-body">
+                        <p>Read-oriented price wrapper and updateable cumulative-price helper for the PB/USDL pair.</p>
+                        <h4>External / public</h4>
+                        <ul>
+                            <li><code>constructor(address pbUsdlPair, address pbToken, address usdlToken, address vault)</code></li>
+                            <li><code>setVault(address _vault)</code></li>
+                            <li><code>getCurrentPrice()</code></li>
+                            <li><code>updatePrice()</code></li>
+                            <li><code>getPriceHistory(uint256 timestamp)</code></li>
+                        </ul>
+                        <h4>Getters / state surface</h4>
+                        <ul>
+                            <li><code>DEPLOYER</code>, <code>PB_USDL_PAIR</code>, <code>PB_TOKEN</code>, <code>USDL_TOKEN</code></li>
+                            <li><code>VAULT</code>, <code>vaultLocked</code></li>
+                            <li><code>PERIOD</code>, <code>MIN_UPDATE_INTERVAL</code>, <code>FIXED_PRICE</code></li>
+                            <li><code>price0CumulativeLast</code>, <code>price1CumulativeLast</code>, <code>blockTimestampLast</code>, <code>lastUpdateTime</code></li>
+                        </ul>
+                        <h4>Events</h4>
+                        <ul>
+                            <li><code>PriceUpdated(uint256 price, uint256 timestamp)</code></li>
+                            <li><code>VaultLocked(address indexed vault, uint256 timestamp)</code></li>
+                        </ul>
+                        <h4>Internal helpers</h4>
+                        <ul>
+                            <li><code>_updateCumulativePrices()</code></li>
+                            <li><code>_getCurrentCumulatives()</code></li>
+                            <li><code>_getSpotPrice()</code></li>
+                        </ul>
+                    </div>
+                </details>
+
+                <details id="contract-vaultviews">
+                    <summary><span><strong>VaultViews.sol</strong> • Read-only Vault companion</span></summary>
+                    <div class="dev-contracts-body">
+                        <p>14 view functions relocated from Vault.sol to reduce deployed bytecode below PulseChain's 24,576-byte limit. No state is modified — pure reads only.</p>
+                        <h4>Category A: Simple state wrappers</h4>
+                        <ul>
+                            <li><code>getActivePositionCount()</code></li>
+                            <li><code>getCurrentLPProceeds()</code></li>
+                            <li><code>getVlockParameters()</code></li>
+                            <li><code>getLPTokenBalance()</code></li>
+                            <li><code>totalOutstandingPB()</code></li>
+                            <li><code>totalOutstandingPBc()</code></li>
+                        </ul>
+                        <h4>Category B: Struct / array getters</h4>
+                        <ul>
+                            <li><code>getPBtData(uint256 pbtId)</code></li>
+                            <li><code>getUserPBtIds(address user)</code></li>
+                            <li><code>getRecoveryData(uint256 pbtId)</code></li>
+                            <li><code>getInheritanceData(uint256 pbtId)</code></li>
+                        </ul>
+                        <h4>Category C: Computed views</h4>
+                        <ul>
+                            <li><code>computeNextTriggerPrice(uint256 buyPrice, uint256 unlockIndex)</code></li>
+                            <li><code>getPBQuote(uint256 usdlAmount)</code></li>
+                            <li><code>getPositionUnlockStatus(uint256 pbtId)</code></li>
+                            <li><code>getUserTotalValue(address user)</code></li>
+                        </ul>
+                        <h4>Getters / state surface</h4>
+                        <ul>
+                            <li><code>vault</code> (immutable reference to Vault)</li>
+                            <li>Mirrored constants: <code>PB_TOTAL_SUPPLY</code>, <code>PBC_TOTAL_SUPPLY</code>, <code>UNLOCK_MULTIPLIER</code>, <code>UNLOCK_DIVISOR</code>, <code>MIN_VLOCK_BONUS_USDL</code>, <code>VLOCK_BONUS_PCT</code>, <code>PCT_DENOM</code>, <code>MIN_TWAP_WINDOW</code></li>
+                        </ul>
+                    </div>
+                </details>
+
+                <details id="contract-pbremoveuserlp">
+                    <summary><span><strong>PBRemoveUserLP.sol</strong> • LP removal middleware</span></summary>
+                    <div class="dev-contracts-body">
+                        <p>Allows users to remove their LP tokens from the PB-USDL pair. Required because PB.sol blocks direct pair→user PB transfers. Flow: user LP → pair burn → pair sends PB+USDL to Vault → Vault forwards to user. Fully immutable — no owner, no admin.</p>
+                        <h4>External / public</h4>
+                        <ul>
+                            <li><code>constructor(address _vault)</code></li>
+                            <li><code>removeUserPBLP(uint256 lpAmount, uint256 minPB, uint256 minUSDL, uint256 deadline)</code></li>
+                        </ul>
+                        <h4>Getters / state surface</h4>
+                        <ul>
+                            <li><code>VAULT</code> (immutable)</li>
+                        </ul>
+                        <h4>Events</h4>
+                        <ul>
+                            <li><code>UserLPRemoved(address indexed user, uint256 lpAmount, uint256 pbAmount, uint256 usdlAmount)</code></li>
+                        </ul>
+                    </div>
+                </details>
+
+                <div class="hero-buttons docs-link-row">
+                    <button id="dev-lock" class="btn btn-secondary" type="button">Lock Page</button>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <p>&copy; 2026 Perpetual Bitcoin. Built on PulseChain. One Price. One Pool. One Truth.</p>
+            <div class="footer-links">
+                <a href="https://twitter.com/PerpetualB67383">X @PerpetualB67383</a>
+                <a href="https://t.me/Perpetual_Bitcoin">t.me/Perpetual_Bitcoin</a>
+            </div>
+            <div style="margin-top:8px;font-size:0.85rem;color:#999">
+                <a href="faq.html#disclaimer" style="color:#999;text-decoration:underline">Disclaimer</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+    (function() {
+        const btn = document.getElementById('hamburger-btn');
+        const menu = document.getElementById('nav-menu');
+
+        if (btn && menu) {
+            btn.addEventListener('click', function() {
+                btn.classList.toggle('open');
+                menu.classList.toggle('open');
+            });
+
+            menu.querySelectorAll('.nav-link').forEach(function(link) {
+                link.addEventListener('click', function() {
+                    btn.classList.remove('open');
+                    menu.classList.remove('open');
+                });
+            });
+        }
+    })();
+
+    (function() {
+        const PASSWORD = '5555';
+        const KEY = 'pb_dev_access_v1';
+        const gate = document.getElementById('dev-gate');
+        const content = document.getElementById('dev-content');
+        const input = document.getElementById('dev-password');
+        const unlockBtn = document.getElementById('dev-unlock');
+        const lockBtn = document.getElementById('dev-lock');
+        const status = document.getElementById('dev-gate-status');
+
+        function reveal() {
+            if (gate) gate.classList.add('dev-hidden');
+            if (content) content.classList.remove('dev-hidden');
+            if (status) status.textContent = '';
+        }
+
+        function hide() {
+            if (gate) gate.classList.remove('dev-hidden');
+            if (content) content.classList.add('dev-hidden');
+            if (input) input.value = '';
+        }
+
+        function unlock() {
+            if (!input) return;
+            if (input.value === PASSWORD) {
+                sessionStorage.setItem(KEY, '1');
+                reveal();
+                return;
+            }
+
+            if (status) {
+                status.textContent = 'Wrong password.';
+                status.style.color = '#ff7a7a';
+            }
+        }
+
+        if (sessionStorage.getItem(KEY) === '1') {
+            reveal();
+        }
+
+        if (unlockBtn) unlockBtn.addEventListener('click', unlock);
+        if (input) {
+            input.addEventListener('keydown', function(event) {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    unlock();
+                }
+            });
+        }
+        if (lockBtn) {
+            lockBtn.addEventListener('click', function() {
+                sessionStorage.removeItem(KEY);
+                hide();
+            });
+        }
+    })();
+
+    (function() {
+        function openContractFromHash() {
+            if (!window.location.hash) return;
+            const target = document.querySelector(window.location.hash);
+            if (!target || target.tagName.toLowerCase() !== 'details') return;
+            target.open = true;
+            setTimeout(function() {
+                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 30);
+        }
+
+        window.addEventListener('hashchange', openContractFromHash);
+        openContractFromHash();
+    })();
+    </script>
+</body>
+</html>

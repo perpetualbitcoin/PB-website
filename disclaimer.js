@@ -1,6 +1,7 @@
 // Disclaimer modal: requires user to read and accept before buy buttons are enabled.
 (function(){
   const KEY = 'pb_disclaimer_accepted_v1';
+  let pendingResolution = null;
 
   function setCookie(name, value, days){
     const d = new Date(); d.setTime(d.getTime() + (days*24*60*60*1000));
@@ -107,15 +108,31 @@
       accepted();
       closeModal();
       enableBuyButtons();
+      if (pendingResolution) {
+        pendingResolution(true);
+        pendingResolution = null;
+      }
     });
     declineBtn.addEventListener('click', ()=>{
       closeModal();
+      if (pendingResolution) {
+        pendingResolution(false);
+        pendingResolution = null;
+      }
     });
   }
 
   function closeModal(){
     const m = document.getElementById('pb-disclaimer-modal');
     if (m) m.remove();
+  }
+
+  function ensureAccepted(){
+    if (isAccepted()) return Promise.resolve(true);
+    buildModal();
+    return new Promise((resolve) => {
+      pendingResolution = resolve;
+    });
   }
 
   // Intercept wallet-connect attempts and require disclaimer acceptance before connecting.
@@ -157,5 +174,10 @@
     if (isAccepted()) { enableBuyButtons(); }
     attachConnectInterceptors();
   });
+
+  window.PBDisclaimer = {
+    isAccepted,
+    ensureAccepted,
+  };
 
 })();

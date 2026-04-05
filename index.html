@@ -64,16 +64,18 @@
 <body class="presale-dapp-bg">
     <nav class="navbar" style="padding: 0.4rem 0;">
         <div class="nav-container" style="padding: 0 2rem;">
-            <div class="logo"><img src="../Pic/PB1.png" alt="Perpetual Bitcoin PB logo" style="width:40px;height:40px;"></div>
+            <div class="logo"><a href="DEV.html" title="Developer Access"><img src="../Pic/PB1.png" alt="Perpetual Bitcoin PB logo" style="width:40px;height:40px;"></a></div>
             <div class="gtranslate_wrapper"></div>
-            <ul class="nav-menu" style="text-align: center;">
-                <li><a href="#home" class="nav-link">Home</a></li>
-                <li><a href="faq.html" class="nav-link">FAQ</a></li>
-                <li><a href="whitepaperLite.html" class="nav-link">Whitepaper Lite</a></li>
+            <button class="hamburger" id="hamburger-btn" aria-label="Toggle menu" aria-controls="nav-menu" aria-expanded="false">
+                <span></span><span></span><span></span>
+            </button>
+            <ul class="nav-menu" id="nav-menu" style="text-align: center;">
+                <li><a href="#home" class="nav-link" style="color: #F39004; font-weight:600;">Home</a></li>
                 <li><a href="PBManifesto.html" class="nav-link">PB Manifesto</a></li>
-                <li><a href="presale-dapp.html" class="nav-link">Presale 🎉</a></li>
-                <li><a href="testDapp.html" class="nav-link" style="color: #F39004; font-weight:600;">✨ Full testDapp</a></li>
+                <li><a href="whitepaper.html" class="nav-link">Whitepaper</a></li>
+                <li><a href="faq.html" class="nav-link">FAQ</a></li>
                 <li><a href="portfolio.html" class="nav-link">Portfolio</a></li>
+                <li><a href="Dapp.html" class="nav-link">Dapp</a></li>
             </ul>
         </div>
     </nav>
@@ -86,7 +88,13 @@
                 <span class="side-card-icon">🌐</span>
                 <span class="side-card-label">IPFS</span>
             </a>
-            <h2 class="hero-title hero-title-small">We built Perpetual Bitcoin because:<br> Cryptocurrency started as a movement about sovereignty, transparency, and math‑based fairness, but it turned into a playground for VC's, insiders, admin keys, upgrade proxies, hidden mint functions, rugg pull fest and time‑based unlock cliffs that nuke charts and communities.</h2>
+            <h2 class="hero-title hero-title-small">
+                <span class="hero-copy-line">We built Perpetual Bitcoin because:</span>
+                <span class="hero-copy-line">Crypto was supposed to remove the middleman.</span>
+                <span class="hero-copy-line">Instead, it added new ones......</span>
+                <span class="hero-copy-line">Insiders, admins, multisigs, and human control over supply.</span>
+                <span class="hero-copy-line">PB strips that out and puts the rules back in code.</span>
+            </h2>
             <a href="#" id="download-site-btn" class="hero-side-card" title="Download Site">
                 <span class="side-card-icon">⬇️</span>
                 <span class="side-card-label">Download</span>
@@ -114,12 +122,6 @@
                     <p class="stat-label">Admin Control</p>
                 </div>
             </div>
-            <div class="hero-buttons">
-                <a href="presale-dapp.html" class="btn btn-primary">Get In Early</a>
-                <a href="trust-center.html" class="btn btn-secondary">Trust Center</a>
-                <a href="https://twitter.com/PerpetualB67383" class="btn btn-secondary">Follow us on X</a>
-                <a href="Pic/PERPETUAL BITCOIN Whitepaper-Lt.pdf" class="btn btn-outline" download>Download Whitepaper</a>
-            </div>
         </div>
     </section>
 
@@ -132,14 +134,10 @@
                     21 million fixed supply. No admin keys. No governance. No freeze. No blacklist.<br>
                     Buys route through the Vault so the protocol rules are enforced. Sells remain free on the AMM.<br>
                     When price rises 55.55%, one-third of the remaining locked position becomes eligible to settle into USDL.<br> 
-                    <strong style="color:#F39004;">you can take profit at each eligible milestone while still retaining remaining exposure</strong>.<br>
+                    <strong style="color:#F39004;">You will take profit at each eligible milestone while still retaining remaining exposure</strong>.<br>
                     No calendar cliffs. No manager discretion. The same rule applies at each eligible milestone.
                 </p>
             </div>
-        </div>
-        <div class="hero-buttons" style="margin-top: 1.5rem; justify-content: center;">
-            <a href="pb-in-60-seconds.html" class="btn btn-primary">PB in 60 Seconds</a>
-            <a href="whitepaperLite.html" class="btn btn-secondary">Read Whitepaper Lite</a>
         </div>
     </section>
 
@@ -148,15 +146,12 @@
         <div class="distribution-container">
             <div class="distribution-table">
                 <p style="color:#ccc;font-size:1.25rem;line-height:1.7;text-align:center;padding:1.5rem;">
-                    Every token asks you to trust a team, a DAO, a multisig, a bridge, or a stablecoin issuer. 
-                    One wrong decision, one compromised key, one regulatory order, and your funds are gone. 
-                    <strong style="color:#F39004;">PB eliminates that entirely.</strong>
+                    The #1 problem in crypto is trusting people....<br>
+                    Admin keys, upgrades, treasury control, and human unlock decisions.<br>People keep breaking the promises.<br>
+                    PB removes that discretion and replaces it with fixed immutable rules.<br>
+                    <strong style="color:#F39004;">Don't trust people, trust the immutable code.</strong>
                 </p>
             </div>
-        </div>
-        <div class="hero-buttons" style="margin-top: 1.5rem;">
-            <a href="presale-dapp.html" class="btn btn-primary">I'm interested</a>
-            <a href="https://twitter.com/PerpetualB67383" class="btn btn-secondary">Follow us on X</a>
         </div>
     </section>
 
@@ -202,10 +197,6 @@
                 </table>
             </div>
         </div>
-        <div class="hero-buttons" style="margin-top: 1.5rem;">
-            <a href="presale-dapp.html" class="btn btn-primary">I Want In</a>
-            <a href="https://twitter.com/PerpetualB67383" class="btn btn-secondary">Follow us on X</a>
-        </div>
     </section>
 
     <section class="features">
@@ -213,7 +204,7 @@
         <div class="features-grid">
             <div class="feature-card">
                 <div class="feature-icon">🔒</div>
-                <h3>End the Trust Game!</h3>
+                <h3>End the 'Trust People' Game!</h3>
                 <p>No admin keys. No upgrades. No emergency powers. No blacklist.</p>
             </div>
             <div class="feature-card">
@@ -231,9 +222,6 @@
                 <h3>End the Sell Pressure!</h3>
                 <p>We remove the sell pressure by making unlocks price-based, not time-based.</p>
             </div>
-        </div>
-        <div class="hero-buttons" style="margin-top: 2rem; text-align: center;">
-            <a href="presale-dapp.html" class="btn btn-primary">Let me IN</a>
         </div>
     </section>
 
@@ -266,9 +254,6 @@
             </div>
         </div>
         <p class="lite-note">PB exists to be the thing everyone says they want, and nobody actually built. TILL NOW.</p>
-        <div class="hero-buttons" style="margin-top: 2rem; text-align: center;">
-            <a href="presale-dapp.html" class="btn btn-primary">I'm Ready</a>
-        </div>
     </section>
 
     <section class="distribution" id="manifesto">
@@ -298,9 +283,6 @@
                     </tr>
                 </table>
             </div>
-        </div>
-        <div class="hero-buttons" style="margin-top: 2rem; text-align: center;">
-            <a href="presale-dapp.html" class="btn btn-primary">Count Me In</a>
         </div>
     </section>
 
@@ -332,9 +314,6 @@
                 </table>
             </div>
         </div>
-        <div class="hero-buttons" style="margin-top: 2rem; text-align: center;">
-            <a href="presale-dapp.html" class="btn btn-primary">Sign Me Up</a>
-        </div>
     </section>
 
     <section class="features" id="not">
@@ -360,9 +339,6 @@
                 <h3>Not Controlled</h3>
                 <p>No multisig overrides, no governance capture, no backdoors.</p>
             </div>
-        </div>
-        <div class="hero-buttons" style="margin-top: 2rem; text-align: center;">
-            <a href="presale-dapp.html" class="btn btn-primary">Take My Money</a>
         </div>
     </section>
 
@@ -395,9 +371,6 @@
             </div>
         </div>
         <p class="lite-note">Mainnet presale is live. Full contract verification and deeper technical details follow mainnet launch.</p>
-        <div class="hero-buttons" style="margin-top: 2rem; text-align: center;">
-            <a href="presale-dapp.html" class="btn btn-primary">Let's Do This</a>
-        </div>
     </section>
 
     <section class="features">
@@ -424,33 +397,13 @@
                 <p>One constitutional vault enforces all rules immutably.</p>
             </div>
         </div>
-        <div class="hero-buttons" style="margin-top: 2rem; text-align: center;">
-            <a href="presale-dapp.html" class="btn btn-primary">Here's my money!</a>
-        </div>
     </section>
 
-    <section class="timeline" id="cta">
-        <h2>Move Early or Miss It</h2>
-        <div class="timeline-container">
-            <div class="timeline-item current">
-                <div class="timeline-dot"></div>
-                <div class="timeline-content">
-                    <h3>Limited Public Supply</h3>
-                    <p>Fixed number of public blocks. Max 5 per address.</p>
-                </div>
-            </div>
-            <div class="timeline-item">
-                <div class="timeline-dot"></div>
-                <div class="timeline-content">
-                    <h3>Get Notified First</h3>
-                    <p>Presale opens via Twitter announcement.</p>
-                </div>
-            </div>
-        </div>
-        <div class="hero-buttons" style="margin-top: 1.5rem;">
-            <a href="https://twitter.com/PerpetualB67383" class="btn btn-primary">Follow us on X</a>
-            <a href="presale-dapp.html" class="btn btn-secondary">See Presale Rules</a>
-            <a href="simulator.html" class="btn btn-secondary">Simulator</a>
+    <section class="presale-section docs-intro-card" id="next-step" style="max-width: 1080px; margin: 2rem auto 0;">
+        <h2>Start With The Why</h2>
+        <p>If the homepage thesis lands, the next stop is the page that explains why PB had to be built this way before any buy decision is even considered.</p>
+        <div class="hero-buttons docs-link-row" style="justify-content: center;">
+            <a href="PBManifesto.html" class="btn btn-primary">PB Manifesto &raquo;</a>
         </div>
     </section>
 
@@ -467,9 +420,31 @@
             </div>
         </div>
     </footer>
-    <script src="https://cdn.jsdelivr.net/npm/ethers@6/dist/ethers.umd.js"></script>
-    <script src="config.js"></script>
     <script src="price-ticker.js"></script>
+    <script>
+    (function() {
+        const btn = document.getElementById('hamburger-btn');
+        const menu = document.getElementById('nav-menu');
+
+        if (!btn || !menu) {
+            return;
+        }
+
+        btn.addEventListener('click', function() {
+            const isOpen = btn.classList.toggle('open');
+            menu.classList.toggle('open', isOpen);
+            btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        });
+
+        menu.querySelectorAll('.nav-link').forEach(function(link) {
+            link.addEventListener('click', function() {
+                btn.classList.remove('open');
+                menu.classList.remove('open');
+                btn.setAttribute('aria-expanded', 'false');
+            });
+        });
+    })();
+    </script>
     <script>window.gtranslateSettings = {"default_language":"en","native_language_names":true,"detect_browser_language":true,"languages":["en","zh-CN","fr","de","hi","es","pt","nl","el"],"wrapper_selector":".gtranslate_wrapper","flag_style":"3d","alt_flags":{"en":"usa"}}</script>
     <script src="https://cdn.gtranslate.net/widgets/latest/float.js" defer></script>
 </body>
