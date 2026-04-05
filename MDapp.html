@@ -1,0 +1,2539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Perpetual Bitcoin MDapp - Minimal Trade + Transparency</title>
+    <meta name="description" content="Minimal Perpetual Bitcoin Dapp with transparent buy and sell execution paths for local use." />
+    <meta name="robots" content="index, follow" />
+    <meta name="theme-color" content="#F39004" />
+    <link rel="icon" href="Pic/favicon.ico" type="image/x-icon" />
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-LK69CE9C9C"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-LK69CE9C9C');
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@6/dist/ethers.umd.js"></script>
+    <script src="config.js"></script>
+    <style>
+        :root {
+            --bg: #000000;
+            --panel: #060606;
+            --panel-2: #0b0b0b;
+            --line: #1c1c1c;
+            --line-2: #262626;
+            --text: #f5f5f5;
+            --muted: #9b9b9b;
+            --accent: #f39004;
+            --accent-2: #64b5ff;
+            --green: #59c56f;
+            --red: #ff6f61;
+            --yellow: #f7c45b;
+            --terminal-key: #6f6f6f;
+            --terminal-value: #f39004;
+            --terminal-address: #64b5ff;
+            --terminal-fn: #7ee787;
+            --font-ui: "Segoe UI Variable Text", "Segoe UI", "Trebuchet MS", Tahoma, Arial, sans-serif;
+            --font-data: "Cascadia Mono", Consolas, "SFMono-Regular", "Liberation Mono", Menlo, monospace;
+        }
+
+        html {
+            font-size: clamp(13px, 0.5vw + 0.42vh, 17px);
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: var(--font-ui);
+            color: var(--text);
+            background: var(--bg);
+            overflow-x: hidden;
+            overflow-y: auto;
+            text-rendering: optimizeLegibility;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        button,
+        input,
+        select,
+        textarea {
+            font: inherit;
+        }
+
+        a { color: inherit; }
+
+        .page {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 14px;
+            min-height: 100vh;
+            display: grid;
+            grid-template-rows: auto minmax(0, 1fr);
+            gap: 14px;
+            overflow: visible;
+        }
+
+        .hero {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+            gap: 12px;
+            min-height: 0;
+            position: relative;
+            z-index: 0;
+            overflow: visible;
+        }
+
+        .hero-card,
+        .panel {
+            border: 1px solid var(--line);
+            background: linear-gradient(180deg, rgba(17, 21, 27, 0.94), rgba(10, 12, 16, 0.98));
+            border-radius: 18px;
+            box-shadow: 0 18px 40px rgba(0, 0, 0, 0.28);
+        }
+
+        .hero-card {
+            padding: 9px 14px;
+            overflow: hidden;
+            position: relative;
+            isolation: isolate;
+        }
+
+        .hero-primary {
+            position: relative;
+            overflow: hidden;
+            z-index: 3;
+        }
+
+        .hero-primary > :not(.hero-card-logo) {
+            position: relative;
+            z-index: 1;
+        }
+
+        .title {
+            margin: 0 0 4px;
+            font-size: clamp(1rem, 1.7vw, 1.3rem);
+            line-height: 1.05;
+            letter-spacing: -0.02em;
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--accent);
+            font-size: 0.74rem;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .hero-copy {
+            margin: 0;
+            max-width: 70ch;
+            color: var(--muted);
+            line-height: 1.3;
+            font-size: 0.8rem;
+        }
+
+        .hero-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 7px;
+            margin-top: 7px;
+        }
+
+        .hero-info-inline {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 8px 14px;
+            margin-top: 8px;
+            padding-top: 7px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .hero-info-row {
+            min-width: 0;
+        }
+
+        .hero-info-label {
+            color: var(--muted);
+            font-size: 0.68rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 3px;
+        }
+
+        .hero-info-value {
+            font-size: 0.84rem;
+            font-weight: 700;
+            word-break: break-word;
+        }
+
+        .button,
+        button {
+            appearance: none;
+            border: 1px solid rgba(243, 144, 4, 0.28);
+            background: linear-gradient(180deg, #ffad3a, #f39004);
+            color: #201306;
+            border-radius: 999px;
+            padding: 9px 14px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 160ms ease, filter 160ms ease, opacity 160ms ease;
+        }
+
+        button:hover { transform: translateY(-1px); filter: brightness(1.04); }
+        button:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+
+        #connect-btn,
+        #buy-execute-btn,
+        #sell-execute-btn,
+        #buy-quote-btn,
+        #sell-quote-btn {
+            background: linear-gradient(180deg, #ffad3a, #f39004);
+            color: #201306;
+            border-color: rgba(243, 144, 4, 0.28);
+        }
+
+        #connect-btn.is-connected {
+            font-size: 0.84rem;
+            letter-spacing: 0.02em;
+            padding-left: 14px;
+            padding-right: 14px;
+        }
+
+        .button-secondary {
+            background: transparent;
+            color: var(--accent);
+        }
+
+        .hero-meta {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 8px;
+            padding: 10px;
+            align-content: stretch;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        .hero-card-logo {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: clamp(100px, 14vw, 156px);
+            max-height: calc(100% - 12px);
+            object-fit: contain;
+            opacity: 0.92;
+            pointer-events: none;
+            z-index: 5;
+            filter: drop-shadow(0 12px 28px rgba(0, 0, 0, 0.45));
+        }
+
+        .hero-primary > *:not(.hero-card-logo),
+        .hero-meta > *:not(.hero-card-logo) {
+            position: relative;
+            z-index: 1;
+        }
+
+        .meta-box,
+        .stat-box,
+        .address-box {
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 10px;
+            padding: 8px 10px;
+        }
+
+        .meta-label,
+        .stat-label,
+        .address-label {
+            color: var(--muted);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 6px;
+        }
+
+        .meta-value,
+        .stat-value,
+        .address-value {
+            font-size: 0.96rem;
+            font-weight: 700;
+            word-break: break-word;
+        }
+
+        .grid {
+            display: grid;
+            gap: 14px;
+            min-height: 0;
+            align-content: start;
+            align-items: start;
+        }
+
+        .trade-shell {
+            display: grid;
+            gap: 16px;
+            padding: 16px;
+            transition: border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
+        }
+
+        .trade-shell[data-trade-mode="buy"] {
+            border: 2px solid rgba(76, 175, 80, 0.92);
+            background: linear-gradient(180deg, rgba(17, 30, 20, 0.96), rgba(10, 12, 16, 0.98));
+            box-shadow: inset 0 0 0 1px rgba(76, 175, 80, 0.26), 0 0 22px rgba(76, 175, 80, 0.18), 0 20px 38px rgba(0, 0, 0, 0.18);
+        }
+
+        .trade-shell[data-trade-mode="sell"] {
+            border: 2px solid rgba(244, 67, 54, 0.92);
+            background: linear-gradient(180deg, rgba(37, 18, 18, 0.96), rgba(10, 12, 16, 0.98));
+            box-shadow: inset 0 0 0 1px rgba(244, 67, 54, 0.24), 0 0 22px rgba(244, 67, 54, 0.16), 0 20px 38px rgba(0, 0, 0, 0.18);
+        }
+
+        .trade-shell-head {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 14px;
+            align-items: center;
+        }
+
+        .trade-shell-copy {
+            min-width: 0;
+        }
+
+        .trade-shell-title {
+            margin: 0 0 4px;
+            font-size: 1.12rem;
+        }
+
+        .trade-shell-intro {
+            margin: 0;
+            color: var(--muted);
+            line-height: 1.45;
+            font-size: 0.9rem;
+            max-width: 70ch;
+        }
+
+        .trade-mode-switch {
+            display: inline-grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 6px;
+            padding: 6px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            min-width: 230px;
+        }
+
+        .trade-mode-btn {
+            background: transparent;
+            color: var(--muted);
+            border-color: transparent;
+            padding: 9px 16px;
+            font-size: 0.88rem;
+        }
+
+        .trade-mode-btn:hover {
+            filter: none;
+        }
+
+        .trade-mode-btn.is-active {
+            color: #201306;
+            background: linear-gradient(180deg, #ffad3a, #f39004);
+            border-color: rgba(243, 144, 4, 0.28);
+        }
+
+        .trade-pane {
+            display: none;
+            min-width: 0;
+        }
+
+        .trade-pane.is-active {
+            display: block;
+        }
+
+        .terminal-stack {
+            display: grid;
+            gap: 14px;
+            min-height: 0;
+        }
+
+        .panel {
+            padding: 18px;
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        .terminal-shell {
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .trade-terminal-card {
+            padding: 0;
+        }
+
+        .trade-terminal-toggle {
+            display: grid;
+        }
+
+        .trade-terminal-toggle summary {
+            list-style: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 14px 18px;
+            color: var(--accent);
+            font-size: 0.9rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            background: linear-gradient(180deg, rgba(19, 23, 30, 0.96), rgba(12, 15, 20, 0.98));
+        }
+
+        .trade-terminal-toggle summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .trade-terminal-toggle summary::after {
+            content: '+';
+            color: var(--muted);
+            font-size: 1rem;
+            line-height: 1;
+        }
+
+        .trade-terminal-toggle[open] summary::after {
+            content: '-';
+        }
+
+        .trade-terminal-shell {
+            border-top: 0;
+        }
+
+        .trade-terminal-log {
+            min-height: 400px;
+            max-height: 400px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 14px 16px;
+            background: #000000;
+            color: #ffffff;
+            font-size: 0.84rem;
+            line-height: 1.55;
+            overscroll-behavior: contain;
+        }
+
+        .terminal-divider {
+            margin: 0 0 10px;
+            color: var(--muted);
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+
+        .terminal-divider:not(:first-child) {
+            margin-top: 16px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .panel h2 {
+            margin: 0 0 6px;
+            font-size: 1.32rem;
+        }
+
+        .panel-intro {
+            margin: 0 0 16px;
+            color: var(--muted);
+            line-height: 1.55;
+            font-size: 0.98rem;
+        }
+
+        .trade-card {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            overflow: hidden;
+            border: 0;
+            background: transparent;
+            box-shadow: none;
+            padding: 0;
+        }
+
+        .trade-card.buy {
+            border: 0;
+            background: transparent;
+            box-shadow: none;
+        }
+
+        .trade-card.sell {
+            border: 0;
+            background: transparent;
+            box-shadow: none;
+        }
+
+        .card-head {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            align-items: flex-start;
+        }
+
+        .card-kicker {
+            color: var(--accent);
+            font-size: 0.76rem;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            margin-bottom: 3px;
+        }
+
+        .trade-card h2 {
+            font-size: 1.06rem;
+            margin: 0;
+        }
+
+        .callout {
+            padding: 12px 14px;
+            border-radius: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--muted);
+            line-height: 1.5;
+            font-size: 0.96rem;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 8px;
+        }
+
+        .trade-control-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+            gap: 8px;
+            align-items: end;
+        }
+
+        .control-block {
+            min-width: 0;
+        }
+
+        .control-block label {
+            margin-bottom: 4px;
+        }
+
+        .form-row-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+        }
+
+        .trade-card button {
+            padding: 8px 12px;
+            font-size: 0.9rem;
+        }
+
+        .trade-card .button-secondary {
+            padding: 7px 10px;
+            font-size: 0.84rem;
+        }
+
+        .trade-card-actions {
+            display: grid;
+            gap: 10px;
+        }
+
+        .trade-card-preactions {
+            min-height: 58px;
+        }
+
+        .trade-card-preactions-empty {
+            visibility: hidden;
+        }
+
+        .trade-card-preactions-empty.is-hidden {
+            display: none;
+        }
+
+        label {
+            display: block;
+            font-size: 0.8rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 4px;
+        }
+
+        input, select {
+            width: 100%;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--text);
+            padding: 10px 12px;
+            font: inherit;
+        }
+
+        .quote-strip,
+        .status-box {
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 14px;
+            padding: 10px 12px;
+        }
+
+        .quote-main {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 8px 12px;
+            align-items: start;
+        }
+
+        .quote-value {
+            font-size: 1.14rem;
+            font-weight: 800;
+        }
+
+        .quote-breakdown {
+            color: var(--muted);
+            font-size: 0.86rem;
+            margin-top: 0;
+        }
+
+        .quote-label {
+            color: var(--muted);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 3px;
+        }
+
+        .helper {
+            color: var(--muted);
+            font-size: 0.84rem;
+            line-height: 1.35;
+        }
+
+        .toggle-wrap {
+            display: none;
+            border: 1px solid #1d3550;
+            background: #071018;
+            border-radius: 10px;
+            padding: 8px 10px;
+        }
+
+        .toggle-wrap.visible {
+            display: block;
+        }
+
+        .toggle-wrap.compact {
+            padding: 7px 10px;
+        }
+
+        .toggle-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .toggle-row.spread {
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 6px 10px;
+        }
+
+        .toggle-row input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            margin-top: 0;
+        }
+
+        .compact-inline {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .compact-note {
+            color: var(--muted);
+            font-size: 0.82rem;
+            line-height: 1.25;
+        }
+
+        .autochunk-copy {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 0;
+        }
+
+        .autochunk-title {
+            font-weight: 700;
+            color: var(--accent-2);
+            white-space: nowrap;
+        }
+
+        .autochunk-plan-inline {
+            min-width: 0;
+            text-align: right;
+        }
+
+        .recipient-row {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .recipient-inline {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 6px;
+            min-width: 0;
+        }
+
+        .recipient-input-wrap {
+            margin-top: 8px;
+        }
+
+        .terminal-panel {
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            height: 100%;
+            width: 100%;
+            background: #000000;
+            border: 1px solid var(--line-2);
+            border-radius: 10px;
+            box-shadow: none;
+        }
+
+        .terminal-head {
+            display: flex;
+            justify-content: space-between;
+            gap: 8px;
+            align-items: center;
+            padding: 12px 14px;
+            border-bottom: 1px solid var(--line-2);
+            background: #050505;
+        }
+
+        .terminal-title-group {
+            display: grid;
+            gap: 4px;
+        }
+
+        .terminal-title {
+            font-weight: 700;
+            font-size: 1.06rem;
+        }
+
+        .terminal-subtitle {
+            color: var(--muted);
+            font-size: 0.88rem;
+            line-height: 1.45;
+        }
+
+        .terminal-log {
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 14px;
+            background: #000000;
+            color: #ffffff;
+            font-size: 0.88rem;
+            line-height: 1.55;
+            overscroll-behavior: contain;
+        }
+
+        .terminal-line {
+            display: block;
+            margin-bottom: 8px;
+            word-break: break-word;
+        }
+
+        .terminal-line:last-child {
+            margin-bottom: 0;
+        }
+
+        .terminal-prefix {
+            color: var(--terminal-key);
+            margin-right: 8px;
+        }
+
+        .terminal-key { color: var(--terminal-key); }
+        .terminal-value { color: var(--terminal-value); }
+        .terminal-address { color: var(--terminal-address); }
+        .terminal-function { color: var(--terminal-fn); }
+        .terminal-muted { color: var(--muted); }
+        .terminal-success { color: var(--green); }
+        .terminal-warning { color: var(--yellow); }
+        .terminal-error { color: var(--red); }
+
+        .terminal-log a {
+            color: var(--terminal-address);
+            text-decoration: none;
+        }
+
+        .terminal-log a:hover {
+            text-decoration: underline;
+        }
+
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            border-radius: 999px;
+            padding: 4px 9px;
+            font-size: 0.76rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            border: 1px solid transparent;
+        }
+
+        .pill.info { background: #071018; color: var(--accent-2); border-color: #14324d; }
+        .pill.success { background: #08140d; color: var(--green); border-color: #163823; }
+        .pill.warning { background: #161108; color: var(--yellow); border-color: #3c2f12; }
+        .pill.error { background: #180c0a; color: var(--red); border-color: #472019; }
+
+        .mono { font-family: var(--font-data); }
+        .muted { color: var(--muted); }
+        .green { color: var(--green); }
+        .red { color: var(--red); }
+        .yellow { color: var(--yellow); }
+
+        @media (max-width: 1080px) {
+            .hero,
+            .trade-shell-head {
+                grid-template-columns: 1fr;
+            }
+
+            .trade-control-grid,
+            .recipient-row {
+                grid-template-columns: 1fr;
+            }
+
+            .recipient-inline {
+                justify-content: flex-start;
+            }
+
+            .hero-info-inline {
+                grid-template-columns: 1fr;
+            }
+
+            .hero-meta {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .hero-card-logo {
+                width: clamp(110px, 28vw, 180px);
+                opacity: 0.14;
+            }
+
+            .hero {
+                max-height: none;
+            }
+
+            .trade-mode-switch {
+                min-width: 0;
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 720px) {
+            .page {
+                padding: 10px;
+                gap: 10px;
+            }
+
+            .hero-card,
+            .panel,
+            .trade-shell {
+                border-radius: 14px;
+            }
+
+            .hero-card,
+            .trade-shell,
+            .panel {
+                padding-left: 12px;
+                padding-right: 12px;
+            }
+
+            .hero-actions {
+                display: grid;
+                grid-template-columns: 1fr;
+            }
+
+            .hero-actions button,
+            .trade-card-actions button,
+            .form-row button {
+                width: 100%;
+            }
+
+            .form-row,
+            .compact-inline,
+            .trade-control-grid,
+            .hero-meta,
+            .quote-main,
+            .hero-info-inline {
+                grid-template-columns: 1fr;
+            }
+
+            .form-row-3 {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+
+            .trade-terminal-log {
+                min-height: 300px;
+                max-height: 52vh;
+                padding: 12px;
+            }
+
+            .trade-shell-head {
+                gap: 10px;
+            }
+
+            .trade-shell-title {
+                font-size: 1.04rem;
+            }
+
+            .trade-shell-intro,
+            .panel-intro,
+            .helper,
+            .quote-breakdown {
+                font-size: 0.86rem;
+            }
+
+            .hero-card-logo {
+                width: clamp(92px, 34vw, 140px);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <section class="hero">
+            <div class="hero-card hero-primary">
+                <img class="hero-card-logo" src="https://perpetualbitcoin.io/Pic/PB_logo.jpg" alt="Perpetual Bitcoin logo" />
+                <div class="eyebrow">Perpetual Bitcoin MiniDapp</div>
+                <h1 class="title">Direct Buy / Sell with Trust Terminal flow</h1>
+                <div class="hero-actions">
+                    <button id="connect-btn">Connect Wallet</button>
+                    <button id="switch-btn" class="button-secondary">Switch Network</button>
+                    <button id="clear-chain-btn" class="button-secondary">Clear Blockchain Path</button>
+                </div>
+                <div class="hero-info-inline">
+                    <div class="hero-info-row">
+                        <div class="hero-info-label">Network</div>
+                        <div class="hero-info-value" id="network-badge">Not connected</div>
+                    </div>
+                    <div class="hero-info-row">
+                        <div class="hero-info-label">Wallet</div>
+                        <div class="hero-info-value mono" id="wallet-badge">-</div>
+                    </div>
+                </div>
+            </div>
+            <div class="hero-card hero-meta">
+                <div class="meta-box">
+                    <div class="meta-label">USDL Balance</div>
+                    <div class="meta-value green" id="usdl-balance">-</div>
+                </div>
+                <div class="meta-box">
+                    <div class="meta-label">PB Balance</div>
+                    <div class="meta-value" id="pb-balance">-</div>
+                </div>
+                <div class="meta-box">
+                    <div class="meta-label">PBc Balance</div>
+                    <div class="meta-value yellow" id="pbc-balance">-</div>
+                </div>
+                <div class="meta-box">
+                    <div class="meta-label">Pool Price</div>
+                    <div class="meta-value" id="pool-price">-</div>
+                </div>
+            </div>
+        </section>
+
+        <main class="grid">
+            <section class="panel trade-shell" id="trade-shell" data-trade-mode="buy">
+                <div class="trade-shell-head">
+                    <div class="trade-shell-copy">
+                        <div class="card-kicker">BUY-SELL</div>
+                        <h2 class="trade-shell-title">BUY-SELL Perpetual Bitcoin</h2>
+                    </div>
+                    <div class="trade-mode-switch" role="tablist" aria-label="Trade mode selector">
+                        <button type="button" id="trade-mode-buy" class="trade-mode-btn is-active" role="tab" aria-selected="true" aria-controls="trade-pane-buy">Buy</button>
+                        <button type="button" id="trade-mode-sell" class="trade-mode-btn" role="tab" aria-selected="false" aria-controls="trade-pane-sell">Sell</button>
+                    </div>
+                </div>
+
+                <div class="trade-pane is-active" id="trade-pane-buy" role="tabpanel" aria-labelledby="trade-mode-buy">
+                <section class="trade-card buy">
+                    <div class="card-head">
+                        <div>
+                            <div class="card-kicker">Buy</div>
+                            <h2>Buy Perpetual Bitcoin</h2>
+                        </div>
+                        <div class="pill success">Vault.buyPBDirect</div>
+                    </div>
+                    <div class="trade-control-grid">
+                        <div class="control-block">
+                            <label for="buy-amount">USDL Amount</label>
+                            <div class="form-row">
+                                <input id="buy-amount" type="number" min="0" step="0.01" value="100" placeholder="100" />
+                                <button id="buy-quote-btn">Simulate Buy</button>
+                            </div>
+                        </div>
+                        <div class="control-block">
+                            <label>Quick Fill</label>
+                            <div class="form-row-3">
+                                <button type="button" id="buy-33" class="button-secondary">33%</button>
+                                <button type="button" id="buy-66" class="button-secondary">66%</button>
+                                <button type="button" id="buy-100" class="button-secondary">100%</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="quote-strip">
+                        <div class="quote-main">
+                            <div>
+                                <div class="quote-label">Total PB</div>
+                                <div class="quote-value green" id="buy-quote-pb">-</div>
+                            </div>
+                            <div>
+                                <div class="quote-label">Avg Price</div>
+                                <div class="quote-value" id="buy-quote-avg">-</div>
+                            </div>
+                            <div>
+                                <div class="quote-label">Liquid</div>
+                                <div class="quote-breakdown" id="buy-quote-liquid">-</div>
+                            </div>
+                            <div>
+                                <div class="quote-label">Locked</div>
+                                <div class="quote-breakdown" id="buy-quote-locked">-</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="buy-autochunk-wrap" class="toggle-wrap compact">
+                        <div class="toggle-row spread">
+                            <div class="autochunk-copy">
+                            <input type="checkbox" id="buy-autochunk" />
+                                <div class="autochunk-title">Auto-chunk this buy</div>
+                            </div>
+                            <div class="compact-note autochunk-plan-inline" id="buy-autochunk-plan"></div>
+                        </div>
+                    </div>
+                    <div class="trade-card-preactions">
+                        <div class="recipient-row">
+                            <div>
+                                <label style="margin-bottom:0;">Recipient</label>
+                                <div class="compact-note" style="margin-top:4px;">Default recipient is the connected wallet.</div>
+                            </div>
+                            <div class="recipient-inline">
+                                <input type="checkbox" id="gift-buy-checkbox" />
+                                <div class="compact-note" style="color:#d9a8ff;">Gift</div>
+                            </div>
+                        </div>
+                        <div class="recipient-input-wrap">
+                            <input id="gift-recipient" type="text" placeholder="0x recipient address" style="display:none;" />
+                        </div>
+                    </div>
+                    <div class="trade-card-actions">
+                        <button id="buy-execute-btn">Execute Buy</button>
+                        <div id="buy-status" class="status-box helper">No buy action yet.</div>
+                    </div>
+                </section>
+                </div>
+
+                <div class="trade-pane" id="trade-pane-sell" role="tabpanel" aria-labelledby="trade-mode-sell">
+                <section class="trade-card sell">
+                    <div class="card-head">
+                        <div>
+                            <div class="card-kicker">Sell</div>
+                            <h2>Sell PB To USDL</h2>
+                        </div>
+                        <div class="pill error">Router Swap</div>
+                    </div>
+                    <div class="trade-control-grid">
+                        <div class="control-block">
+                            <label for="sell-amount">PB Amount</label>
+                            <div class="form-row">
+                                <input id="sell-amount" type="number" min="0" step="0.000001" placeholder="100" />
+                                <button id="sell-quote-btn">Simulate Sell</button>
+                            </div>
+                        </div>
+                        <div class="control-block">
+                            <label>Quick Fill</label>
+                            <div class="form-row-3">
+                                <button type="button" id="sell-33" class="button-secondary">33%</button>
+                                <button type="button" id="sell-66" class="button-secondary">66%</button>
+                                <button type="button" id="sell-100" class="button-secondary">100%</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="quote-strip">
+                        <div class="quote-main">
+                            <div>
+                                <div class="quote-label">USDL Out</div>
+                                <div class="quote-value yellow" id="sell-quote-usdl">-</div>
+                            </div>
+                            <div>
+                                <div class="quote-label">Avg Price</div>
+                                <div class="quote-value" id="sell-quote-avg">-</div>
+                            </div>
+                            <div>
+                                <div class="quote-label">Path</div>
+                                <div class="quote-breakdown">PB -> USDL</div>
+                            </div>
+                            <div>
+                                <div class="quote-label">Route</div>
+                                <div class="quote-breakdown">PulseX Router</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="trade-card-preactions trade-card-preactions-empty is-hidden" aria-hidden="true"></div>
+                    <div class="trade-card-actions">
+                        <button id="sell-execute-btn">Execute Sell</button>
+                        <div id="sell-status" class="status-box helper">No sell action yet.</div>
+                    </div>
+                </section>
+                </div>
+            </section>
+
+            <section class="panel terminal-shell trade-terminal-card">
+                <details class="trade-terminal-toggle" open>
+                    <summary>
+                        <span><span id="route-terminal-mode">Buy</span> Trust Terminal</span>
+                    </summary>
+                    <section class="trade-terminal-shell">
+                        <div id="route-terminal" class="trade-terminal-log"></div>
+                    </section>
+                </details>
+            </section>
+        </main>
+    </div>
+
+    <script>
+    (function () {
+        const CHAIN_ID = ACTIVE_NETWORK.chainId;
+        const RPC_URL = ACTIVE_NETWORK.rpc;
+        const EXPLORER = ACTIVE_NETWORK.explorer;
+        const INDEXER_URL = ACTIVE_NETWORK.apiBase;
+        const ADDR = ADDRESSES;
+        const MAINNET_READY = hasLiveDeployment(ADDRESSES_MAINNET);
+
+        const VAULT_ABI = [
+            'function buyPBDirect(uint256 usdlAmount, uint256 minPBOut, address recipient, uint256[] unlockIds) returns (uint256)',
+            'function buyCount() view returns (uint256)',
+            'event UnlockTriggered(uint256 indexed pbtId, uint256 unlockIndex, uint256 pbUnlocked, uint256 usdlProceeds, address payoutAddress, uint256 newTriggerPrice, uint256 remainingPBcLocked)',
+            'event UnlockNetted(uint256 indexed pbtId, uint256 unlockIndex, uint256 pbcSettled, uint256 usdlPaid, address payoutAddress, uint256 settlementPrice, uint256 newTriggerPrice, uint256 remainingPBcLocked)',
+            'event BuyWithNetting(address indexed buyer, address indexed recipient, uint256 indexed pbtId, uint256 usdlIn, uint256 totalPBOut, uint256 nettedPB, uint256 ammPB, uint256 lpPB, uint256 lpUSDL, uint256 unlocksNetted)'
+        ];
+        const VAULT_VIEWS_ABI = [
+            'function getPositionUnlockStatus(uint256 pbtId) view returns (uint256 currentUnlockIndex, uint256 nextTriggerPrice, bool isEligibleNow, uint256 pbcRemaining)',
+        ];
+        const ERC20_ABI = [
+            'function balanceOf(address owner) view returns (uint256)',
+            'function allowance(address owner, address spender) view returns (uint256)',
+            'function approve(address spender, uint256 amount) returns (bool)',
+            'event Transfer(address indexed from, address indexed to, uint256 value)',
+            'event Approval(address indexed owner, address indexed spender, uint256 value)'
+        ];
+        const PAIR_ABI = [
+            'function getReserves() view returns (uint112 reserve0, uint112 reserve1, uint32)',
+            'function token0() view returns (address)',
+            'function token1() view returns (address)'
+        ];
+        const ROUTER_ABI = [
+            'function swapExactTokensForTokens(uint amountIn, uint amountOutMin, address[] path, address to, uint deadline) returns (uint[] amounts)'
+        ];
+        const PBT_ABI = [
+            'function balanceOf(address owner) view returns (uint256)',
+            'event Transfer(address indexed from, address indexed to, uint256 indexed tokenId)'
+        ];
+
+        const app = {
+            readProvider: new ethers.JsonRpcProvider(RPC_URL, CHAIN_ID),
+            browserProvider: null,
+            signer: null,
+            account: null,
+            activeTradeMode: 'buy',
+            activeTerminalMode: 'buy',
+            latestBuySimulation: null,
+            latestSellSimulation: null,
+            buyPredictionState: {
+                mode: 'Waiting',
+                summaryRows: [],
+                steps: [],
+                addresses: [],
+            },
+            sellPredictionState: {
+                mode: 'Waiting',
+                summaryRows: [],
+                steps: [],
+                addresses: [],
+            },
+            buyChainEntries: [],
+            sellChainEntries: [],
+        };
+
+        const vaultRead = new ethers.Contract(ADDR.Vault, VAULT_ABI, app.readProvider);
+        const vaultViewsRead = new ethers.Contract(ADDR.VaultViews, VAULT_VIEWS_ABI, app.readProvider);
+        const pbRead = new ethers.Contract(ADDR.PB, ERC20_ABI, app.readProvider);
+        const pbcRead = new ethers.Contract(ADDR.PBc, ERC20_ABI, app.readProvider);
+        const usdlRead = new ethers.Contract(ADDR.USDL, ERC20_ABI, app.readProvider);
+        const pairRead = new ethers.Contract(ADDR.PB_USDL_PAIR, PAIR_ABI, app.readProvider);
+        const pbtRead = new ethers.Contract(ADDR.PBt, PBT_ABI, app.readProvider);
+        const erc20Interface = new ethers.Interface(ERC20_ABI);
+        const pbtInterface = new ethers.Interface(PBT_ABI);
+        const transferTopic = ethers.id('Transfer(address,address,uint256)');
+
+        function formatNumber(value, decimals = 2) {
+            const parsed = Number(value || 0);
+            return parsed.toLocaleString('en-US', {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: decimals,
+            });
+        }
+
+        function formatPrice(value) {
+            const parsed = Number(value || 0);
+            if (!parsed) return '$0';
+            return '$' + formatNumber(parsed, parsed < 1 ? 6 : 5);
+        }
+
+        function shortAddr(value) {
+            if (!value) return '-';
+            return value.slice(0, 6) + '...' + value.slice(-4);
+        }
+
+        function updateConnectButton() {
+            const button = document.getElementById('connect-btn');
+            if (!button) return;
+            if (!app.account) {
+                button.textContent = 'Connect Wallet';
+                button.classList.remove('is-connected');
+                button.removeAttribute('title');
+                return;
+            }
+            button.textContent = shortAddr(app.account);
+            button.classList.add('is-connected');
+            button.title = app.account;
+        }
+
+        function formatUnits(value, decimals = 18, precision = 4) {
+            return formatNumber(ethers.formatUnits(value || 0n, decimals), precision);
+        }
+
+        function formatUsd(value, decimals = 2) {
+            const parsed = Number(value || 0);
+            return '$' + formatNumber(parsed, decimals);
+        }
+
+        function extractErrorSelector(err) {
+            const candidates = [
+                err?.data,
+                err?.error?.data,
+                err?.info?.error?.data,
+                err?.info?.payload?.params?.[0]?.data,
+                err?.message,
+                err?.shortMessage,
+            ];
+            for (const candidate of candidates) {
+                if (typeof candidate !== 'string') continue;
+                const match = candidate.match(/0x[a-fA-F0-9]{8,}/);
+                if (match) return match[0].slice(0, 10).toLowerCase();
+            }
+            return '';
+        }
+
+        function explainTradeError(err, context = null) {
+            const selector = extractErrorSelector(err);
+            if (selector === '0x2c5211c6') {
+                const chunkWei = context?.chunkWei ?? 0n;
+                const minPBOut = context?.minPBOut ?? 0n;
+                const unlockIds = Array.isArray(context?.unlockIds) ? context.unlockIds : [];
+                const reasons = [];
+                if (chunkWei === 0n) reasons.push('buy amount resolved to zero');
+                if (minPBOut === 0n) reasons.push('min PB out resolved to zero');
+                if (unlockIds.length > 500) reasons.push(`strict hint list exceeded the vault ceiling (${unlockIds.length} > 500)`);
+                if (!reasons.length && unlockIds.length) {
+                    reasons.push('unlock hint IDs are likely no longer sorted by current on-chain trigger price');
+                }
+                if (!reasons.length) {
+                    reasons.push('one of the vault buy amount checks failed during simulation');
+                }
+                return `Vault.InvalidAmount() ${selector}: ${reasons.join('; ')}.`;
+            }
+            if (selector === '0x7111425a') {
+                return `Vault.DuplicateUnlockId() ${selector}: the hint list contains the same PBt ID more than once.`;
+            }
+            if (selector === '0xa6da93a4') {
+                return `Vault.SlippageTooLow() ${selector}: min PB out is above what the vault can deliver for this buy.`;
+            }
+            return err?.reason || err?.shortMessage || err?.message || 'Unknown error';
+        }
+
+        function unitsFloat(value, decimals = 18) {
+            return Number(ethers.formatUnits(value || 0n, decimals));
+        }
+
+        function toPlainInputValue(valueWei, tokenDecimals = 18, displayDecimals = 2) {
+            const text = ethers.formatUnits(valueWei || 0n, tokenDecimals);
+            const [whole, fraction = ''] = text.split('.');
+            if (displayDecimals <= 0) return whole;
+            const trimmed = fraction.slice(0, displayDecimals).replace(/0+$/, '');
+            return trimmed ? `${whole}.${trimmed}` : whole;
+        }
+
+        function hexChainId(chainId) {
+            return '0x' + Number(chainId).toString(16);
+        }
+
+        function getAlternateNetworkKey() {
+            return ACTIVE_NETWORK_KEY === 'mainnet' ? 'testnet' : 'mainnet';
+        }
+
+        function getNativeCurrencyForNetwork(networkKey) {
+            return networkKey === 'mainnet'
+                ? { name: 'Pulse', symbol: 'PLS', decimals: 18 }
+                : { name: 'tPLS', symbol: 'tPLS', decimals: 18 };
+        }
+
+        function updateNetworkSwitchButton() {
+            const button = document.getElementById('switch-btn');
+            if (!button) return;
+
+            const targetNetworkKey = getAlternateNetworkKey();
+            const targetNetwork = NETWORKS[targetNetworkKey];
+            const unavailable = targetNetworkKey === 'mainnet' && !MAINNET_READY;
+
+            button.textContent = unavailable
+                ? 'Mainnet Not Configured'
+                : `Switch To ${targetNetwork.name} ${targetNetwork.chainId}`;
+            button.disabled = unavailable;
+            button.title = unavailable
+                ? 'Fill mainnet contract addresses in config.js before enabling mainnet mode.'
+                : '';
+        }
+
+        async function switchWalletToNetwork(networkKey) {
+            if (!window.ethereum) {
+                alert('No injected wallet detected.');
+                return false;
+            }
+            const network = NETWORKS[networkKey];
+            try {
+                await window.ethereum.request({
+                    method: 'wallet_switchEthereumChain',
+                    params: [{ chainId: hexChainId(network.chainId) }]
+                });
+                return true;
+            } catch (err) {
+                if (err && err.code === 4902) {
+                    await window.ethereum.request({
+                        method: 'wallet_addEthereumChain',
+                        params: [{
+                            chainId: hexChainId(network.chainId),
+                            chainName: network.name,
+                            nativeCurrency: getNativeCurrencyForNetwork(networkKey),
+                            rpcUrls: [network.rpc],
+                            blockExplorerUrls: [network.explorer]
+                        }]
+                    });
+                    return true;
+                }
+                throw err;
+            }
+        }
+
+        async function togglePreferredNetwork() {
+            const targetNetworkKey = getAlternateNetworkKey();
+            if (targetNetworkKey === 'mainnet' && !MAINNET_READY) {
+                alert('Mainnet is not configured yet in config.js.');
+                return;
+            }
+
+            try {
+                window.localStorage.setItem(NETWORK_OVERRIDE_KEY, targetNetworkKey);
+            } catch (err) {
+                console.warn('Unable to persist preferred network:', err);
+            }
+
+            if (window.ethereum) {
+                try {
+                    await switchWalletToNetwork(targetNetworkKey);
+                } catch (err) {
+                    console.warn('Wallet network switch failed before reload:', err);
+                }
+            }
+
+            window.location.reload();
+        }
+
+        async function getPoolSnapshot() {
+            const [reserves, token0] = await Promise.all([
+                pairRead.getReserves(),
+                pairRead.token0(),
+            ]);
+            let reservePB;
+            let reserveUSDL;
+            if (token0.toLowerCase() === ADDR.PB.toLowerCase()) {
+                reservePB = reserves[0];
+                reserveUSDL = reserves[1];
+            } else {
+                reservePB = reserves[1];
+                reserveUSDL = reserves[0];
+            }
+            const pbFloat = Number(ethers.formatEther(reservePB));
+            const usdlFloat = Number(ethers.formatEther(reserveUSDL));
+            return {
+                reservePB,
+                reserveUSDL,
+                reservePBFloat: pbFloat,
+                reserveUSDLFloat: usdlFloat,
+                price: usdlFloat / pbFloat,
+            };
+        }
+
+        function bigIntSqrt(x) {
+            if (x < 0n) throw new Error('sqrt negative');
+            if (x < 2n) return x;
+            let z = x;
+            let y = (x + 1n) >> 1n;
+            while (y < z) {
+                z = y;
+                y = (x / y + y) >> 1n;
+            }
+            return z;
+        }
+
+        function getAmountOut(amountIn, reserveIn, reserveOut) {
+            const amountInWithFee = amountIn * 997n;
+            return (amountInWithFee * reserveOut) / (reserveIn * 1000n + amountInWithFee);
+        }
+
+        function getAmountIn(amountOut, reserveIn, reserveOut) {
+            if (amountOut <= 0n || amountOut >= reserveOut) return 0n;
+            return ((reserveIn * amountOut * 1000n) / ((reserveOut - amountOut) * 997n)) + 1n;
+        }
+
+        function computeUSDLForPrice(reservePB, reserveUSDL, targetPrice) {
+            const currentPrice = (reserveUSDL * 10n ** 18n) / reservePB;
+            if (currentPrice >= targetPrice) return 0n;
+            const b = reserveUSDL * 1997n;
+            const absC = (targetPrice * reservePB * reserveUSDL * 1000n / 10n ** 18n) - (reserveUSDL * reserveUSDL * 1000n);
+            const disc = b * b + 4n * 997n * absC;
+            return (bigIntSqrt(disc) - b) / (2n * 997n) + 1n;
+        }
+
+        function setStatus(elementId, message, type) {
+            const el = document.getElementById(elementId);
+            if (!el) return;
+            el.textContent = message;
+            el.style.color = type === 'success' ? 'var(--green)' : type === 'error' ? 'var(--red)' : type === 'warning' ? 'var(--yellow)' : 'var(--accent-2)';
+        }
+
+        function escapeHtml(value) {
+            return String(value ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function formatTerminalInline(value) {
+            const text = String(value ?? '');
+            if (/^0x[a-fA-F0-9]{40}$/.test(text) || /^0x[a-fA-F0-9]{64}$/.test(text)) {
+                return `<span class="terminal-address">${escapeHtml(text)}</span>`;
+            }
+            if (/^(Vault\.buyPBDirect|swapExactTokensForTokens|approve|BuyWithNetting|UnlockNetted|UnlockTriggered)$/.test(text)) {
+                return `<span class="terminal-function">${escapeHtml(text)}</span>`;
+            }
+            return `<span class="terminal-value">${escapeHtml(text)}</span>`;
+        }
+
+        function getPredictionState(mode = app.activeTerminalMode) {
+            return mode === 'sell' ? app.sellPredictionState : app.buyPredictionState;
+        }
+
+        function getChainEntries(mode = app.activeTerminalMode) {
+            return mode === 'sell' ? app.sellChainEntries : app.buyChainEntries;
+        }
+
+        function setTradeMode(mode) {
+            app.activeTradeMode = mode === 'sell' ? 'sell' : 'buy';
+            const shell = document.getElementById('trade-shell');
+            const buyButton = document.getElementById('trade-mode-buy');
+            const sellButton = document.getElementById('trade-mode-sell');
+            const buyPane = document.getElementById('trade-pane-buy');
+            const sellPane = document.getElementById('trade-pane-sell');
+            if (shell) shell.setAttribute('data-trade-mode', app.activeTradeMode);
+            if (buyButton) {
+                const active = app.activeTradeMode === 'buy';
+                buyButton.classList.toggle('is-active', active);
+                buyButton.setAttribute('aria-selected', active ? 'true' : 'false');
+            }
+            if (sellButton) {
+                const active = app.activeTradeMode === 'sell';
+                sellButton.classList.toggle('is-active', active);
+                sellButton.setAttribute('aria-selected', active ? 'true' : 'false');
+            }
+            if (buyPane) buyPane.classList.toggle('is-active', app.activeTradeMode === 'buy');
+            if (sellPane) sellPane.classList.toggle('is-active', app.activeTradeMode === 'sell');
+            setTerminalMode(app.activeTradeMode);
+        }
+
+        function setTerminalMode(mode) {
+            app.activeTerminalMode = mode === 'sell' ? 'sell' : 'buy';
+            const label = app.activeTerminalMode === 'sell' ? 'Sell' : 'Buy';
+            const element = document.getElementById('route-terminal-mode');
+            if (element) element.textContent = label;
+        }
+
+        function renderPreviewTerminal(state) {
+            const { mode, summaryRows, steps, addresses } = state;
+            const lines = [];
+            lines.push(`<div class="terminal-line"><span class="terminal-prefix">$</span><span class="terminal-function">mode</span> <span class="terminal-key">=</span> ${formatTerminalInline(mode || 'Waiting')}</div>`);
+
+            summaryRows.forEach(([label, value]) => {
+                lines.push(`<div class="terminal-line"><span class="terminal-prefix">></span><span class="terminal-key">${escapeHtml(label)}:</span> ${formatTerminalInline(value)}</div>`);
+            });
+
+            if (steps.length) {
+                lines.push(`<div class="terminal-line"><span class="terminal-prefix">#</span><span class="terminal-muted">predicted sequence</span></div>`);
+            }
+
+            steps.forEach((step, index) => {
+                lines.push(`<div class="terminal-line"><span class="terminal-prefix">${index + 1}.</span><span class="terminal-function">${escapeHtml(step.title)}</span> <span class="terminal-muted">[${escapeHtml(step.badge || 'Step')}]</span></div>`);
+                lines.push(`<div class="terminal-line"><span class="terminal-prefix">|</span><span class="terminal-muted">${escapeHtml(step.body || '')}</span></div>`);
+                (step.details || []).forEach(([detailLabel, detailValue]) => {
+                    lines.push(`<div class="terminal-line"><span class="terminal-prefix">|</span><span class="terminal-key">${escapeHtml(detailLabel)}:</span> ${formatTerminalInline(detailValue)}</div>`);
+                });
+            });
+
+            if (addresses.length) {
+                lines.push(`<div class="terminal-line"><span class="terminal-prefix">@</span><span class="terminal-muted">addresses / contracts</span></div>`);
+            }
+
+            addresses.forEach(([label, value]) => {
+                lines.push(`<div class="terminal-line"><span class="terminal-prefix">@</span><span class="terminal-key">${escapeHtml(label)}:</span> ${formatTerminalInline(value)}</div>`);
+            });
+
+            return lines.join('');
+        }
+
+        function renderChainTerminal(entries) {
+            if (!entries.length) {
+                return '<div class="terminal-line"><span class="terminal-prefix">$</span><span class="terminal-muted">No execution yet.</span></div>';
+            }
+            return entries.map((entry) => {
+                const toneClass = entry.tone === 'success'
+                    ? 'terminal-success'
+                    : entry.tone === 'error'
+                        ? 'terminal-error'
+                        : entry.tone === 'warning'
+                            ? 'terminal-warning'
+                            : 'terminal-value';
+                const detailsHtml = (entry.details || []).map(([label, value]) => `
+                    <div class="terminal-line"><span class="terminal-prefix">|</span><span class="terminal-key">${escapeHtml(label)}:</span> ${formatTerminalInline(value)}</div>
+                `).join('');
+                return `
+                    <div class="terminal-line"><span class="terminal-prefix">$</span><span class="${toneClass}">${escapeHtml(entry.title)}</span></div>
+                    <div class="terminal-line"><span class="terminal-prefix">|</span><span class="terminal-muted">${entry.body}</span></div>
+                    ${detailsHtml}
+                `;
+            }).join('');
+        }
+
+        function renderActiveTerminal() {
+            const log = document.getElementById('route-terminal');
+            if (!log) return;
+
+            const previousScrollTop = log.scrollTop;
+            const previousScrollHeight = log.scrollHeight;
+            const previousClientHeight = log.clientHeight;
+            const wasNearBottom = previousScrollHeight - (previousScrollTop + previousClientHeight) <= 16;
+
+            const previewHtml = renderPreviewTerminal(getPredictionState());
+            const chainHtml = renderChainTerminal(getChainEntries());
+            log.innerHTML = `
+                <div class="terminal-divider">Prediction</div>
+                ${previewHtml}
+                <div class="terminal-divider">On-Chain</div>
+                ${chainHtml}
+            `;
+
+            if (wasNearBottom) {
+                log.scrollTop = log.scrollHeight;
+            } else {
+                log.scrollTop = previousScrollTop;
+            }
+        }
+
+        function renderAddresses(extra) {
+            const items = [
+                ['Wallet', app.account || '-'],
+                ['Vault', ADDR.Vault],
+                ['USDL', ADDR.USDL],
+                ['PB', ADDR.PB],
+                ['PBc', ADDR.PBc],
+                ['PBt', ADDR.PBt],
+                ['PulseX Router', ADDR.PULSEX_ROUTER],
+                ['PB/USDL Pair', ADDR.PB_USDL_PAIR],
+            ];
+            if (extra && extra.length) items.push(...extra);
+            getPredictionState().addresses = items;
+            renderActiveTerminal();
+        }
+
+        function renderSimSummary(rows) {
+            getPredictionState().summaryRows = rows;
+            renderActiveTerminal();
+        }
+
+        function renderSimSteps(mode, steps) {
+            setTerminalMode(String(mode || '').toLowerCase().includes('sell') ? 'sell' : 'buy');
+            const state = getPredictionState();
+            state.mode = mode;
+            state.steps = steps;
+            renderActiveTerminal();
+        }
+
+        function pushChainEvent(title, body, tone, details) {
+            getChainEntries().push({ title, body, tone, details });
+            renderActiveTerminal();
+        }
+
+        function resetChainEvents(mode = app.activeTerminalMode) {
+            if (mode === 'sell') {
+                app.sellChainEntries = [];
+            } else {
+                app.buyChainEntries = [];
+            }
+            renderActiveTerminal();
+        }
+
+        function setChainMode(text) {
+            setTerminalMode(String(text || '').toLowerCase().includes('sell') ? 'sell' : 'buy');
+        }
+
+        function summarizeIds(ids, limit = 12) {
+            if (!Array.isArray(ids) || !ids.length) return 'None';
+            const head = ids.slice(0, limit).join(', ');
+            return ids.length > limit ? `${head} ...` : head;
+        }
+
+        function getBuyRouteExplanation(simulation, recipient) {
+            const reasons = [];
+            if (simulation.chunkPlan.length > 1) {
+                reasons.push(`this input is split into ${simulation.chunkPlan.length} sequential vault buys to keep each call smaller`);
+            }
+            if (simulation.nettedCount > 0) {
+                reasons.push(`${simulation.nettedCount} unlock position(s) are expected to net before or during the AMM leg`);
+            }
+            if (simulation.ammSellPB > 0n) {
+                reasons.push('part of the route is behaving like a mixed internal settlement instead of a clean AMM buy');
+            } else {
+                reasons.push('the remainder should flow through the AMM after any internal netting is applied');
+            }
+            if (recipient !== (app.account || '-')) {
+                reasons.push('the output is directed to a gift recipient instead of the connected wallet');
+            }
+            return reasons.join('; ') + '.';
+        }
+
+        function getSellRouteExplanation() {
+            return 'this route is a direct router swap with no vault netting layer, so the wallet signs a standard PB to USDL swap.';
+        }
+
+        function computeBuyValueMetrics(pbAmount, pbcAmount, startPrice, finalPrice, usdlSpent) {
+            const pbTotal = (pbAmount || 0n) + (pbcAmount || 0n);
+            const pbTotalFloat = unitsFloat(pbTotal, 18);
+            const spentFloat = unitsFloat(usdlSpent || 0n, 18);
+            return {
+                pbTotal,
+                pbTotalFloat,
+                startValue: pbTotalFloat * Number(startPrice || 0),
+                finalValue: pbTotalFloat * Number(finalPrice || 0),
+                avgPrice: pbTotalFloat > 0 ? spentFloat / pbTotalFloat : 0,
+            };
+        }
+
+        function normalizeAmount(value) {
+            const parsed = parseFloat(value);
+            if (!value || !Number.isFinite(parsed) || parsed <= 0) return null;
+            return parsed.toFixed(6);
+        }
+
+        function wireEnterToAction(inputId, action) {
+            const element = document.getElementById(inputId);
+            if (!element) return;
+            element.addEventListener('keydown', (event) => {
+                if (event.key !== 'Enter') return;
+                event.preventDefault();
+                action().catch((err) => {
+                    const statusId = inputId === 'buy-amount' ? 'buy-status' : 'sell-status';
+                    setStatus(statusId, err.message, 'error');
+                });
+            });
+        }
+
+        async function fillBuyAmount(fraction) {
+            if (!app.account) {
+                setStatus('buy-status', 'Connect wallet first.', 'warning');
+                return;
+            }
+            const balance = await usdlRead.balanceOf(app.account);
+            const scaled = balance * BigInt(Math.round(fraction * 10000)) / 10000n;
+            document.getElementById('buy-amount').value = toPlainInputValue(scaled, 18, 2);
+            updateAutoChunkUI();
+            await simulateBuy();
+        }
+
+        async function fillSellAmount(fraction) {
+            if (!app.account) {
+                setStatus('sell-status', 'Connect wallet first.', 'warning');
+                return;
+            }
+            const balance = await pbRead.balanceOf(app.account);
+            const scaled = balance * BigInt(Math.round(fraction * 10000)) / 10000n;
+            document.getElementById('sell-amount').value = toPlainInputValue(scaled, 18, 4);
+            await simulateSell();
+        }
+
+        function buildChunkPlan(normalized) {
+            if (!normalized) return [];
+            const total = parseFloat(normalized);
+            if (total <= 5000) return [normalized];
+            const count = Math.ceil(total / 5000);
+            const micros = ethers.parseUnits(normalized, 6);
+            const base = micros / BigInt(count);
+            const remainder = micros % BigInt(count);
+            const chunks = [];
+            for (let index = 0; index < count; index++) {
+                const value = base + (index < Number(remainder) ? 1n : 0n);
+                chunks.push(ethers.formatUnits(value, 6));
+            }
+            return chunks;
+        }
+
+        function updateAutoChunkUI() {
+            const wrap = document.getElementById('buy-autochunk-wrap');
+            const checkbox = document.getElementById('buy-autochunk');
+            const plan = document.getElementById('buy-autochunk-plan');
+            const normalized = normalizeAmount(document.getElementById('buy-amount').value);
+            const total = normalized ? parseFloat(normalized) : 0;
+            if (!normalized || total <= 5000) {
+                wrap.classList.remove('visible');
+                checkbox.checked = false;
+                delete checkbox.dataset.touched;
+                plan.textContent = '';
+                return;
+            }
+            const chunks = buildChunkPlan(normalized);
+            if (checkbox.dataset.touched !== 'true') checkbox.checked = true;
+            wrap.classList.add('visible');
+            plan.textContent = `${checkbox.checked ? 'Enabled' : 'Optional'}: ${chunks.length} sequential buys of about $${formatNumber(chunks[0], 2)} each.`;
+        }
+
+        async function refreshWalletOverview() {
+            const snapshot = await getPoolSnapshot();
+            document.getElementById('pool-price').textContent = formatPrice(snapshot.price);
+            if (!app.account) {
+                updateConnectButton();
+                document.getElementById('wallet-badge').textContent = '-';
+                document.getElementById('usdl-balance').textContent = '-';
+                document.getElementById('pb-balance').textContent = '-';
+                document.getElementById('pbc-balance').textContent = '-';
+                renderAddresses();
+                return;
+            }
+            const [usdlBal, pbBal, pbcBal] = await Promise.all([
+                usdlRead.balanceOf(app.account),
+                pbRead.balanceOf(app.account),
+                pbcRead.balanceOf(app.account),
+            ]);
+            updateConnectButton();
+            document.getElementById('wallet-badge').textContent = shortAddr(app.account);
+            document.getElementById('usdl-balance').textContent = formatUnits(usdlBal, 18, 2) + ' USDL';
+            document.getElementById('pb-balance').textContent = formatUnits(pbBal, 18, 2) + ' PB';
+            document.getElementById('pbc-balance').textContent = formatUnits(pbcBal, 18, 2) + ' PBc';
+            renderAddresses();
+        }
+
+        async function connectWallet() {
+            if (!window.ethereum) {
+                alert('No injected wallet detected.');
+                return;
+            }
+            await switchWalletToNetwork(ACTIVE_NETWORK_KEY);
+            app.browserProvider = new ethers.BrowserProvider(window.ethereum);
+            const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+            app.account = accounts[0] || null;
+            app.signer = await app.browserProvider.getSigner();
+            document.getElementById('network-badge').textContent = ACTIVE_NETWORK.name + ' (' + CHAIN_ID + ')';
+            pushChainEvent('Wallet connected', 'Connected wallet and prepared signer for transparent trade execution.', 'success', [
+                ['Wallet', app.account],
+                ['Vault', ADDR.Vault],
+            ]);
+            await refreshWalletOverview();
+        }
+
+        async function getBuyRecipient() {
+            const gift = document.getElementById('gift-buy-checkbox').checked;
+            if (!gift) return '0x0000000000000000000000000000000000000000';
+            const recipient = document.getElementById('gift-recipient').value.trim();
+            if (!/^0x[a-fA-F0-9]{40}$/.test(recipient)) {
+                throw new Error('Enter a valid gift recipient address');
+            }
+            return recipient;
+        }
+
+        async function fetchNettingPreview(usdlWei) {
+            try {
+                const response = await fetch(`${INDEXER_URL}/netting-positions?usdl=${usdlWei.toString()}`);
+                if (!response.ok) return [];
+                const data = await response.json();
+                return Array.isArray(data.positions) ? data.positions : [];
+            } catch {
+                return [];
+            }
+        }
+
+        async function fetchUnlockSelection(usdlWei) {
+            const response = await fetch(`${INDEXER_URL}/unlock-ids?usdl=${usdlWei.toString()}&limit=500&strict=true`);
+            let data = null;
+            try {
+                data = await response.json();
+            } catch {
+                data = null;
+            }
+            if (!response.ok) {
+                const message = data?.message || data?.error || `Unlock hint fetch failed (${response.status})`;
+                throw new Error(message);
+            }
+            if (!data || !Array.isArray(data.unlockIds)) {
+                throw new Error('Unlock hint response was malformed');
+            }
+            return data;
+        }
+
+        async function orderUnlockIdsForExecution(unlockIds) {
+            if (!Array.isArray(unlockIds) || !unlockIds.length) return [];
+            const liveStatuses = await Promise.all(unlockIds.map(async (id) => {
+                try {
+                    const [, nextTriggerPrice, , pbcRemaining] = await vaultViewsRead.getPositionUnlockStatus(id);
+                    if ((pbcRemaining || 0n) === 0n) return null;
+                    return {
+                        id: Number(id),
+                        nextTriggerPrice: BigInt(nextTriggerPrice),
+                    };
+                } catch {
+                    return null;
+                }
+            }));
+            return liveStatuses
+                .filter(Boolean)
+                .sort((left, right) => {
+                    if (left.nextTriggerPrice < right.nextTriggerPrice) return -1;
+                    if (left.nextTriggerPrice > right.nextTriggerPrice) return 1;
+                    return left.id - right.id;
+                })
+                .map((row) => row.id);
+        }
+
+        async function simulateBuy() {
+            setTradeMode('buy');
+            setTerminalMode('buy');
+            const normalized = normalizeAmount(document.getElementById('buy-amount').value);
+            if (!normalized) throw new Error('Enter a valid buy amount');
+            const recipient = await getBuyRecipient();
+            const snapshot = await getPoolSnapshot();
+            const usdlWei = ethers.parseEther(normalized);
+            const positions = await fetchNettingPreview(usdlWei);
+            const chunkPlan = document.getElementById('buy-autochunk').checked ? buildChunkPlan(normalized) : [normalized];
+
+            let reservePB = snapshot.reservePB;
+            let reserveUSDL = snapshot.reserveUSDL;
+            let budget = usdlWei;
+            let totalNettedSettlement = 0n;
+            let absorbedPBc = 0n;
+            let partialPBc = 0n;
+            let unsettledPBc = 0n;
+            let unsettledOwed = 0n;
+            let nettedCount = 0;
+            let hasPartial = false;
+            const E18 = 10n ** 18n;
+
+            for (const position of positions) {
+                const triggerPrice = BigInt(position.triggerPrice);
+                const pbcLocked = BigInt(position.pbcLocked);
+                if (pbcLocked === 0n) continue;
+                const vBuy = computeUSDLForPrice(reservePB, reserveUSDL, triggerPrice);
+                const tranche = position.nextTriggerPBc ? BigInt(position.nextTriggerPBc) : (pbcLocked / 3n);
+                const settlement = position.nextTriggerUSDL ? BigInt(position.nextTriggerUSDL) : ((tranche * triggerPrice) / E18);
+
+                if (budget < vBuy + settlement) {
+                    if (budget >= vBuy) {
+                        if (vBuy > 0n) {
+                            const pbBought = getAmountOut(vBuy, reserveUSDL, reservePB);
+                            reserveUSDL += vBuy;
+                            reservePB -= pbBought;
+                            budget -= vBuy;
+                        }
+                        const partialPayment = budget;
+                        partialPBc = settlement > 0n ? (tranche * partialPayment) / settlement : 0n;
+                        unsettledPBc = tranche - partialPBc;
+                        unsettledOwed = settlement - partialPayment;
+                        totalNettedSettlement += partialPayment;
+                        absorbedPBc += partialPBc;
+                        nettedCount += 1;
+                        hasPartial = true;
+                    }
+                    budget = 0n;
+                    break;
+                }
+
+                budget -= (vBuy + settlement);
+                totalNettedSettlement += settlement;
+                if (vBuy > 0n) {
+                    const pbBought = getAmountOut(vBuy, reserveUSDL, reservePB);
+                    reserveUSDL += vBuy;
+                    reservePB -= pbBought;
+                }
+                absorbedPBc += tranche;
+                nettedCount += 1;
+            }
+
+            let ammBuyAmount = usdlWei - totalNettedSettlement;
+            let internalPBc = 0n;
+            let ammPBOut = 0n;
+            let ammSellPB = 0n;
+            if (hasPartial && unsettledOwed > 0n && ammBuyAmount > 0n) {
+                const internalUSDL = ammBuyAmount < unsettledOwed ? ammBuyAmount : unsettledOwed;
+                internalPBc = (unsettledPBc * internalUSDL) / unsettledOwed;
+                unsettledOwed -= internalUSDL;
+                ammBuyAmount -= internalUSDL;
+            }
+
+            if (ammBuyAmount > unsettledOwed) {
+                let netAMM = ammBuyAmount - unsettledOwed;
+                const usdlForLP = (netAMM * 3690n) / 10000n;
+                netAMM -= usdlForLP;
+                if (netAMM > 0n) ammPBOut = getAmountOut(netAMM, snapshot.reserveUSDL, snapshot.reservePB);
+                if (usdlForLP > 0n) ammPBOut += (usdlForLP * snapshot.reservePB) / snapshot.reserveUSDL;
+            } else if (ammBuyAmount < unsettledOwed) {
+                ammSellPB = getAmountIn(unsettledOwed - ammBuyAmount, snapshot.reservePB, snapshot.reserveUSDL);
+            }
+
+            const totalPB = absorbedPBc + internalPBc + ammPBOut;
+            const liquid = (totalPB * 369n) / 10000n;
+            const locked = totalPB - liquid;
+            const totalPBFloat = Number(ethers.formatEther(totalPB));
+            const avgPrice = totalPBFloat > 0 ? Number(normalized) / totalPBFloat : 0;
+            const predictedValue = totalPBFloat * snapshot.price;
+            const rawPB = getAmountOut(usdlWei, snapshot.reserveUSDL, snapshot.reservePB);
+            const minPBOut = rawPB * 50n / 100n;
+            const unlockSelection = await fetchUnlockSelection(usdlWei);
+            const unlockIds = unlockSelection.unlockIds;
+            const previewRecipient = recipient === ethers.ZeroAddress ? (app.account || '-') : recipient;
+
+            const simulation = {
+                mode: 'Buy simulation',
+                normalized,
+                recipient,
+                usdlWei,
+                totalPB,
+                liquid,
+                locked,
+                avgPrice,
+                currentPrice: snapshot.price,
+                predictedValue,
+                nettedCount,
+                totalNettedSettlement,
+                absorbedPBc,
+                internalPBc,
+                ammPBOut,
+                ammSellPB,
+                minPBOut,
+                rawPB,
+                unlockIds,
+                chunkPlan,
+            };
+            app.latestBuySimulation = simulation;
+
+            document.getElementById('buy-quote-pb').textContent = formatUnits(totalPB, 18, 2) + ' PB';
+            document.getElementById('buy-quote-liquid').textContent = formatUnits(liquid, 18, 2) + ' PB';
+            document.getElementById('buy-quote-locked').textContent = formatUnits(locked, 18, 2) + ' PBc';
+            document.getElementById('buy-quote-avg').textContent = formatPrice(avgPrice);
+
+            renderSimSummary([
+                ['Action', 'Buy PB'],
+                ['Input', '$' + formatNumber(normalized, 2) + ' USDL'],
+                ['Current Price', formatPrice(snapshot.price)],
+                ['Expected PB', formatUnits(totalPB, 18, 2) + ' PB'],
+                ['Predicted $', formatUsd(predictedValue)],
+                ['Liquid / Locked', formatUnits(liquid, 18, 2) + ' / ' + formatUnits(locked, 18, 2)],
+                ['Recipient', recipient === ethers.ZeroAddress ? (app.account || '-') : recipient],
+                ['Netting hints', unlockIds.length ? unlockIds.length + ' IDs' : 'No hint IDs'],
+            ]);
+            renderSimSteps('Buy', [
+                {
+                    title: 'What you will sign',
+                    badge: 'Signer',
+                    tone: 'warning',
+                    body: simulation.chunkPlan.length > 1
+                        ? `If you execute now, the wallet will sign ${simulation.chunkPlan.length} sequential Vault.buyPBDirect call(s). The on-chain terminal should mirror this sequence chunk by chunk.`
+                        : 'If you execute now, the wallet will sign one Vault.buyPBDirect call. The on-chain terminal should mirror this same call and its resulting state changes.',
+                    details: [
+                        ['Function', 'Vault.buyPBDirect'],
+                        ['Contract', ADDR.Vault],
+                        ['Spend USDL', '$' + formatNumber(normalized, 2)],
+                        ['Recipient', previewRecipient],
+                        ['Hinted positions', String(unlockIds.length)],
+                        ['Hint ID#', summarizeIds(unlockIds)],
+                        ['Min PB Out', formatUnits(minPBOut, 18, 4)],
+                        ['Expected receive', simulation.chunkPlan.length > 1 ? `${simulation.chunkPlan.length} sequential calls` : formatUnits(totalPB, 18, 4) + ' PB total'],
+                    ]
+                },
+                {
+                    title: 'Why this route looks like this',
+                    badge: 'Explain',
+                    tone: 'info',
+                    body: getBuyRouteExplanation(simulation, previewRecipient),
+                    details: [
+                        ['Chunk mode', simulation.chunkPlan.length > 1 ? `${simulation.chunkPlan.length} chunks` : 'Single call'],
+                        ['Netting hints', unlockIds.length ? `${unlockIds.length} IDs` : 'No hint IDs'],
+                        ['Recipient mode', previewRecipient === (app.account || '-') ? 'Connected wallet' : 'Gift recipient'],
+                    ]
+                },
+                {
+                    title: 'Wallet approval and vault intake',
+                    badge: 'Signer',
+                    tone: 'info',
+                    body: 'If allowance is short, the wallet first approves the vault to spend USDL. The vault then pulls the requested USDL from the wallet.',
+                    details: [
+                        ['USDL spender', ADDR.Vault],
+                        ['Input amount', '$' + formatNumber(normalized, 2)],
+                    ]
+                },
+                {
+                    title: 'Netting and internal settlement',
+                    badge: simulation.nettedCount ? 'Netting' : 'AMM only',
+                    tone: simulation.nettedCount ? 'success' : 'warning',
+                    body: simulation.nettedCount
+                        ? `The preview sees ${simulation.nettedCount} unlock position(s) available for settlement before or during the AMM leg.`
+                        : 'No netting positions were available in the preview, so this should behave like a plain AMM-driven buy.',
+                    details: [
+                        ['Netted PBc', formatUnits(simulation.absorbedPBc + simulation.internalPBc, 18, 2)],
+                        ['Settlement USDL', '$' + formatNumber(ethers.formatEther(simulation.totalNettedSettlement), 2)],
+                    ]
+                },
+                {
+                    title: 'AMM leg and mint result',
+                    badge: simulation.ammSellPB > 0n ? 'Mixed' : 'AMM buy',
+                    tone: simulation.ammSellPB > 0n ? 'warning' : 'success',
+                    body: simulation.ammSellPB > 0n
+                        ? 'The preview implies a partial net-sell condition inside the route. That reduces the AMM buy side and increases internal settlement complexity.'
+                        : 'The remaining USDL is expected to buy PB through the AMM and then split that PB into liquid PB and locked PBc.',
+                    details: [
+                        ['Current price', formatPrice(simulation.currentPrice)],
+                        ['AMM buy PB', formatUnits(simulation.ammPBOut, 18, 2)],
+                        ['AMM sell PB', formatUnits(simulation.ammSellPB, 18, 2)],
+                        ['Predicted $ value', formatUsd(simulation.predictedValue)],
+                        ['Predicted avg / PB', formatPrice(simulation.avgPrice)],
+                        ['Expected PB liquid', formatUnits(simulation.liquid, 18, 2)],
+                        ['Expected PBc locked', formatUnits(simulation.locked, 18, 2)],
+                    ]
+                },
+                {
+                    title: 'Optional chunking plan',
+                    badge: simulation.chunkPlan.length > 1 ? 'Chunked' : 'Single',
+                    tone: 'info',
+                    body: simulation.chunkPlan.length > 1
+                        ? `The buy card is set to submit ${simulation.chunkPlan.length} sequential buys. Each chunk requeries hints at execution time.`
+                        : 'This input is configured as one direct buy call.',
+                    details: simulation.chunkPlan.map((chunk, index) => [`Chunk ${index + 1}`, '$' + formatNumber(chunk, 2)]),
+                }
+            ]);
+            renderAddresses([
+                ['Recipient', recipient === ethers.ZeroAddress ? (app.account || '-') : recipient],
+                ['Unlock hint ID#', unlockIds.length ? unlockIds.slice(0, 8).join(', ') + (unlockIds.length > 8 ? ' ...' : '') : 'None'],
+            ]);
+            setStatus('buy-status', 'Buy simulation updated.', 'success');
+        }
+
+        async function simulateSell() {
+            setTradeMode('sell');
+            setTerminalMode('sell');
+            const normalized = normalizeAmount(document.getElementById('sell-amount').value);
+            if (!normalized) throw new Error('Enter a valid sell amount');
+            const snapshot = await getPoolSnapshot();
+            const pbWei = ethers.parseEther(normalized);
+            const usdlOut = getAmountOut(pbWei, snapshot.reservePB, snapshot.reserveUSDL);
+            const avgPrice = Number(ethers.formatEther(usdlOut)) / Number(normalized);
+
+            const simulation = {
+                mode: 'Sell simulation',
+                normalized,
+                pbWei,
+                usdlOut,
+                avgPrice,
+            };
+            app.latestSellSimulation = simulation;
+
+            document.getElementById('sell-quote-usdl').textContent = '$' + formatUnits(usdlOut, 18, 2);
+            document.getElementById('sell-quote-avg').textContent = formatPrice(avgPrice);
+
+            renderSimSummary([
+                ['Action', 'Sell PB'],
+                ['Input', formatNumber(normalized, 2) + ' PB'],
+                ['Expected USDL', '$' + formatUnits(usdlOut, 18, 2)],
+                ['Expected avg price', formatPrice(avgPrice)],
+                ['Recipient', app.account || '-'],
+                ['Router path', 'PB -> USDL'],
+            ]);
+            renderSimSteps('Sell', [
+                {
+                    title: 'What you will sign',
+                    badge: 'Signer',
+                    tone: 'warning',
+                    body: 'If you execute now, the wallet will sign one router swap. The on-chain terminal should mirror this same swap request and receipt flow.',
+                    details: [
+                        ['Function', 'swapExactTokensForTokens'],
+                        ['Contract', ADDR.PULSEX_ROUTER],
+                        ['Spend PB', formatNumber(normalized, 2)],
+                        ['Receive wallet', app.account || '-'],
+                        ['Route', `${ADDR.PB} -> ${ADDR.USDL}`],
+                        ['Min USDL Out', formatUnits(usdlOut * 95n / 100n, 18, 2)],
+                    ]
+                },
+                {
+                    title: 'Why this route looks like this',
+                    badge: 'Explain',
+                    tone: 'info',
+                    body: getSellRouteExplanation(),
+                    details: [
+                        ['Execution path', 'Router only'],
+                        ['Netting layer', 'None'],
+                    ]
+                },
+                {
+                    title: 'PB approval',
+                    badge: 'Signer',
+                    tone: 'info',
+                    body: 'If the router allowance is short, the wallet first approves the PulseX router to spend PB.',
+                    details: [
+                        ['PB spender', ADDR.PULSEX_ROUTER],
+                        ['PB amount', formatNumber(normalized, 2)],
+                    ]
+                },
+                {
+                    title: 'Router swap execution',
+                    badge: 'AMM',
+                    tone: 'success',
+                    body: 'The router swaps PB for USDL through the PB/USDL pair and returns the output to the connected wallet.',
+                    details: [
+                        ['Router', ADDR.PULSEX_ROUTER],
+                        ['Pair', ADDR.PB_USDL_PAIR],
+                        ['Estimated USDL', '$' + formatUnits(usdlOut, 18, 2)],
+                    ]
+                }
+            ]);
+            renderAddresses();
+            setStatus('sell-status', 'Sell simulation updated.', 'success');
+        }
+
+        async function captureBalances(address) {
+            if (!address || address === ethers.ZeroAddress) return null;
+            const [pb, pbc, usdl, pbt] = await Promise.all([
+                pbRead.balanceOf(address),
+                pbcRead.balanceOf(address),
+                usdlRead.balanceOf(address),
+                pbtRead.balanceOf(address),
+            ]);
+            return { pb, pbc, usdl, pbt };
+        }
+
+        function diffBalance(after, before) {
+            if (after == null || before == null) return null;
+            return after - before;
+        }
+
+        function decodeReceiptLogs(receipt) {
+            const out = {
+                unlockNetted: [],
+                unlockTriggered: [],
+                buyWithNetting: [],
+                pbTransfers: [],
+                pbcTransfers: [],
+                usdlTransfers: [],
+                pbtMints: [],
+            };
+
+            for (const log of receipt.logs) {
+                const address = String(log.address).toLowerCase();
+                try {
+                    if (address === ADDR.Vault.toLowerCase()) {
+                        const parsed = vaultRead.interface.parseLog(log);
+                        const name = parsed.name || parsed.fragment?.name;
+                        if (name === 'UnlockNetted') out.unlockNetted.push(parsed.args);
+                        if (name === 'UnlockTriggered') out.unlockTriggered.push(parsed.args);
+                        if (name === 'BuyWithNetting') out.buyWithNetting.push(parsed.args);
+                    }
+                } catch {}
+
+                if (log.topics[0] !== transferTopic) continue;
+                try {
+                    if (address === ADDR.PB.toLowerCase() || address === ADDR.PBc.toLowerCase() || address === ADDR.USDL.toLowerCase()) {
+                        const parsed = erc20Interface.parseLog(log);
+                        const row = {
+                            from: String(parsed.args.from),
+                            to: String(parsed.args.to),
+                            value: parsed.args.value,
+                        };
+                        if (address === ADDR.PB.toLowerCase()) out.pbTransfers.push(row);
+                        if (address === ADDR.PBc.toLowerCase()) out.pbcTransfers.push(row);
+                        if (address === ADDR.USDL.toLowerCase()) out.usdlTransfers.push(row);
+                    }
+                    if (address === ADDR.PBt.toLowerCase()) {
+                        const parsed = pbtInterface.parseLog(log);
+                        if (String(parsed.args.from) === ethers.ZeroAddress) {
+                            out.pbtMints.push({ to: String(parsed.args.to), tokenId: parsed.args.tokenId });
+                        }
+                    }
+                } catch {}
+            }
+            return out;
+        }
+
+        function explorerLinkForTx(hash) {
+            return `${EXPLORER}/tx/${hash}`;
+        }
+
+        async function ensureAllowance(tokenContract, owner, spender, neededWei, label) {
+            const allowance = await tokenContract.allowance(owner, spender);
+            if (allowance >= neededWei) {
+                pushChainEvent(`${label} allowance ok`, `Existing allowance is sufficient for the requested amount.`, 'success', [
+                    ['Spender', spender],
+                    ['Allowance', formatUnits(allowance, 18, 2)],
+                ]);
+                return null;
+            }
+            pushChainEvent(`${label} approval requested`, `Wallet needs to sign an approval before the trade can execute.`, 'warning', [
+                ['Spender', spender],
+                ['Required', formatUnits(neededWei, 18, 2)],
+            ]);
+            const approveTx = await tokenContract.approve(spender, neededWei);
+            pushChainEvent(`${label} approval submitted`, `<a href="${explorerLinkForTx(approveTx.hash)}" target="_blank" rel="noopener noreferrer">${approveTx.hash}</a>`, 'info');
+            const receipt = await approveTx.wait();
+            pushChainEvent(`${label} approval confirmed`, `Approval transaction mined.`, 'success', [
+                ['Tx Hash', approveTx.hash],
+                ['Block', String(receipt.blockNumber)],
+            ]);
+            return receipt;
+        }
+
+        async function executeBuy() {
+            if (!app.account || !app.signer) {
+                alert('Connect wallet first.');
+                return;
+            }
+            let errorContext = null;
+            try {
+                setTradeMode('buy');
+                setTerminalMode('buy');
+                if (!app.latestBuySimulation) {
+                    await simulateBuy();
+                }
+                const normalized = normalizeAmount(document.getElementById('buy-amount').value);
+                const recipientInput = await getBuyRecipient();
+                const recipientAddress = recipientInput === ethers.ZeroAddress ? app.account : recipientInput;
+                const chunks = document.getElementById('buy-autochunk').checked ? buildChunkPlan(normalized) : [normalized];
+
+                setChainMode('Executing buy');
+                setStatus('buy-status', 'Executing transparent buy flow...', 'info');
+                const vaultWrite = new ethers.Contract(ADDR.Vault, VAULT_ABI, app.signer);
+                const usdlWrite = new ethers.Contract(ADDR.USDL, ERC20_ABI, app.signer);
+                const totalWei = ethers.parseEther(normalized);
+                await ensureAllowance(usdlWrite, app.account, ADDR.Vault, totalWei, 'USDL');
+
+                let lastReceipt = null;
+                let lastTxHash = '';
+                let totalPbReceived = 0n;
+                let totalPbcReceived = 0n;
+                const mintedPbtIds = [];
+                for (let index = 0; index < chunks.length; index++) {
+                    const chunk = chunks[index];
+                    const chunkWei = ethers.parseEther(chunk);
+                    const unlockSelection = await fetchUnlockSelection(chunkWei);
+                    const unlockIds = await orderUnlockIdsForExecution(unlockSelection.unlockIds);
+                    const snapshotBefore = await captureBalances(recipientAddress);
+                    const startPool = await getPoolSnapshot();
+                    pushChainEvent(`Buy chunk ${index + 1}/${chunks.length}`, `Submitting vault buy for $${formatNumber(chunk, 2)} with ${unlockIds.length} hint IDs.`, 'info', [
+                        ['Recipient', recipientAddress],
+                        ['Unlock IDs', unlockIds.length ? unlockIds.join(', ') : 'None'],
+                    ]);
+
+                    const rawPB = getAmountOut(chunkWei, startPool.reserveUSDL, startPool.reservePB);
+                    const minPBOut = rawPB * 50n / 100n;
+                    errorContext = { chunkWei, minPBOut, unlockIds };
+                    const buyExpectation = chunks.length === 1 && app.latestBuySimulation
+                        ? formatUnits(app.latestBuySimulation.totalPB, 18, 4) + ' PB total'
+                        : formatUnits(rawPB, 18, 4) + ' PB raw quote';
+                    pushChainEvent('Signature request', 'Review this wallet prompt before signing the vault buy.', 'warning', [
+                        ['Function', 'Vault.buyPBDirect'],
+                        ['Contract', ADDR.Vault],
+                        ['Spend USDL', '$' + formatNumber(chunk, 2)],
+                        ['Recipient', recipientAddress],
+                        ['Hinted positions', String(unlockIds.length)],
+                        ['Hint ID#', summarizeIds(unlockIds)],
+                        ['Current price', formatPrice(startPool.price)],
+                        ['Min PB Out', formatUnits(minPBOut, 18, 4)],
+                        ['Expected receive', buyExpectation],
+                    ]);
+                    const tx = await vaultWrite.buyPBDirect(chunkWei, minPBOut, recipientInput, unlockIds);
+                    lastTxHash = tx.hash || lastTxHash;
+                    pushChainEvent('Buy submitted', `<a href="${explorerLinkForTx(tx.hash)}" target="_blank" rel="noopener noreferrer">${tx.hash}</a>`, 'warning', [
+                        ['Min PB Out', formatUnits(minPBOut, 18, 2)],
+                        ['Chunk USDL', '$' + formatNumber(chunk, 2)],
+                    ]);
+                    const receipt = await tx.wait();
+                    lastReceipt = receipt;
+                    const snapshotAfter = await captureBalances(recipientAddress);
+                    const finalPool = await getPoolSnapshot();
+                    const decoded = decodeReceiptLogs(receipt);
+                    pushChainEvent('Buy confirmed', 'Vault buy transaction mined and decoded.', 'success', [
+                        ['Tx Hash', tx.hash],
+                        ['Block', String(receipt.blockNumber)],
+                        ['Gas Used', String(receipt.gasUsed)],
+                    ]);
+
+                    if (snapshotBefore && snapshotAfter) {
+                        const pbDelta = diffBalance(snapshotAfter.pb, snapshotBefore.pb);
+                        const pbcDelta = diffBalance(snapshotAfter.pbc, snapshotBefore.pbc);
+                        totalPbReceived += pbDelta || 0n;
+                        totalPbcReceived += pbcDelta || 0n;
+                        const valueMetrics = computeBuyValueMetrics(pbDelta, pbcDelta, startPool.price, finalPool.price, chunkWei);
+                        pushChainEvent('Recipient balance delta', 'Observed post-transaction asset changes for the recipient.', 'success', [
+                            ['PB delta', formatUnits(pbDelta, 18, 4)],
+                            ['PBc delta', formatUnits(pbcDelta, 18, 4)],
+                            ['USDL delta', formatUnits(diffBalance(snapshotAfter.usdl, snapshotBefore.usdl), 18, 2)],
+                            ['PBt delta', String(diffBalance(snapshotAfter.pbt, snapshotBefore.pbt))],
+                        ]);
+                        if (valueMetrics.pbTotal > 0n) {
+                            pushChainEvent('Buy value view', 'Mark-to-market of PB plus PBc received in this executed buy chunk.', 'info', [
+                                ['Received PB + PBc', formatUnits(valueMetrics.pbTotal, 18, 4)],
+                                ['Start price', formatPrice(startPool.price)],
+                                ['Final price', formatPrice(finalPool.price)],
+                                ['Start $', formatUsd(valueMetrics.startValue)],
+                                ['Final $', formatUsd(valueMetrics.finalValue)],
+                                ['Avg / PB', formatPrice(valueMetrics.avgPrice)],
+                            ]);
+                        }
+                    }
+
+                    decoded.buyWithNetting.forEach((args, eventIndex) => {
+                        pushChainEvent(`BuyWithNetting event ${eventIndex + 1}`, 'Decoded vault summary event from the receipt.', 'info', [
+                            ['PBt', String(args.pbtId)],
+                            ['USDL In', formatUnits(args.usdlIn, 18, 2)],
+                            ['Total PB Out', formatUnits(args.totalPBOut, 18, 4)],
+                            ['Netted PB', formatUnits(args.nettedPB, 18, 4)],
+                            ['AMM PB', formatUnits(args.ammPB, 18, 4)],
+                            ['Unlocks Netted', String(args.unlocksNetted)],
+                        ]);
+                    });
+
+                    decoded.unlockNetted.forEach((args, eventIndex) => {
+                        pushChainEvent(`UnlockNetted ${eventIndex + 1}`, 'A PBt unlock was settled as part of the buy flow.', 'info', [
+                            ['PBt', String(args.pbtId)],
+                            ['Unlock', 'T' + (Number(args.unlockIndex) + 1)],
+                            ['Logged PBc', formatUnits(args.pbcSettled, 18, 4)],
+                            ['Logged USDL', formatUnits(args.usdlPaid, 18, 2)],
+                            ['Payout', String(args.payoutAddress)],
+                        ]);
+                    });
+
+                    if (decoded.pbtMints.length) {
+                        decoded.pbtMints.forEach((mint, eventIndex) => {
+                            const tokenIdText = String(mint.tokenId);
+                            if (!mintedPbtIds.includes(tokenIdText)) mintedPbtIds.push(tokenIdText);
+                            pushChainEvent(`PBt mint ${eventIndex + 1}`, 'Observed PBt mint in the receipt.', 'success', [
+                                ['Recipient', mint.to],
+                                ['Token ID', tokenIdText],
+                            ]);
+                        });
+                    }
+                }
+
+                setStatus('buy-status', 'Buy flow completed successfully.', 'success');
+                pushChainEvent('Buy result summary', 'Quick readout of what the executed buy produced.', 'success', [
+                    ['PB received', formatUnits(totalPbReceived, 18, 4)],
+                    ['PBc received', formatUnits(totalPbcReceived, 18, 4)],
+                    ['PBt ID#', mintedPbtIds.length ? mintedPbtIds.join(', ') : 'None observed'],
+                ]);
+                if (lastReceipt && lastTxHash) {
+                    pushChainEvent('Buy flow complete', `Final transaction: <a href="${explorerLinkForTx(lastTxHash)}" target="_blank" rel="noopener noreferrer">${lastTxHash}</a>`, 'success');
+                }
+                await refreshWalletOverview();
+            } catch (err) {
+                console.error(err);
+                const explained = explainTradeError(err, errorContext);
+                setChainMode('Buy failed');
+                setStatus('buy-status', 'Buy failed: ' + explained, 'error');
+                pushChainEvent('Buy failed', explained, 'error');
+            }
+        }
+
+        async function executeSell() {
+            if (!app.account || !app.signer) {
+                alert('Connect wallet first.');
+                return;
+            }
+            try {
+                setTradeMode('sell');
+                setTerminalMode('sell');
+                if (!app.latestSellSimulation) {
+                    await simulateSell();
+                }
+                const normalized = normalizeAmount(document.getElementById('sell-amount').value);
+                const pbWei = ethers.parseEther(normalized);
+                const pbWrite = new ethers.Contract(ADDR.PB, ERC20_ABI, app.signer);
+                const routerWrite = new ethers.Contract(ADDR.PULSEX_ROUTER, ROUTER_ABI, app.signer);
+                setChainMode('Executing sell');
+                setStatus('sell-status', 'Executing transparent sell flow...', 'info');
+                await ensureAllowance(pbWrite, app.account, ADDR.PULSEX_ROUTER, pbWei, 'PB');
+
+                const before = await captureBalances(app.account);
+                const quote = app.latestSellSimulation || await simulateSell();
+                const minOut = quote.usdlOut * 95n / 100n;
+                pushChainEvent('Signature request', 'Review this wallet prompt before signing the sell swap.', 'warning', [
+                    ['Function', 'swapExactTokensForTokens'],
+                    ['Contract', ADDR.PULSEX_ROUTER],
+                    ['Spend PB', formatNumber(normalized, 2)],
+                    ['Receive wallet', app.account],
+                    ['Route', `${ADDR.PB} -> ${ADDR.USDL}`],
+                    ['Min USDL Out', formatUnits(minOut, 18, 2)],
+                    ['Expected receive', '$' + formatUnits(quote.usdlOut, 18, 2)],
+                ]);
+                const tx = await routerWrite.swapExactTokensForTokens(pbWei, minOut, [ADDR.PB, ADDR.USDL], app.account, Math.floor(Date.now() / 1000) + 3600);
+                pushChainEvent('Sell submitted', `<a href="${explorerLinkForTx(tx.hash)}" target="_blank" rel="noopener noreferrer">${tx.hash}</a>`, 'warning', [
+                    ['PB in', formatNumber(normalized, 2)],
+                    ['Min USDL out', formatUnits(minOut, 18, 2)],
+                ]);
+                const receipt = await tx.wait();
+                const after = await captureBalances(app.account);
+                const decoded = decodeReceiptLogs(receipt);
+                pushChainEvent('Sell confirmed', 'Router swap mined and receipt decoded.', 'success', [
+                    ['Tx Hash', tx.hash],
+                    ['Block', String(receipt.blockNumber)],
+                    ['Gas Used', String(receipt.gasUsed)],
+                ]);
+                pushChainEvent('Wallet balance delta', 'Observed post-sell changes in the connected wallet.', 'success', [
+                    ['PB delta', formatUnits(diffBalance(after.pb, before.pb), 18, 4)],
+                    ['USDL delta', formatUnits(diffBalance(after.usdl, before.usdl), 18, 2)],
+                ]);
+                decoded.usdlTransfers.filter((row) => row.to.toLowerCase() === app.account.toLowerCase()).forEach((row, index) => {
+                    pushChainEvent(`USDL receipt ${index + 1}`, 'Detected USDL transfer to the wallet in the receipt.', 'info', [
+                        ['From', row.from],
+                        ['To', row.to],
+                        ['Value', formatUnits(row.value, 18, 2)],
+                    ]);
+                });
+                setStatus('sell-status', 'Sell flow completed successfully.', 'success');
+                await refreshWalletOverview();
+            } catch (err) {
+                console.error(err);
+                setChainMode('Sell failed');
+                setStatus('sell-status', 'Sell failed: ' + (err.reason || err.message), 'error');
+                pushChainEvent('Sell failed', err.reason || err.message, 'error');
+            }
+        }
+
+        function bind() {
+            document.getElementById('connect-btn').addEventListener('click', connectWallet);
+            document.getElementById('switch-btn').addEventListener('click', togglePreferredNetwork);
+            document.getElementById('clear-chain-btn').addEventListener('click', resetChainEvents);
+            document.getElementById('trade-mode-buy').addEventListener('click', () => setTradeMode('buy'));
+            document.getElementById('trade-mode-sell').addEventListener('click', () => setTradeMode('sell'));
+            document.getElementById('buy-quote-btn').addEventListener('click', () => simulateBuy().catch((err) => setStatus('buy-status', err.message, 'error')));
+            document.getElementById('buy-execute-btn').addEventListener('click', executeBuy);
+            document.getElementById('sell-quote-btn').addEventListener('click', () => simulateSell().catch((err) => setStatus('sell-status', err.message, 'error')));
+            document.getElementById('sell-execute-btn').addEventListener('click', executeSell);
+            document.getElementById('buy-amount').addEventListener('input', updateAutoChunkUI);
+            document.getElementById('buy-amount').addEventListener('change', updateAutoChunkUI);
+            document.getElementById('buy-autochunk').addEventListener('change', function () {
+                this.dataset.touched = 'true';
+                updateAutoChunkUI();
+            });
+            document.getElementById('gift-buy-checkbox').addEventListener('change', function () {
+                document.getElementById('gift-recipient').style.display = this.checked ? '' : 'none';
+                simulateBuy().catch(() => {});
+            });
+            document.getElementById('gift-recipient').addEventListener('change', () => simulateBuy().catch(() => {}));
+            wireEnterToAction('buy-amount', simulateBuy);
+            wireEnterToAction('sell-amount', simulateSell);
+            document.getElementById('buy-33').addEventListener('click', () => fillBuyAmount(1 / 3).catch((err) => setStatus('buy-status', err.message, 'error')));
+            document.getElementById('buy-66').addEventListener('click', () => fillBuyAmount(2 / 3).catch((err) => setStatus('buy-status', err.message, 'error')));
+            document.getElementById('buy-100').addEventListener('click', () => fillBuyAmount(1).catch((err) => setStatus('buy-status', err.message, 'error')));
+            document.getElementById('sell-33').addEventListener('click', () => fillSellAmount(1 / 3).catch((err) => setStatus('sell-status', err.message, 'error')));
+            document.getElementById('sell-66').addEventListener('click', () => fillSellAmount(2 / 3).catch((err) => setStatus('sell-status', err.message, 'error')));
+            document.getElementById('sell-100').addEventListener('click', () => fillSellAmount(1).catch((err) => setStatus('sell-status', err.message, 'error')));
+            if (window.ethereum) {
+                window.ethereum.on('accountsChanged', async (accounts) => {
+                    app.account = accounts[0] || null;
+                    if (app.account) {
+                        app.browserProvider = new ethers.BrowserProvider(window.ethereum);
+                        app.signer = await app.browserProvider.getSigner();
+                    }
+                    await refreshWalletOverview();
+                });
+            }
+        }
+
+        document.getElementById('network-badge').textContent = ACTIVE_NETWORK.name + ' (' + CHAIN_ID + ')';
+        updateNetworkSwitchButton();
+        setTradeMode('buy');
+        renderSimSummary([
+            ['Action', 'Idle'],
+            ['Input', '-'],
+            ['Expected output', '-'],
+            ['Recipient', '-'],
+            ['Netting hints', '-'],
+            ['Execution mode', 'Standalone local-friendly'],
+        ]);
+        renderSimSteps('Waiting', [
+            {
+                title: 'Connect and simulate',
+                badge: 'Ready',
+                tone: 'info',
+                body: 'Connect a wallet, then simulate a buy or sell. The predicted route appears here before you sign.',
+                details: [
+                    ['Trade card', 'Use the Buy / Sell switch above'],
+                    ['Trust Terminal', 'Single shared panel below'],
+                    ['Layout', 'Standalone page with inline styles'],
+                ]
+            }
+        ]);
+        renderAddresses();
+        bind();
+        refreshWalletOverview().catch(() => {});
+    })();
+    </script>
+</body>
+</html>

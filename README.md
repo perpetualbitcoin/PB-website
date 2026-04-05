@@ -21,6 +21,7 @@ No build step is required for normal local viewing.
 | PBManifesto.html | Protocol manifesto |
 | portfolio.html | Portfolio and position overview |
 | Dapp.html | Main public dapp |
+| MDapp.html | Standalone / mobile dapp |
 | DEV.html | Developer and contract reference |
 | simulator.html | Protocol simulator |
 
@@ -48,11 +49,5 @@ No build step is required for normal local viewing.
 ## Assets
 
 - Pic/ contains site images and downloadable PDFs.
-
-## Distribution
-
-- website-lite/ is the editable source of truth in the main workspace.
-- PB-website-repo/ is the GitHub-downloadable website copy.
-- ipfs-build/ is the generated Pinata/IPFS deployment bundle.
 
 Built on PulseChain. One Price. One Pool. One Truth.
