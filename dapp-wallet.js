@@ -9,6 +9,7 @@
         TPBc,
         TUSDL,
         PULSEX_PAIR,
+        hexChainId,
         ensureWalletOnChain,
     } = window.PBTestDapp;
 
@@ -16,6 +17,13 @@
         let networkChangeListenerAttached = false;
         let listenersBound = false;
         let suppressNextCorrectChainRefresh = false;
+        let activeWalletProvider = null;
+        let networkChangeListenerProvider = null;
+        let networkChangeHandler = null;
+
+        function getChainRequestProvider() {
+            return getActiveWalletProvider() || window.ethereum || null;
+        }
 
         function getPreferredNetworkKey(targetChain) {
             return Number(targetChain) === 369 ? 'mainnet' : 'testnet';
@@ -73,7 +81,10 @@
         }
 
         async function switchWalletChain(targetChain) {
-            const success = await ensureWalletOnChain(targetChain);
+            const provider = getChainRequestProvider();
+            const success = provider && typeof provider.request === 'function'
+                ? await ensureProviderOnChain(provider, targetChain)
+                : await ensureWalletOnChain(targetChain);
             if (success) {
                 applyHeroChainState(targetChain);
             }
@@ -96,12 +107,18 @@
             }
         }
 
-        function setupNetworkChangeListener() {
-            if (!window.ethereum || networkChangeListenerAttached) return;
-            window.ethereum.on('chainChanged', async (chainId) => {
+        function setupNetworkChangeListener(provider = getChainRequestProvider()) {
+            if (!provider || typeof provider.on !== 'function') return;
+            if (networkChangeListenerAttached && networkChangeListenerProvider === provider) return;
+
+            if (networkChangeListenerProvider && networkChangeHandler && typeof networkChangeListenerProvider.removeListener === 'function') {
+                networkChangeListenerProvider.removeListener('chainChanged', networkChangeHandler);
+            }
+
+            networkChangeHandler = async (chainId) => {
                 const newChainId = parseInt(chainId, 16);
                 console.log(`🔄 Network changed to: ${newChainId}`);
-                applyHeroChainState(CHAIN_ID);
+                applyHeroChainState(newChainId);
 
                 if (newChainId !== CHAIN_ID) {
                     console.log(`⚠️ Wrong network! Expected ${CHAIN_ID}, got ${newChainId}`);
@@ -115,7 +132,7 @@
                     console.log('✅ Correct network');
                     document.getElementById('network-display').innerText = `✅ ${CHAIN_NAME}`;
 
-                    app.setWeb3(new ethers.BrowserProvider(window.ethereum));
+                    app.setWeb3(new ethers.BrowserProvider(provider));
                     const currentAccount = app.getAccount();
                     if (currentAccount) {
                         app.setSigner(await app.getWeb3().getSigner(currentAccount));
@@ -134,7 +151,10 @@
                         app.populatePBtDropdowns();
                     }
                 }
-            });
+            };
+
+            provider.on('chainChanged', networkChangeHandler);
+            networkChangeListenerProvider = provider;
             networkChangeListenerAttached = true;
         }
 
@@ -162,7 +182,7 @@
                 } else if (navToggle && navToggle.type === 'checkbox') {
                     navToggle.checked = hero.checked;
                     navToggle.dispatchEvent(new Event('change', { bubbles: true }));
-                } else if (window.ethereum) {
+                } else if (getChainRequestProvider()) {
                     const targetChain = hero.checked ? 369 : CHAIN_ID;
                     const success = await switchWalletChain(targetChain);
                     if (!success) {
@@ -178,9 +198,10 @@
 
         function setupNetworkToggle() {
             const networkToggle = document.getElementById('network-toggle');
+            const chainProvider = getChainRequestProvider();
             if (!networkToggle) {
-                if (typeof window.ethereum !== 'undefined') {
-                    window.ethereum.request({ method: 'eth_chainId' }).then((chainId) => {
+                if (chainProvider && typeof chainProvider.request === 'function') {
+                    chainProvider.request({ method: 'eth_chainId' }).then((chainId) => {
                         const parsedChainId = parseInt(chainId, 16);
                         applyHeroChainState(parsedChainId);
                     }).catch(() => {
@@ -193,10 +214,11 @@
                 return;
             }
 
-            if (typeof window.ethereum !== 'undefined') {
-                window.ethereum.request({ method: 'eth_chainId' }).then((chainId) => {
-                    networkToggle.value = CHAIN_ID.toString();
-                    applyHeroChainState(CHAIN_ID);
+            if (chainProvider && typeof chainProvider.request === 'function') {
+                chainProvider.request({ method: 'eth_chainId' }).then((chainId) => {
+                    const parsedChainId = parseInt(chainId, 16);
+                    networkToggle.value = parsedChainId.toString();
+                    applyHeroChainState(parsedChainId);
                 }).catch(() => {
                     networkToggle.value = CHAIN_ID.toString();
                     applyHeroChainState(CHAIN_ID);
@@ -237,43 +259,240 @@
             setupHeroNetworkSync();
         }
 
-        async function addTokenToWallet(tokenAddress, tokenSymbol, decimals) {
+        const TOKEN_IMAGE_URLS = {
+            PB: 'https://perpetualbitcoin.io/Pic/PB.png',
+            PBc: 'https://perpetualbitcoin.io/Pic/PBc.png',
+            USDL: 'https://perpetualbitcoin.io/Pic/PB_logo.jpg',
+            'PBUSDL-LP': 'https://perpetualbitcoin.io/Pic/PB_logo.jpg',
+        };
+
+        async function addTokenToWallet(tokenAddress, tokenSymbol, decimals, imageUrl) {
             if (!app.getAccount()) {
                 alert('Connect wallet first');
                 return;
             }
             try {
-                await window.ethereum.request({
+                const provider = getActiveWalletProvider();
+                if (!provider || typeof provider.request !== 'function') {
+                    alert('No compatible wallet provider found for automatic token import. You can still add the token manually.');
+                    return;
+                }
+
+                if (isOKXProvider(provider) && CHAIN_ID === 369) {
+                    showManualImportFallback(
+                        tokenAddress,
+                        tokenSymbol,
+                        'OKX Wallet does not reliably persist wallet_watchAsset imports on PulseChain mainnet.'
+                    );
+                    return;
+                }
+
+                const onCorrectChain = await ensureProviderOnChain(provider, CHAIN_ID);
+                if (!onCorrectChain) {
+                    showManualImportFallback(tokenAddress, tokenSymbol, 'Wallet is on the wrong chain for automatic import.');
+                    return;
+                }
+
+                const opts = {
+                    address: tokenAddress,
+                    symbol: tokenSymbol,
+                    decimals,
+                };
+                if (imageUrl) {
+                    opts.image = imageUrl;
+                }
+                const added = await provider.request({
                     method: 'wallet_watchAsset',
                     params: {
                         type: 'ERC20',
-                        options: {
-                            address: tokenAddress,
-                            symbol: tokenSymbol,
-                            decimals,
-                            image: ''
-                        }
+                        options: opts,
                     }
                 });
+
+                if (added !== true) {
+                    showManualImportFallback(tokenAddress, tokenSymbol, 'Wallet did not complete the automatic import.');
+                }
             } catch (err) {
                 console.error('Error adding token:', err);
+                showManualImportFallback(tokenAddress, tokenSymbol, 'Automatic import failed.');
             }
         }
 
+        function getInjectedProviders() {
+            if (!window.ethereum) return [];
+
+            const providers = Array.isArray(window.ethereum.providers) && window.ethereum.providers.length
+                ? window.ethereum.providers
+                : [window.ethereum];
+
+            const extraProviders = [];
+            if (window.okxwallet && window.okxwallet.ethereum) extraProviders.push(window.okxwallet.ethereum);
+            if (window.ethereum && !providers.includes(window.ethereum)) extraProviders.push(window.ethereum);
+
+            return [...new Set([...providers, ...extraProviders])].filter(Boolean);
+        }
+
+        function getPreferredAssetProvider() {
+            const providers = getInjectedProviders();
+            if (!providers.length) return null;
+
+            const metaMaskProvider = providers.find((provider) => provider && provider.isMetaMask);
+            if (metaMaskProvider) return metaMaskProvider;
+
+            const okxProvider = providers.find((provider) => provider && (provider.isOKXWallet || provider.isOkxWallet));
+            if (okxProvider) return okxProvider;
+
+            return providers[0];
+        }
+
+        async function getProviderChainId(provider) {
+            if (!provider || typeof provider.request !== 'function') return null;
+            try {
+                const chainHex = await provider.request({ method: 'eth_chainId' });
+                return parseInt(chainHex, 16);
+            } catch (err) {
+                console.warn('Unable to inspect injected wallet provider chain:', err);
+                return null;
+            }
+        }
+
+        async function selectConnectProvider(targetChain) {
+            const providers = getInjectedProviders();
+            if (!providers.length) return null;
+
+            const inspected = await Promise.all(providers.map(async (provider) => ({
+                provider,
+                chainId: await getProviderChainId(provider),
+                isOKX: Boolean(provider && (provider.isOKXWallet || provider.isOkxWallet)),
+                isMetaMask: Boolean(provider && provider.isMetaMask),
+            })));
+
+            const matchingProviders = inspected.filter((entry) => entry.chainId === Number(targetChain));
+            if (matchingProviders.length) {
+                const preferredMatch = matchingProviders.find((entry) => entry.isOKX)
+                    || matchingProviders.find((entry) => !entry.isMetaMask)
+                    || matchingProviders[0];
+                return preferredMatch.provider;
+            }
+
+            const preferredProvider = getPreferredAssetProvider();
+            return preferredProvider || inspected[0].provider;
+        }
+
+        function getActiveWalletProvider() {
+            return activeWalletProvider || getPreferredAssetProvider();
+        }
+
+        async function detectProviderForAccount(account, preferredProvider) {
+            const normalizedAccount = String(account || '').toLowerCase();
+            const providers = getInjectedProviders();
+
+            if (preferredProvider && typeof preferredProvider.request === 'function') {
+                providers.unshift(preferredProvider);
+            }
+
+            const uniqueProviders = [...new Set(providers)].filter(Boolean);
+            for (const provider of uniqueProviders) {
+                if (typeof provider.request !== 'function') continue;
+                try {
+                    const accounts = await provider.request({ method: 'eth_accounts' });
+                    if (Array.isArray(accounts) && accounts.some((value) => String(value).toLowerCase() === normalizedAccount)) {
+                        return provider;
+                    }
+                } catch (err) {
+                    console.warn('Unable to inspect injected wallet provider accounts:', err);
+                }
+            }
+
+            return preferredProvider || uniqueProviders[0] || null;
+        }
+
+        function isOKXProvider(provider) {
+            return Boolean(provider && (provider.isOKXWallet || provider.isOkxWallet));
+        }
+
+        async function ensureProviderOnChain(provider, targetChain) {
+            try {
+                const currentChainHex = await provider.request({ method: 'eth_chainId' });
+                const currentChainId = parseInt(currentChainHex, 16);
+                if (currentChainId === targetChain) return true;
+
+                await provider.request({
+                    method: 'wallet_switchEthereumChain',
+                    params: [{ chainId: hexChainId(targetChain) }]
+                });
+
+                const postSwitchChainHex = await provider.request({ method: 'eth_chainId' });
+                return parseInt(postSwitchChainHex, 16) === targetChain;
+            } catch (err) {
+                if (err && (err.code === 4902 || String(err.message || '').includes('Unrecognized'))) {
+                    try {
+                        const params = targetChain === 943 ? [{
+                            chainId: hexChainId(943),
+                            chainName: 'PulseChain Testnet v4',
+                            nativeCurrency: { name: 'tPLS', symbol: 'tPLS', decimals: 18 },
+                            rpcUrls: ['https://rpc.v4.testnet.pulsechain.com'],
+                            blockExplorerUrls: ['https://scan.v4.testnet.pulsechain.com']
+                        }] : [{
+                            chainId: hexChainId(369),
+                            chainName: 'PulseChain',
+                            nativeCurrency: { name: 'PLS', symbol: 'PLS', decimals: 18 },
+                            rpcUrls: ['https://rpc.pulsechain.com'],
+                            blockExplorerUrls: ['https://scan.pulsechain.com']
+                        }];
+
+                        await provider.request({
+                            method: 'wallet_addEthereumChain',
+                            params
+                        });
+                        await provider.request({
+                            method: 'wallet_switchEthereumChain',
+                            params: [{ chainId: hexChainId(targetChain) }]
+                        });
+
+                        const postAddChainHex = await provider.request({ method: 'eth_chainId' });
+                        return parseInt(postAddChainHex, 16) === targetChain;
+                    } catch (addErr) {
+                        console.error('Unable to add/switch wallet chain for asset import:', addErr);
+                        return false;
+                    }
+                }
+
+                console.error('Unable to switch wallet chain for asset import:', err);
+                return false;
+            }
+        }
+
+        function showManualImportFallback(tokenAddress, tokenSymbol, prefixMessage) {
+            const message = [
+                prefixMessage,
+                `${tokenSymbol} address: ${tokenAddress}`,
+                `Chain: ${CHAIN_NAME} (${CHAIN_ID})`,
+                'The address has been copied to your clipboard.',
+                'You can still paste this address into the wallet import dialog manually.'
+            ].join('\n');
+
+            if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+                navigator.clipboard.writeText(tokenAddress).catch(() => {});
+            }
+
+            alert(message);
+        }
+
         function addPBToWallet() {
-            return addTokenToWallet(TPB, 'PB', 18);
+            return addTokenToWallet(TPB, 'PB', 18, TOKEN_IMAGE_URLS.PB);
         }
 
         function addPBcToWallet() {
-            return addTokenToWallet(TPBc, 'PBc', 18);
+            return addTokenToWallet(TPBc, 'PBc', 18, TOKEN_IMAGE_URLS.PBc);
         }
 
         function addTUSDLToWallet() {
-            return addTokenToWallet(TUSDL, 'USDL', 18);
+            return addTokenToWallet(TUSDL, 'USDL', 18, TOKEN_IMAGE_URLS.USDL);
         }
 
         function addLPToWallet() {
-            return addTokenToWallet(PULSEX_PAIR, 'PBUSDL-LP', 18);
+            return addTokenToWallet(PULSEX_PAIR, 'PBUSDL-LP', 18, TOKEN_IMAGE_URLS['PBUSDL-LP']);
         }
 
         function copyWalletAddress() {
@@ -308,6 +527,11 @@
             function formatPercentAmount(value) {
                 const floored = Math.floor(value * 1000000) / 1000000;
                 return floored.toFixed(6).replace(/\.0+$/, '').replace(/(\.\d*?)0+$/, '$1');
+            }
+
+            function formatStableInputAmount(value) {
+                const floored = Math.floor(value * 10000) / 10000;
+                return floored.toFixed(4).replace(/\.0+$/, '').replace(/(\.\d*?)0+$/, '$1');
             }
 
             function getPBInputBalance() {
@@ -373,27 +597,27 @@
             document.getElementById('remove-lp-slippage')?.addEventListener('input', app.updateLPRemovalPreview);
 
             document.getElementById('buy-33').addEventListener('click', () => {
-                document.getElementById('buy-amount').value = (getUSDLInputBalance() * 0.33).toFixed(2);
+                document.getElementById('buy-amount').value = formatStableInputAmount(getUSDLInputBalance() * 0.33);
                 app.getQuote();
             });
             document.getElementById('buy-66').addEventListener('click', () => {
-                document.getElementById('buy-amount').value = (getUSDLInputBalance() * 0.66).toFixed(2);
+                document.getElementById('buy-amount').value = formatStableInputAmount(getUSDLInputBalance() * 0.66);
                 app.getQuote();
             });
             document.getElementById('buy-100').addEventListener('click', () => {
-                document.getElementById('buy-amount').value = getUSDLInputBalance().toFixed(2);
+                document.getElementById('buy-amount').value = formatStableInputAmount(getUSDLInputBalance());
                 app.getQuote();
             });
             document.getElementById('sell-33').addEventListener('click', () => {
-                document.getElementById('sell-amount').value = (getPBInputBalance() * 0.33).toFixed(2);
+                document.getElementById('sell-amount').value = formatPercentAmount(Number(getExactPBInputBalance()) * 0.33);
                 app.getSellQuote();
             });
             document.getElementById('sell-66').addEventListener('click', () => {
-                document.getElementById('sell-amount').value = (getPBInputBalance() * 0.66).toFixed(2);
+                document.getElementById('sell-amount').value = formatPercentAmount(Number(getExactPBInputBalance()) * 0.66);
                 app.getSellQuote();
             });
             document.getElementById('sell-100').addEventListener('click', () => {
-                document.getElementById('sell-amount').value = getPBInputBalance().toFixed(2);
+                document.getElementById('sell-amount').value = formatPercentAmount(Number(getExactPBInputBalance()));
                 app.getSellQuote();
             });
             document.getElementById('vlock-25').addEventListener('click', () => app.fillVLockAmount(0.25));
@@ -487,10 +711,12 @@
                     }
                 }
 
-                const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                const baseProvider = await selectConnectProvider(CHAIN_ID) || getActiveWalletProvider() || window.ethereum;
+                const accounts = await baseProvider.request({ method: 'eth_requestAccounts' });
                 const account = accounts[0];
+                activeWalletProvider = await detectProviderForAccount(account, baseProvider);
                 app.setAccount(account);
-                const currentChainHex = await window.ethereum.request({ method: 'eth_chainId' });
+                const currentChainHex = await activeWalletProvider.request({ method: 'eth_chainId' });
                 const currentChainId = parseInt(currentChainHex, 16);
 
                 if (currentChainId !== CHAIN_ID) {
@@ -498,7 +724,7 @@
                     document.getElementById('network-display').innerText = '⏳ Switching...';
                     suppressNextCorrectChainRefresh = true;
                     await switchToCorrectNetwork();
-                    const postSwitchChainHex = await window.ethereum.request({ method: 'eth_chainId' });
+                    const postSwitchChainHex = await activeWalletProvider.request({ method: 'eth_chainId' });
                     const postSwitchChainId = parseInt(postSwitchChainHex, 16);
                     applyHeroChainState(postSwitchChainId);
 
@@ -514,9 +740,10 @@
                         return;
                     }
 
-                    app.setWeb3(new ethers.BrowserProvider(window.ethereum));
+                    app.setWeb3(new ethers.BrowserProvider(activeWalletProvider));
                 } else {
                     document.getElementById('network-display').innerText = `✅ ${CHAIN_NAME}`;
+                    app.setWeb3(new ethers.BrowserProvider(activeWalletProvider));
                 }
 
                 app.setSigner(await app.getWeb3().getSigner(account));
@@ -525,7 +752,7 @@
                 document.getElementById('connect-btn').innerText = '✅ Connected';
                 document.getElementById('nav-connect-btn').innerText = '✅ ' + account.substring(0, 6) + '...';
 
-                setupNetworkChangeListener();
+                setupNetworkChangeListener(activeWalletProvider);
                 if (app.refreshDashboard) {
                     await app.refreshDashboard({ includePositions: true, includeDropdowns: true });
                 } else {
@@ -582,7 +809,10 @@
             syncNetworkChrome();
 
             if (typeof window.ethereum !== 'undefined') {
-                app.setWeb3(new ethers.BrowserProvider(window.ethereum));
+                const provider = getChainRequestProvider();
+                if (provider) {
+                    app.setWeb3(new ethers.BrowserProvider(provider));
+                }
             } else {
                 document.getElementById('wallet-addr').innerText = 'Read-only mode';
                 document.getElementById('connect-btn').innerText = 'Install Wallet';

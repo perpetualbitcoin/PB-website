@@ -220,6 +220,26 @@
             return '$' + formatNumber(Number(value || 0), decimals);
         }
 
+        function getContractMethodName(contractMethod) {
+            return contractMethod?.fragment?.name
+                || contractMethod?.name
+                || '';
+        }
+
+        function getFallbackGasLimit(methodName, args) {
+            if (methodName === 'approve') {
+                return 120000n;
+            }
+
+            if (methodName === 'buyPBDirect') {
+                const hintedIds = Array.isArray(args?.[3]) ? args[3] : [];
+                const boundedHintCount = Math.min(hintedIds.length, 12);
+                return 1200000n + (BigInt(boundedHintCount) * 250000n);
+            }
+
+            return null;
+        }
+
         function computeBuyValueMetrics(pbAmount, pbcAmount, startPrice, finalPrice, usdlSpent) {
             const pbTotal = BigInt(pbAmount || 0n) + BigInt(pbcAmount || 0n);
             const pbTotalFloat = unitsFloat(pbTotal, 18);
@@ -231,6 +251,57 @@
                 finalValue: pbTotalFloat * Number(finalPrice || 0),
                 avgPrice: pbTotalFloat > 0 ? spentFloat / pbTotalFloat : 0,
             };
+        }
+
+        async function buildWriteOverrides(contractMethod, args) {
+            const overrides = {};
+            const methodName = getContractMethodName(contractMethod);
+            const feeProvider = (typeof app.getReadProvider === 'function' ? app.getReadProvider() : null)
+                || (typeof app.getWeb3 === 'function' ? app.getWeb3() : null)
+                || app.getSigner()?.provider
+                || null;
+
+            if (feeProvider && typeof feeProvider.getFeeData === 'function') {
+                try {
+                    const feeData = await feeProvider.getFeeData();
+                    if (feeData?.gasPrice && feeData.gasPrice > 0n) {
+                        overrides.gasPrice = feeData.gasPrice;
+                    } else {
+                        if (feeData?.maxFeePerGas && feeData.maxFeePerGas > 0n) {
+                            overrides.maxFeePerGas = feeData.maxFeePerGas;
+                        }
+                        if (feeData?.maxPriorityFeePerGas && feeData.maxPriorityFeePerGas > 0n) {
+                            overrides.maxPriorityFeePerGas = feeData.maxPriorityFeePerGas;
+                        }
+                    }
+                } catch (err) {
+                    console.warn('Unable to load fee data for write transaction:', err);
+                }
+            }
+
+            if (contractMethod && typeof contractMethod.estimateGas === 'function') {
+                try {
+                    const estimatedGas = await contractMethod.estimateGas(...args, overrides);
+                    overrides.gasLimit = estimatedGas + (estimatedGas / 5n) + 10000n;
+                } catch (err) {
+                    console.warn('Unable to estimate gas for write transaction:', err);
+                    if (!overrides.gasLimit) {
+                        const fallbackGasLimit = getFallbackGasLimit(methodName, args);
+                        if (fallbackGasLimit) {
+                            // Some wallet providers fail preflight estimateGas even for valid writes.
+                            // Supplying a conservative gas limit allows the wallet prompt to open anyway.
+                            overrides.gasLimit = fallbackGasLimit;
+                        }
+                    }
+                }
+            }
+
+            return overrides;
+        }
+
+        async function sendContractWrite(contractMethod, args) {
+            const overrides = await buildWriteOverrides(contractMethod, args);
+            return contractMethod(...args, overrides);
         }
 
         async function captureRecipientBalances(address) {
@@ -442,11 +513,42 @@
         async function executeSingleBuy(vaultContract, usdlWei, usdlDisplay, recipient, quoteContext, chunkLabel, preparedSelection = null) {
             const prepared = preparedSelection || await prepareSingleBuy(usdlWei, quoteContext);
             const unlockIds = prepared.unlockIds || [];
+            let attemptedUnlockIds = unlockIds;
             showStatus('buy-status', `⏳ Executing ${chunkLabel}: $${usdlDisplay} USDL with ${unlockIds.length} netting hints. ${quoteContext}`, 'info');
 
-            const { buyTx, minPBOut, rawPB } = await submitVaultBuy(vaultContract, usdlWei, recipient, unlockIds);
+            let buyResult;
+            try {
+                buyResult = await submitVaultBuy(vaultContract, usdlWei, recipient, attemptedUnlockIds);
+            } catch (err) {
+                if (!shouldRetryBuyWithoutHints(err, attemptedUnlockIds)) {
+                    throw err;
+                }
+
+                const refreshed = await prepareSingleBuy(usdlWei, `${quoteContext} Refreshing hints after estimate failure.`);
+                const refreshedUnlockIds = refreshed.unlockIds || [];
+                const hintsChanged = JSON.stringify(refreshedUnlockIds) !== JSON.stringify(attemptedUnlockIds);
+
+                if (!refreshedUnlockIds.length) {
+                    throw new Error('Refreshed netting hints came back empty after an estimate failure. Buy aborted instead of stripping hints.');
+                }
+
+                if (!hintsChanged) {
+                    throw err;
+                }
+
+                pushChainEvent('buy', 'Hints refreshed', 'The first hinted buy failed during estimation, so the dapp fetched a fresh hint set and retried.', 'warning', [
+                    ['Chunk', chunkLabel],
+                    ['Original hints', summarizeIds(attemptedUnlockIds)],
+                    ['Refreshed hints', summarizeIds(refreshedUnlockIds)],
+                ]);
+
+                attemptedUnlockIds = refreshedUnlockIds;
+                buyResult = await submitVaultBuy(vaultContract, usdlWei, recipient, attemptedUnlockIds);
+            }
+
+            const { buyTx, minPBOut, rawPB, usedUnlockIds } = buyResult;
             const receipt = await buyTx.wait();
-            return { receipt, txHash: buyTx.hash, unlockIds, minPBOut, rawPB };
+            return { receipt, txHash: buyTx.hash, unlockIds: usedUnlockIds, minPBOut, rawPB };
         }
 
         async function fetchIndexerHealth() {
@@ -504,6 +606,21 @@
             showStatus('buy-status', message || '⚠️ Netting preview endpoint is not deployed yet - quote without netting', 'warning');
         }
 
+        function shouldRetryBuyWithoutHints(err, unlockIds) {
+            if (!Array.isArray(unlockIds) || unlockIds.length === 0) return false;
+
+            const message = String(err?.reason || err?.message || '').toLowerCase();
+            const decoded = String(decodeVaultCustomError(err) || '').toLowerCase();
+
+            return (
+                decoded === 'invalidamount'
+                || decoded === 'notexist'
+                || message.includes('estimategas')
+                || message.includes('missing revert data')
+                || message.includes('call_exception')
+            );
+        }
+
         async function submitVaultBuy(vaultContract, usdlWei, recipient, unlockIds) {
             const pairContract = app.contractLayer.getReadContract('pair');
             const [r0, r1] = await pairContract.getReserves();
@@ -513,8 +630,10 @@
             const rawPB = getAmountOut(usdlWei, rUSDL, rPB);
             const minPBOut = rawPB * 50n / 100n;
 
-            const buyTx = await vaultContract.buyPBDirect(usdlWei, minPBOut, recipient, unlockIds);
-            return { buyTx, minPBOut, rawPB };
+            const hintedUnlockIds = Array.isArray(unlockIds) ? unlockIds : [];
+
+            const buyTx = await sendContractWrite(vaultContract.buyPBDirect, [usdlWei, minPBOut, recipient, hintedUnlockIds]);
+            return { buyTx, minPBOut, rawPB, usedUnlockIds: hintedUnlockIds };
         }
 
         function normalizeBuyAmount(value) {
@@ -981,15 +1100,33 @@
                     giftRecipient = addr;
                 }
 
+                setTerminalMode('buy');
+                resetChainEvents('buy');
+
                 const vaultContract = app.contractLayer.getWriteContract('vault');
                 const tusdlContract = app.contractLayer.getWriteContract('tusdl');
+                const tusdlReadContract = app.contractLayer.getReadContract('tusdl');
                 const normalizedTotal = normalizeBuyAmount(usdlAmountNum.toFixed(6));
                 const buyChunks = autoChunkEnabled ? buildChunkPlan(normalizedTotal) : [normalizedTotal];
                 const totalUsdlWei = ethers.parseEther(normalizedTotal);
+                const walletUsdlBalance = await tusdlReadContract.balanceOf(app.getAccount());
+
+                if (walletUsdlBalance < totalUsdlWei) {
+                    const availableUsdl = ethers.formatEther(walletUsdlBalance);
+                    const requiredUsdl = ethers.formatEther(totalUsdlWei);
+                    pushChainEvent('buy', 'Insufficient USDL balance', 'The wallet does not hold enough USDL for this buy size.', 'error', [
+                        ['Available USDL', formatNumber(availableUsdl, 4)],
+                        ['Required USDL', formatNumber(requiredUsdl, 4)],
+                    ]);
+                    showStatus(
+                        'buy-status',
+                        `❌ Insufficient USDL balance. Wallet has ${formatNumber(availableUsdl, 4)} USDL, but this buy needs ${formatNumber(requiredUsdl, 4)} USDL.`,
+                        'error'
+                    );
+                    return;
+                }
 
                 const currentAllowance = await tusdlContract.allowance(app.getAccount(), TVault);
-                setTerminalMode('buy');
-                resetChainEvents('buy');
                 pushChainEvent('buy', 'Buy execution started', 'Preparing allowance and vault call flow.', 'info', [
                     ['Account', app.getAccount()],
                     ['Spend', '$' + formatNumber(usdlAmountNum, 2) + ' USDL'],
@@ -1005,7 +1142,7 @@
                     ]);
                     showStatus('buy-status', `⏳ Approving $${usdlAmountNum.toFixed(2)} USDL...`, 'info');
                     try {
-                        const approveTx = await tusdlContract.approve(TVault, totalUsdlWei);
+                        const approveTx = await sendContractWrite(tusdlContract.approve, [TVault, totalUsdlWei]);
                         pushChainEvent('buy', 'Approval submitted', 'Allowance transaction sent to chain.', 'warning', [
                             ['Tx hash', approveTx.hash],
                         ]);

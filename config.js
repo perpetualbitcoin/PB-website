@@ -58,6 +58,15 @@ const ADDRESSES_TESTNET = {
     "VaultViews": "0xF3097D7D0980a37268303c19226454394Df2bfCc"
 };
 
+const DEPLOYMENT_BLOCKS = {
+    mainnet: {
+        Vault: 26206527,
+    },
+    testnet: {
+        Vault: 24190647,
+    },
+};
+
 function hasLiveDeployment(addressBook) {
     return Boolean(
         addressBook
@@ -91,6 +100,7 @@ if (NETWORK === 'mainnet' && !hasLiveDeployment(ADDRESSES_MAINNET)) {
 const ACTIVE_NETWORK_KEY = NETWORK;
 const ADDRESSES = NETWORK === "mainnet" ? ADDRESSES_MAINNET : ADDRESSES_TESTNET;
 const ACTIVE_NETWORK = NETWORKS[NETWORK];
+const ACTIVE_DEPLOYMENT_BLOCKS = DEPLOYMENT_BLOCKS[NETWORK] || {};
 
 // ── Site distribution links ─────────────────
 const IPFS_CID = "QmfUADtmQDMhjwT6exHcFVUTxnfAy2SMKAofF3zAin9kzw";

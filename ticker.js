@@ -4,12 +4,16 @@
 // Injects its own HTML + CSS — pages only need the <script> tag
 // ================================================================
 (function () {
-    var TICKER_NETWORK = (typeof NETWORKS !== 'undefined' && NETWORKS && NETWORKS.mainnet)
-        ? NETWORKS.mainnet
-        : { rpc: 'https://rpc.pulsechain.com', chainId: 369 };
-    var TICKER_ADDRESSES = (typeof ADDRESSES_MAINNET !== 'undefined' && ADDRESSES_MAINNET)
-        ? ADDRESSES_MAINNET
-        : (typeof ADDRESSES !== 'undefined' ? ADDRESSES : {});
+    var TICKER_NETWORK = (typeof ACTIVE_NETWORK !== 'undefined' && ACTIVE_NETWORK)
+        ? ACTIVE_NETWORK
+        : ((typeof NETWORKS !== 'undefined' && NETWORKS && NETWORKS.mainnet)
+            ? NETWORKS.mainnet
+            : { rpc: 'https://rpc.pulsechain.com', chainId: 369 });
+    var TICKER_ADDRESSES = (typeof ADDRESSES !== 'undefined' && ADDRESSES)
+        ? ADDRESSES
+        : ((typeof ADDRESSES_MAINNET !== 'undefined' && ADDRESSES_MAINNET)
+            ? ADDRESSES_MAINNET
+            : {});
 
     // ── Ticker items: edit this array to add/remove/reorder stats ──
     // id = unique element id, label = display text, color = value color

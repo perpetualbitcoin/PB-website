@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PB Testnet DApp</title>
+    <meta name="description" content="Dedicated PulseChain testnet-only Perpetual Bitcoin DApp shell for isolated testing." />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="theme-color" content="#F39004" />
+    <link rel="icon" href="Pic/favicon.ico" type="image/x-icon" />
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background: #0f0d0b;
+            color: #ddd;
+            font-family: system-ui, sans-serif;
+        }
+
+        .tn-shell {
+            width: 100%;
+            height: 100%;
+        }
+
+        .tn-frame {
+            width: 100%;
+            height: 100%;
+            border: 0;
+            background: #0f0d0b;
+        }
+    </style>
+    <script>
+        try {
+            window.localStorage.setItem('pbPreferredNetwork', 'testnet');
+        } catch (err) {
+            console.warn('Unable to force testnet preference:', err);
+        }
+
+        function hideStandaloneNetworkSwitches(frameWindow) {
+            try {
+                const doc = frameWindow.document;
+                if (!doc) return;
+
+                if (!doc.getElementById('tn-standalone-style')) {
+                    const style = doc.createElement('style');
+                    style.id = 'tn-standalone-style';
+                    style.textContent = `
+                        #nav-menu,
+                        .logo,
+                        .hamburger,
+                        #nav-connect-btn,
+                        #nav-vault-addr,
+                        #hero-network-message,
+                        #hero-network-badge,
+                        #hero-network-caption,
+                        #label-mainnet-hero,
+                        #network-toggle,
+                        label[for="network-toggle-hero"] {
+                            display: none !important;
+                        }
+
+                        .navbar {
+                            padding: 0.25rem 0 !important;
+                        }
+
+                        .navbar .nav-container {
+                            justify-content: center !important;
+                            gap: 0 !important;
+                        }
+
+                        .navbar .nav-container > div:last-child {
+                            display: none !important;
+                        }
+
+                        .gtranslate_wrapper {
+                            margin: 0 auto !important;
+                            display: flex !important;
+                            justify-content: center !important;
+                        }
+
+                        .dapp-hero {
+                            padding-top: 54px !important;
+                            padding-bottom: 12px !important;
+                        }
+
+                        .dapp-hero p,
+                        .dapp-hero > div:not(:first-child) {
+                            display: none !important;
+                        }
+
+                        .dapp-hero h1 {
+                            margin: 0 !important;
+                            padding: 0 !important;
+                            line-height: 1.2 !important;
+                        }
+
+                        .docs-intro-card {
+                            display: none !important;
+                        }
+                    `;
+                    doc.head.appendChild(style);
+                }
+
+                const hide = (selector) => {
+                    doc.querySelectorAll(selector).forEach((node) => {
+                        node.style.display = 'none';
+                    });
+                };
+
+                const heroToggle = doc.getElementById('network-toggle-hero');
+                if (heroToggle && heroToggle.parentElement) {
+                    heroToggle.parentElement.style.display = 'none';
+                }
+
+                hide('#label-mainnet-hero');
+                hide('#network-toggle');
+                hide('.docs-intro-card');
+
+                const heroHeading = doc.querySelector('.dapp-hero h1');
+                if (heroHeading) heroHeading.textContent = 'Perpetual Bitcoin Dapp on TestnetV4';
+
+                const heroBadge = doc.getElementById('hero-network-badge');
+                const heroCaption = doc.getElementById('hero-network-caption');
+                const heroMessage = doc.getElementById('hero-network-message');
+                const testnetLabel = doc.getElementById('label-testnet-hero');
+                const networkDisplay = doc.getElementById('network-display');
+
+                if (heroBadge) heroBadge.innerText = 'Testnet 943 Locked';
+                if (heroCaption) heroCaption.innerText = 'Testnet-only shell';
+                if (heroMessage) heroMessage.innerText = 'This standalone page is pinned to PulseChain testnet 943.';
+                if (testnetLabel) {
+                    testnetLabel.style.color = '#F39004';
+                    testnetLabel.style.opacity = '1';
+                    testnetLabel.innerHTML = '<button type="button" onclick="addPulseTestnet()" title="Add PulseChain Testnet to wallet" aria-label="Add PulseChain Testnet to wallet" style="display:inline-flex;align-items:center;justify-content:center;padding:0;margin:0 4px 0 0;border:none;background:transparent;color:inherit;font:inherit;cursor:pointer;line-height:1;vertical-align:middle;">🔗</button>Testnet Only';
+                }
+                if (networkDisplay) networkDisplay.innerText = 'Chain: Testnet 943';
+
+                const walletRow = doc.querySelector('#network-display')?.parentElement;
+                if (walletRow) {
+                    const select = doc.getElementById('network-toggle');
+                    if (select) select.value = '943';
+                }
+            } catch (err) {
+                console.warn('Unable to lock standalone testnet shell UI:', err);
+            }
+        }
+
+        function initStandaloneFrame() {
+            const frame = document.getElementById('tn-dapp-frame');
+            if (!frame) return;
+
+            frame.addEventListener('load', () => {
+                try {
+                    window.localStorage.setItem('pbPreferredNetwork', 'testnet');
+                } catch (err) {
+                    console.warn('Unable to refresh testnet preference on frame load:', err);
+                }
+                const reapply = () => hideStandaloneNetworkSwitches(frame.contentWindow);
+                reapply();
+                window.setTimeout(reapply, 150);
+                window.setTimeout(reapply, 500);
+                window.setTimeout(reapply, 1200);
+            });
+        }
+
+        window.addEventListener('DOMContentLoaded', initStandaloneFrame);
+    </script>
+</head>
+<body>
+    <div class="tn-shell">
+        <iframe id="tn-dapp-frame" class="tn-frame" src="Dapp.html" title="Perpetual Bitcoin Testnet DApp"></iframe>
+    </div>
+</body>
+</html>

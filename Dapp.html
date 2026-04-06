@@ -25,6 +25,13 @@
     <link rel="stylesheet" href="styles.css" />
     <script src="https://unpkg.com/lightweight-charts@4.1.1/dist/lightweight-charts.standalone.production.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/ethers@6/dist/ethers.umd.js"></script>
+    <script>
+        try {
+            window.localStorage.setItem('pbPreferredNetwork', 'mainnet');
+        } catch (err) {
+            console.warn('Unable to force mainnet preference:', err);
+        }
+    </script>
     <script src="config.js"></script>
     <script src="disclaimer.js"></script>
     <script defer src="ticker.js"></script>
@@ -72,21 +79,9 @@
 
     <div class="dapp-hero">
         <h1><br>⚡ Perpetual Bitcoin Dapp</h1>
-        <p>Trade, manage positions, perpetual unlocks, earn LP rewards, and inspect execution routes directly on-chain. ONE PROTOCOL. FOREVER.<br><span style="font-weight: 700; font-size: 1.1rem; color: #ddd;">Switch this frontend between PulseChain mainnet and testnet before connecting your wallet. <br>
-            The selected mode also controls the contracts, explorer links, and wallet prompts used by the dapp.</span></p>
-        <p id="hero-network-message" style="color: #F39004; font-weight: 600; margin-top: 10px;">Mainnet mode is ready for launch. Testnet mode remains available for final validation and rehearsal.</p>
-        <div style="margin-top:12px;display:inline-flex;align-items:center;gap:10px;background:rgba(0,0,0,0.3);padding:6px 16px;border-radius:20px;">
-            <span id="hero-network-badge" style="font-size:0.85rem;font-weight:700;color:#F39004;">Network Mode</span>
-            <span id="hero-network-caption" style="font-size:0.82rem;color:#bbb;">Choose the deployment environment below</span>
-        </div>
-        <div style="margin-top:14px;display:flex;justify-content:center;align-items:center;gap:8px;flex-wrap:wrap;">
-            <span id="label-testnet-hero" title="Testnet mode" aria-label="Testnet mode" style="font-size:0.82rem;line-height:1;color:#9a927f;opacity:0.82;font-weight:700;letter-spacing:0.02em;transition:opacity 0.2s ease,color 0.2s ease;"><button type="button" onclick="addPulseTestnet()" title="Add PulseChain Testnet to wallet" aria-label="Add PulseChain Testnet to wallet" style="display:inline-flex;align-items:center;justify-content:center;padding:0;margin:0 4px 0 0;border:none;background:transparent;color:inherit;font:inherit;cursor:pointer;line-height:1;vertical-align:middle;">🔗</button>Testnet</span>
-            <label for="network-toggle-hero" title="Switch between testnet and mainnet" style="position:relative;display:inline-flex;align-items:center;width:44px;height:24px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.15);border-radius:999px;cursor:pointer;box-shadow:inset 0 0 0 1px rgba(0,0,0,0.18);">
-                <input type="checkbox" id="network-toggle-hero" style="position:absolute;opacity:0;pointer-events:none;" />
-                <span id="toggle-knob-hero" style="position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#F39004;transition:left 0.2s ease,background 0.2s ease;box-shadow:0 2px 6px rgba(0,0,0,0.3);"></span>
-            </label>
-            <span id="label-mainnet-hero" title="Mainnet mode" aria-label="Mainnet mode" style="font-size:0.82rem;line-height:1;color:#F39004;opacity:1;font-weight:700;letter-spacing:0.02em;transition:opacity 0.2s ease,color 0.2s ease;">Mainnet<button type="button" onclick="addPulseMainnet()" title="Add PulseChain Mainnet to wallet" aria-label="Add PulseChain Mainnet to wallet" style="display:inline-flex;align-items:center;justify-content:center;padding:0;margin:0 0 0 4px;border:none;background:transparent;color:inherit;font:inherit;cursor:pointer;line-height:1;vertical-align:middle;">🔗</button></span>
-        </div>
+        <p>Buy and/or Sell | View positions | View your perpetual unlocks |  Inspect execution routes directly on-chain (in our trust TERMINAL).....<br>
+            Add/remove LP positions | Lock your liquid $PB and earn LP rewards (Vlock) | Set/activate the Recovery/Inheritance option (PBr PBi). <br>
+            TRUST but VERIFY!!<br> <a href="TNDapp.html" target="_blank" rel="noopener noreferrer" style="color:#F39004;font-weight:700;text-decoration:underline;">Use TestnetV4 to test and verify</a> <br>ONE PROTOCOL. FOREVER.</p>
     </div>
 
     <div class="dapp-container">
@@ -95,10 +90,7 @@
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <h2 style="margin: 0;">Wallet Status</h2>
                 <div style="display: flex; gap: 10px; align-items: center;">
-                    <select id="network-toggle" style="padding:8px 12px;border-radius:999px;border:1px solid rgba(255,255,255,0.12);background:rgba(0,0,0,0.28);color:#ddd;font-weight:600;">
-                        <option value="369">Mainnet 369</option>
-                        <option value="943">Testnet 943</option>
-                    </select>
+                    <span style="padding:8px 12px;border-radius:999px;border:1px solid rgba(243,144,4,0.24);background:rgba(243,144,4,0.08);color:#F39004;font-weight:700;">Mainnet 369</span>
                     <span id="network-display" style="color: #F39004; font-weight: 600;">Chain: -</span>
                     <button class="btn btn-primary" id="connect-btn">Connect Wallet</button>
                 </div>
@@ -941,6 +933,7 @@
             setAccount: (value) => { account = value; },
             getSigner: () => signer,
             setSigner: (value) => { signer = value; },
+            getWalletProvider: () => walletBootstrap.getActiveWalletProvider?.() || null,
         });
         const init = walletBootstrap.init;
         const connectWallet = walletBootstrap.connectWallet;

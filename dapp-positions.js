@@ -3,6 +3,7 @@
         TPB,
         TUSDL,
         TVault,
+        VAULT_EVENT_FROM_BLOCK,
         formatNumber,
         formatPrice,
     } = window.PBTestDapp;
@@ -182,9 +183,10 @@
 
                 let allEventMap = {};
                 try {
+                    const fromBlock = Number.isFinite(Number(VAULT_EVENT_FROM_BLOCK)) ? Number(VAULT_EVENT_FROM_BLOCK) : 0;
                     const [unlockTriggeredEvents, unlockNettedEvents] = await Promise.all([
-                        vaultContract.queryFilter(vaultContract.filters.UnlockTriggered()),
-                        vaultContract.queryFilter(vaultContract.filters.UnlockNetted()),
+                        vaultContract.queryFilter(vaultContract.filters.UnlockTriggered(), fromBlock, 'latest'),
+                        vaultContract.queryFilter(vaultContract.filters.UnlockNetted(), fromBlock, 'latest'),
                     ]);
                     const events = unlockTriggeredEvents.concat(unlockNettedEvents);
 
