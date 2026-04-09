@@ -1,46 +1,14 @@
 (function () {
-    const { INDEXER_URL, CHART_HISTORY_START_TS } = window.PBTestDapp;
-    const HISTORY_STORAGE_KEY = `pb_tick_history_${typeof ACTIVE_NETWORK_KEY === 'string' ? ACTIVE_NETWORK_KEY : 'default'}`;
+    const { INDEXER_URL } = window.PBTestDapp;
 
     function create() {
         let priceChart;
         let candleSeries;
         let volumeSeries;
         let lineSeries;
-        let chartType = 'line';
+        let chartType = 'candle';
         let currentTimeframeMin = 60;
         let tickHistory = [];
-        let chartResizeObserver = null;
-
-        function normalizeTicks(ticks) {
-            if (!Array.isArray(ticks) || !ticks.length) return [];
-
-            const byTime = new Map();
-            for (const tick of ticks) {
-                const time = Number(tick?.time);
-                const price = Number(tick?.price);
-                if (!Number.isFinite(time) || time <= 0) continue;
-                if (!Number.isFinite(price) || price <= 0) continue;
-                if (CHART_HISTORY_START_TS > 0 && time < CHART_HISTORY_START_TS) continue;
-                byTime.set(Math.floor(time), { time: Math.floor(time), price });
-            }
-
-            return Array.from(byTime.values()).sort((a, b) => a.time - b.time);
-        }
-
-        function applyNormalizedHistory(ticks) {
-            tickHistory = normalizeTicks(ticks);
-            return tickHistory;
-        }
-
-        function safeChartCall(label, fn) {
-            try {
-                return fn();
-            } catch (err) {
-                console.error(`[chart] ${label} failed:`, err);
-                return null;
-            }
-        }
 
         async function loadPriceHistory() {
             try {
@@ -49,10 +17,11 @@
                 if (resp.ok) {
                     const data = await resp.json();
                     if (data.prices && data.prices.length > 0) {
-                        applyNormalizedHistory(data.prices.map((c) => ({
+                        tickHistory = data.prices.map((c) => ({
                             time: c.t,
                             price: parseFloat(c.c) / 1e18,
-                        })));
+                        })).filter((t) => t.price > 0);
+                        tickHistory.sort((a, b) => a.time - b.time);
                         console.log(`[chart] Loaded ${tickHistory.length} full-history price points from DB`);
                     }
                 }
@@ -60,29 +29,24 @@
                 console.warn('[chart] DB price fetch failed, falling back to localStorage:', e.message);
             }
 
-            const stored = localStorage.getItem(HISTORY_STORAGE_KEY);
+            const stored = localStorage.getItem('pb_tick_history');
             if (stored) {
                 try {
-                    const localTicks = normalizeTicks(JSON.parse(stored));
+                    const localTicks = JSON.parse(stored);
                     const dbMaxTime = tickHistory.length > 0 ? tickHistory[tickHistory.length - 1].time : 0;
                     const newerTicks = localTicks.filter((t) => t.time > dbMaxTime && t.price > 0);
                     if (newerTicks.length > 0) {
-                        applyNormalizedHistory(tickHistory.concat(newerTicks));
+                        tickHistory = tickHistory.concat(newerTicks);
+                        tickHistory.sort((a, b) => a.time - b.time);
                         console.log(`[chart] Merged ${newerTicks.length} newer localStorage ticks`);
                     }
                 } catch {}
             }
-
-            savePriceHistory();
         }
 
         function savePriceHistory() {
             if (tickHistory.length > 10000) tickHistory = tickHistory.slice(-10000);
-            try {
-                localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(tickHistory));
-            } catch (err) {
-                console.warn('[chart] Unable to persist local tick history:', err.message || err);
-            }
+            localStorage.setItem('pb_tick_history', JSON.stringify(tickHistory));
         }
 
         function aggregateCandles(ticks, tfMinutes) {
@@ -120,26 +84,23 @@
 
             const tf = currentTimeframeMin === 0 ? 15 : currentTimeframeMin;
             const candles = aggregateCandles(tickHistory, tf);
-            const stableCandles = Array.isArray(candles) ? candles.filter((c) => Number.isFinite(c?.time) && Number.isFinite(c?.open) && Number.isFinite(c?.high) && Number.isFinite(c?.low) && Number.isFinite(c?.close)) : [];
-            if (!stableCandles.length) return;
-
-            safeChartCall('set candle data', () => candleSeries.setData(stableCandles));
-            safeChartCall('set volume data', () => volumeSeries.setData(stableCandles.map((c) => ({
+            candleSeries.setData(candles);
+            volumeSeries.setData(candles.map((c) => ({
                 time: c.time,
                 value: 1,
                 color: c.close >= c.open ? 'rgba(38, 166, 154, 0.3)' : 'rgba(239, 83, 80, 0.3)',
-            }))));
-            safeChartCall('set line data', () => lineSeries.setData(stableCandles.map((c) => ({ time: c.time, value: c.close }))));
+            })));
+            lineSeries.setData(candles.map((c) => ({ time: c.time, value: c.close })));
 
             if (resetView) {
                 if (currentTimeframeMin === 0) {
-                    const visibleBars = Math.min(240, stableCandles.length);
-                    safeChartCall('set logical range', () => priceChart.timeScale().setVisibleLogicalRange({
+                    const visibleBars = Math.min(240, candles.length);
+                    priceChart.timeScale().setVisibleLogicalRange({
                         from: Math.max(0, candles.length - visibleBars),
-                        to: stableCandles.length,
-                    }));
+                        to: candles.length - 1 + 1,
+                    });
                 } else {
-                    safeChartCall('fit content', () => priceChart.timeScale().fitContent());
+                    priceChart.timeScale().fitContent();
                 }
             }
         }
@@ -162,9 +123,9 @@
         function switchChartType(type) {
             chartType = type;
             const isCandle = type === 'candle';
-            safeChartCall('toggle candle series', () => candleSeries.applyOptions({ visible: isCandle }));
-            safeChartCall('toggle volume series', () => volumeSeries.applyOptions({ visible: isCandle }));
-            safeChartCall('toggle line series', () => lineSeries.applyOptions({ visible: !isCandle }));
+            candleSeries.applyOptions({ visible: isCandle });
+            volumeSeries.applyOptions({ visible: isCandle });
+            lineSeries.applyOptions({ visible: !isCandle });
             document.getElementById('chart-candle-btn').style.background = isCandle ? 'rgba(255,165,0,0.1)' : 'transparent';
             document.getElementById('chart-candle-btn').style.color = isCandle ? '#F39004' : '#aaa';
             document.getElementById('chart-candle-btn').style.borderColor = isCandle ? 'rgba(255,165,0,0.3)' : 'rgba(255,165,0,0.2)';
@@ -243,15 +204,15 @@
                 priceLineVisible: false,
                 priceFormat: { type: 'price', precision: 8, minMove: 0.00000001 },
             });
-            lineSeries.applyOptions({ visible: true });
+            lineSeries.applyOptions({ visible: false });
 
-            chartResizeObserver = new ResizeObserver((entries) => {
+            const resizeObserver = new ResizeObserver((entries) => {
                 for (const entry of entries) {
                     const { width, height } = entry.contentRect;
-                    safeChartCall('resize chart', () => priceChart.applyOptions({ width, height: height || 300 }));
+                    priceChart.applyOptions({ width, height: height || 300 });
                 }
             });
-            chartResizeObserver.observe(container);
+            resizeObserver.observe(container);
 
             document.querySelectorAll('#timeframe-buttons .timeframe-btn').forEach((btn) => {
                 btn.addEventListener('click', () => {
@@ -267,7 +228,6 @@
                 switchChartType('line');
             });
 
-            switchChartType(chartType);
             updateChartDisplay(true);
         }
 
@@ -277,13 +237,7 @@
             if (isNaN(priceNum) || priceNum <= 0) return;
 
             const now = Math.floor(Date.now() / 1000);
-            const lastTick = tickHistory.length ? tickHistory[tickHistory.length - 1] : null;
-            if (lastTick && lastTick.time === now) {
-                lastTick.price = priceNum;
-            } else {
-                tickHistory.push({ time: now, price: priceNum });
-            }
-            tickHistory = normalizeTicks(tickHistory);
+            tickHistory.push({ time: now, price: priceNum });
             savePriceHistory();
 
             const tf = currentTimeframeMin === 0 ? 15 : currentTimeframeMin;
@@ -298,13 +252,13 @@
                     low: Math.min(...bucketTicks.map((t) => t.price)),
                     close: priceNum,
                 };
-                safeChartCall('update candle', () => candleSeries.update(candle));
-                safeChartCall('update line', () => lineSeries.update({ time: bucket, value: priceNum }));
-                safeChartCall('update volume', () => volumeSeries.update({
+                candleSeries.update(candle);
+                lineSeries.update({ time: bucket, value: priceNum });
+                volumeSeries.update({
                     time: bucket,
                     value: bucketTicks.length,
                     color: candle.close >= candle.open ? 'rgba(38, 166, 154, 0.3)' : 'rgba(239, 83, 80, 0.3)',
-                }));
+                });
             }
         }
 

@@ -2501,9 +2501,10 @@
     async function fetchAllEvents() {
         const eventMap = {};
         try {
+            const fromBlock = (typeof VAULT_DEPLOY_BLOCK !== 'undefined' && VAULT_DEPLOY_BLOCK) || 0;
             const [triggeredEvents, nettedEvents] = await Promise.all([
-                vault.queryFilter(vault.filters.UnlockTriggered()),
-                vault.queryFilter(vault.filters.UnlockNetted()),
+                vault.queryFilter(vault.filters.UnlockTriggered(), fromBlock),
+                vault.queryFilter(vault.filters.UnlockNetted(), fromBlock),
             ]);
             const events = [...triggeredEvents, ...nettedEvents];
             const blockNumbers = [...new Set(events.map(event => Number(event.blockNumber)).filter(blockNumber => blockNumber > 0))];

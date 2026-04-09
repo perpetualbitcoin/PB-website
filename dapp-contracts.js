@@ -85,12 +85,18 @@
             const [reserve0, reserve1] = await pairContract.getReserves();
             const token0 = await pairContract.token0();
 
+            let reservePB;
+            let reserveUSDL;
             let pbReserve;
             let usdlReserve;
             if (token0.toLowerCase() === TPB.toLowerCase()) {
+                reservePB = BigInt(reserve0.toString());
+                reserveUSDL = BigInt(reserve1.toString());
                 pbReserve = Number(ethers.formatEther(reserve0));
                 usdlReserve = Number(ethers.formatEther(reserve1));
             } else {
+                reservePB = BigInt(reserve1.toString());
+                reserveUSDL = BigInt(reserve0.toString());
                 pbReserve = Number(ethers.formatEther(reserve1));
                 usdlReserve = Number(ethers.formatEther(reserve0));
             }
@@ -99,6 +105,8 @@
                 pairContract,
                 reserve0,
                 reserve1,
+                reservePB,
+                reserveUSDL,
                 token0,
                 pbReserve,
                 usdlReserve,

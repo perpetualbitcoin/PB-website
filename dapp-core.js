@@ -15,7 +15,7 @@
     const TPBRemoveUserLP = ADDRESSES.PBRemoveUserLP;
     const PULSEX_ROUTER = ADDRESSES.PULSEX_ROUTER;
     const PULSEX_PAIR = ADDRESSES.PB_USDL_PAIR;
-    const VAULT_EVENT_FROM_BLOCK = ACTIVE_DEPLOYMENT_BLOCKS?.Vault || 0;
+    const VAULT_EVENT_FROM_BLOCK = (typeof VAULT_DEPLOY_BLOCK !== 'undefined' && VAULT_DEPLOY_BLOCK) || 0;
 
     const VAULT_ABI = [
         'function buyPBDirect(uint256 usdlAmount, uint256 minPBOut, address recipient, uint256[] unlockIds) returns (uint256)',

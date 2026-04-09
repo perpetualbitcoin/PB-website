@@ -131,31 +131,21 @@
                         <div style="font-size: 1rem; color: #FFD700; font-weight: 600;" id="pool-value">-</div>
                     </div>
                 </div>
-                    <div style="font-size: 0.8rem; color: #888; text-align: right;">DEXTools live chart</div>
+                <div style="display: flex; gap: 4px;" id="timeframe-buttons">
+                    <button class="timeframe-btn" data-tf="1" style="padding: 5px 10px; border: 1px solid rgba(255, 165, 0, 0.2); background: transparent; color: #aaa; border-radius: 6px; cursor: pointer; font-size: 0.8rem;">1M</button>
+                    <button class="timeframe-btn" data-tf="5" style="padding: 5px 10px; border: 1px solid rgba(255, 165, 0, 0.2); background: transparent; color: #aaa; border-radius: 6px; cursor: pointer; font-size: 0.8rem;">5M</button>
+                    <button class="timeframe-btn" data-tf="15" style="padding: 5px 10px; border: 1px solid rgba(255, 165, 0, 0.2); background: transparent; color: #aaa; border-radius: 6px; cursor: pointer; font-size: 0.8rem;">15M</button>
+                    <button class="timeframe-btn active" data-tf="60" style="padding: 5px 10px; border: 1px solid rgba(255, 165, 0, 0.3); background: rgba(255, 165, 0, 0.1); color: #F39004; border-radius: 6px; cursor: pointer; font-size: 0.8rem;">1H</button>
+                    <button class="timeframe-btn" data-tf="240" style="padding: 5px 10px; border: 1px solid rgba(255, 165, 0, 0.2); background: transparent; color: #aaa; border-radius: 6px; cursor: pointer; font-size: 0.8rem;">4H</button>
+                    <button class="timeframe-btn" data-tf="1440" style="padding: 5px 10px; border: 1px solid rgba(255, 165, 0, 0.2); background: transparent; color: #aaa; border-radius: 6px; cursor: pointer; font-size: 0.8rem;">1D</button>
+                    <button class="timeframe-btn" data-tf="0" style="padding: 5px 10px; border: 1px solid rgba(255, 165, 0, 0.2); background: transparent; color: #aaa; border-radius: 6px; cursor: pointer; font-size: 0.8rem;">ALL</button>
+                    <span style="border-left: 1px solid rgba(255,165,0,0.2); margin: 0 4px;"></span>
+                    <button id="chart-candle-btn" title="Candlestick" style="padding: 4px 8px; border: 1px solid rgba(255,165,0,0.2); background: transparent; color: #aaa; border-radius: 6px; cursor: pointer; font-size: 0.9rem; line-height: 1;">&#x1F56F;&#xFE0F;</button>
+                    <button id="chart-line-btn" title="Line chart" style="padding: 4px 8px; border: 1px solid rgba(255,165,0,0.3); background: rgba(255,165,0,0.1); color: #F39004; border-radius: 6px; cursor: pointer; font-size: 0.9rem; line-height: 1;">&#x1F4C8;</button>
+                </div>
             </div>
-                <div class="chart-container" style="position: relative; min-height: 500px;">
-                    <div style="opacity: 0.8; border-radius: 12px; overflow: hidden;">
-                        <iframe
-                            id="dextools-widget"
-                            title="DEXTools Trading Chart"
-                            width="100%"
-                            height="500"
-                            style="border:none; display:block;"
-                            src="https://www.dextools.io/widget-chart/en/pulse/pe-light/0x3533719b2f72cb55e19da72155e2fc5ec0bca4f1?theme=dark&chartType=1&chartResolution=15&drawingToolbars=false&chartInUsd=true&headerColor=1F2937&tvPlatformColor=1F2937&tvPaneColor=111827">
-                        </iframe>
-                        <script>
-                            (function () {
-                                const chartFrame = document.getElementById('dextools-widget');
-                                const pairAddress = (typeof ADDRESSES !== 'undefined' && ADDRESSES && ADDRESSES.PB_USDL_PAIR)
-                                    ? String(ADDRESSES.PB_USDL_PAIR).toLowerCase()
-                                    : '0x3533719b2f72cb55e19da72155e2fc5ec0bca4f1';
-                                if (!chartFrame || !pairAddress) return;
-                                chartFrame.src = 'https://www.dextools.io/widget-chart/en/pulse/pe-light/'
-                                    + pairAddress
-                                    + '?theme=dark&chartType=1&chartResolution=15&drawingToolbars=false&chartInUsd=true&headerColor=1F2937&tvPlatformColor=1F2937&tvPaneColor=111827';
-                            })();
-                        </script>
-                    </div>
+            <div class="chart-container" style="position: relative;">
+                <div id="priceChart" style="width: 100%; height: 100%;"></div>
             </div>
         </section>
 
