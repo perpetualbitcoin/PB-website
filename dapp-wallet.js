@@ -710,6 +710,9 @@
             document.getElementById('fox-link-2')?.addEventListener('click', addPBcToWallet);
             document.getElementById('fox-link-3')?.addEventListener('click', addTUSDLToWallet);
             document.getElementById('fox-link-lp')?.addEventListener('click', addLPToWallet);
+            document.querySelectorAll('.fox-link-lp-inline').forEach((element) => {
+                element.addEventListener('click', addLPToWallet);
+            });
 
             listenersBound = true;
         }
