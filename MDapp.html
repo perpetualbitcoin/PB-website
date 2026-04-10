@@ -16,6 +16,13 @@
         gtag('config', 'G-LK69CE9C9C');
     </script>
     <script src="https://cdn.jsdelivr.net/npm/ethers@6/dist/ethers.umd.js"></script>
+    <script>
+        try {
+            window.localStorage.setItem('pbPreferredNetwork', 'mainnet');
+        } catch (err) {
+            console.warn('Unable to force mainnet preference:', err);
+        }
+    </script>
     <script src="config.js"></script>
     <style>
         :root {

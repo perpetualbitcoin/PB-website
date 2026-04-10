@@ -22,6 +22,13 @@
     <link rel="icon" href="Pic/favicon.ico" type="image/x-icon" />
     <link rel="stylesheet" href="styles.css" />
     <script src="https://cdn.jsdelivr.net/npm/ethers@6/dist/ethers.umd.js"></script>
+    <script>
+        try {
+            window.localStorage.setItem('pbPreferredNetwork', 'mainnet');
+        } catch (err) {
+            console.warn('Unable to force mainnet preference:', err);
+        }
+    </script>
     <script src="config.js"></script>
     <script defer src="ticker.js"></script>
         <!-- Google tag (gtag.js) -->
@@ -694,7 +701,24 @@
         pbcToken = new ethers.Contract(TPBc, TOKEN_ABI, provider);
         pair     = new ethers.Contract(PAIR, PAIR_ABI, provider);
     }
+
+    function syncNetworkToggleUi(net) {
+        const isMainnet = net === 'mainnet';
+        const toggle = document.getElementById('network-toggle');
+        const testnetLabel = document.getElementById('label-testnet');
+        const mainnetLabel = document.getElementById('label-mainnet');
+        const toggleKnob = document.getElementById('toggle-knob');
+        const toggleTrack = document.querySelector('#network-toggle + span');
+
+        if (toggle) toggle.checked = isMainnet;
+        if (testnetLabel) testnetLabel.style.color = isMainnet ? '#666' : '#F39004';
+        if (mainnetLabel) mainnetLabel.style.color = isMainnet ? '#F39004' : '#666';
+        if (toggleKnob) toggleKnob.style.left = isMainnet ? '25px' : '3px';
+        if (toggleTrack) toggleTrack.style.background = isMainnet ? '#F39004' : '#555';
+    }
+
     initContracts(activeNet);
+    syncNetworkToggleUi(activeNet);
 
     const STORAGE_KEY = 'pb_portfolio_addresses';
     const ALERT_EMAIL_KEY = 'pb_settlement_alert_email';
@@ -718,10 +742,7 @@
         }
         initContracts(net);
         blockTimestampCache.clear();
-        document.getElementById('label-testnet').style.color = net === 'testnet' ? '#F39004' : '#666';
-        document.getElementById('label-mainnet').style.color = net === 'mainnet' ? '#F39004' : '#666';
-        document.getElementById('toggle-knob').style.left = this.checked ? '25px' : '3px';
-        document.querySelector('#network-toggle + span').style.background = this.checked ? '#F39004' : '#555';
+        syncNetworkToggleUi(net);
         updateAlertWalletOptions(loadSavedAddresses());
         syncPersistedShareCode(loadSavedAddresses());
         if (loadAlertEmail()) {
@@ -2408,15 +2429,19 @@
 
             const historyRows = displayHistory.length === 0
                 ? '<tr><td colspan="5" style="padding:10px;color:#888;">No unlock data available yet.</td></tr>'
-                : displayHistory.map(h => `
-                    <tr style="border-bottom:1px solid rgba(255,255,255,0.06);">
-                        <td style="padding:8px;">T${h.unlockIndex + 1}</td>
-                        <td style="padding:8px;text-align:right;">${fmtPB(h.pbcAmount)}</td>
-                        <td style="padding:8px;text-align:right;color:${h.upcoming ? '#F39004' : '#4CAF50'};">$${fmt(h.proceeds)}${h.txAdjusted ? '<div style="font-size:0.72rem;color:#888;">tx-adjusted</div>' : ''}</td>
-                        <td style="padding:8px;text-align:right;">$${fmt(h.executionPrice, 5)}</td>
-                        <td style="padding:8px;text-align:center;color:${h.upcoming ? '#F39004' : h.estimated ? '#aaa' : '#4CAF50'};">${h.upcoming ? 'next' : h.txAdjusted ? 'tx-adjusted' : h.source === 'db/netted' ? 'db/netted' : h.estimated ? 'est.' : 'on-chain'}</td>
+                : displayHistory.map(h => {
+                    const rowTextColor = h.upcoming ? '#F39004' : h.estimated ? '#aaa' : '#4CAF50';
+                    const sourceLabel = h.upcoming ? 'next' : h.txAdjusted ? 'tx-adjusted' : h.source === 'db/netted' ? 'db/netted' : h.estimated ? 'est.' : 'on-chain';
+                    return `
+                    <tr style="border-bottom:1px solid rgba(255,255,255,0.06);color:${rowTextColor};">
+                        <td style="padding:8px;color:${rowTextColor};">T${h.unlockIndex + 1}</td>
+                        <td style="padding:8px;text-align:right;color:${rowTextColor};">${fmtPB(h.pbcAmount)}</td>
+                        <td style="padding:8px;text-align:right;color:${rowTextColor};">$${fmt(h.proceeds)}${h.txAdjusted ? '<div style="font-size:0.72rem;color:#888;">tx-adjusted</div>' : ''}</td>
+                        <td style="padding:8px;text-align:right;color:${rowTextColor};">$${fmt(h.executionPrice, 5)}</td>
+                        <td style="padding:8px;text-align:center;color:${rowTextColor};">${sourceLabel}</td>
                     </tr>
-                `).join('');
+                `;
+                }).join('');
 
             resultEl.innerHTML = `
                 <div style="border:1px solid rgba(243,144,4,0.25);border-radius:12px;padding:18px;background:rgba(243,144,4,0.05);">

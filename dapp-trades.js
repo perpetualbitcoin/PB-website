@@ -381,6 +381,56 @@
             return contractMethod(...args, overrides);
         }
 
+        function getReceiptProvider() {
+            try {
+                const vaultReadContract = app.contractLayer.getReadContract('vault');
+                return vaultReadContract?.runner?.provider
+                    || vaultReadContract?.runner
+                    || app.getSigner()?.provider
+                    || null;
+            } catch (err) {
+                console.warn('Unable to resolve receipt provider from contract layer:', err);
+                return app.getSigner()?.provider || null;
+            }
+        }
+
+        async function waitForTransactionConfirmation(txResponse, options = {}) {
+            const {
+                timeoutMs = 90000,
+                pollIntervalMs = 1500,
+                label = 'transaction',
+            } = options;
+
+            if (!txResponse?.hash) {
+                throw new Error(`Cannot confirm ${label}: missing transaction hash.`);
+            }
+
+            const provider = getReceiptProvider();
+            const startedAt = Date.now();
+            let lastError = null;
+
+            while ((Date.now() - startedAt) < timeoutMs) {
+                try {
+                    const receipt = provider && typeof provider.getTransactionReceipt === 'function'
+                        ? await provider.getTransactionReceipt(txResponse.hash)
+                        : null;
+
+                    if (receipt) {
+                        if (typeof receipt.status !== 'undefined' && Number(receipt.status) !== 1) {
+                            throw new Error(`${label} reverted on-chain.`);
+                        }
+                        return receipt;
+                    }
+                } catch (err) {
+                    lastError = err;
+                }
+
+                await new Promise((resolve) => setTimeout(resolve, pollIntervalMs));
+            }
+
+            throw new Error(lastError?.message || `${label} confirmation timed out after ${Math.round(timeoutMs / 1000)}s.`);
+        }
+
         async function captureRecipientBalances(address) {
             const pbContract = app.contractLayer.getReadContract('pb');
             const pbcContract = app.contractLayer.getReadContract('pbc');
@@ -637,7 +687,7 @@
             }
 
             const { buyTx, minPBOut, rawPB, usedUnlockIds } = buyResult;
-            const receipt = await buyTx.wait();
+            const receipt = await waitForTransactionConfirmation(buyTx, { label: 'buy transaction' });
             return { receipt, txHash: buyTx.hash, unlockIds: usedUnlockIds, minPBOut, rawPB };
         }
 
@@ -1199,6 +1249,7 @@
                 const normalizedTotal = normalizeBuyAmount(usdlAmountNum.toFixed(6));
                 const buyChunks = autoChunkEnabled ? buildChunkPlan(normalizedTotal) : [normalizedTotal];
                 const totalUsdlWei = ethers.parseEther(normalizedTotal);
+                const approvalAmount = totalUsdlWei + ethers.parseEther('1');
                 const walletUsdlBalance = await tusdlReadContract.balanceOf(app.getAccount());
 
                 if (walletUsdlBalance < totalUsdlWei) {
@@ -1216,7 +1267,7 @@
                     return;
                 }
 
-                const currentAllowance = await tusdlContract.allowance(app.getAccount(), TVault);
+                const currentAllowance = await tusdlReadContract.allowance(app.getAccount(), TVault);
                 pushChainEvent('buy', 'Buy execution started', 'Preparing allowance and vault call flow.', 'info', [
                     ['Account', app.getAccount()],
                     ['Spend', '$' + formatNumber(usdlAmountNum, 2) + ' USDL'],
@@ -1230,15 +1281,17 @@
                         ['Allowance', ethers.formatEther(currentAllowance)],
                         ['Required', ethers.formatEther(totalUsdlWei)],
                     ]);
-                    showStatus('buy-status', `⏳ Approving $${usdlAmountNum.toFixed(2)} USDL...`, 'info');
+                    showStatus('buy-status', `⏳ Approving $${(usdlAmountNum + 1).toFixed(2)} USDL (buy amount + $1 buffer)...`, 'info');
                     try {
-                        const approveTx = await sendContractWrite(tusdlContract.approve, [TVault, totalUsdlWei]);
+                        const approveTx = await sendContractWrite(tusdlContract.approve, [TVault, approvalAmount]);
                         pushChainEvent('buy', 'Approval submitted', 'Allowance transaction sent to chain.', 'warning', [
                             ['Tx hash', approveTx.hash],
+                            ['Approval', ethers.formatEther(approvalAmount)],
                         ]);
-                        await approveTx.wait();
-                        pushChainEvent('buy', 'Approval confirmed', 'Vault can now pull the requested USDL.', 'success', [
+                        await waitForTransactionConfirmation(approveTx, { label: 'approval transaction' });
+                        pushChainEvent('buy', 'Approval confirmed', 'Vault can now pull the requested USDL amount with a $1 safety buffer.', 'success', [
                             ['Spender', TVault],
+                            ['Approval', ethers.formatEther(approvalAmount)],
                         ]);
                         showStatus('buy-status', '✅ Approval confirmed!', 'success');
                     } catch (approveErr) {
@@ -1285,7 +1338,7 @@
                             vaultContract,
                             chunkUsdlWei,
                             formatNumber(parseFloat(chunkAmount), 2),
-                            giftRecipient,
+                            recipientAddress,
                             quoteContext,
                             chunkLabel,
                             preparedSelection
@@ -1518,7 +1571,7 @@
                     ['Token', TPB],
                     ['Spender', PULSEX_ROUTER],
                 ]);
-                await approveTx.wait();
+                await waitForTransactionConfirmation(approveTx, { label: 'sell approval transaction' });
                 pushChainEvent('sell', 'Approval confirmed', 'Router can now spend PB for the swap.', 'success', [
                     ['Spender', PULSEX_ROUTER],
                 ]);
@@ -1546,7 +1599,7 @@
                     ['Tx hash', sellTx.hash],
                     ['Deadline', String(Math.floor(Date.now() / 1000) + 3600)],
                 ]);
-                const receipt = await sellTx.wait();
+                const receipt = await waitForTransactionConfirmation(sellTx, { label: 'sell transaction' });
                 pushChainEvent('sell', 'Sell confirmed', 'Router swap receipt confirmed on chain.', 'success', [
                     ['Receipt hash', receipt.hash],
                 ]);

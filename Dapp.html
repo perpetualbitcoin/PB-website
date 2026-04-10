@@ -23,7 +23,6 @@
     <meta name="twitter:image" content="https://perpetualbitcoin.io/Pic/PB_logo.jpg" />
     <link rel="icon" href="Pic/favicon.ico" type="image/x-icon" />
     <link rel="stylesheet" href="styles.css" />
-    <script src="https://unpkg.com/lightweight-charts@4.1.1/dist/lightweight-charts.standalone.production.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/ethers@6/dist/ethers.umd.js"></script>
     <script>
         try {
@@ -37,14 +36,13 @@
     <script defer src="ticker.js"></script>
     <script src="dapp-core.js"></script>
     <script src="dapp-contracts.js"></script>
-    <script src="dapp-trades.js"></script>
+    <script src="dapp-trades.js?v=3"></script>
     <script src="dapp-positions.js"></script>
     <script src="dapp-recovery.js"></script>
     <script src="dapp-vlock.js?v=2"></script>
     <script src="dapp-remove-lp.js"></script>
-    <script src="dapp-chart.js"></script>
     <script src="dapp-faucet.js"></script>
-    <script src="dapp-wallet.js?v=2"></script>
+    <script src="dapp-wallet.js?v=3"></script>
         <!-- Google tag (gtag.js) -->
         <script async src="https://www.googletagmanager.com/gtag/js?id=G-LK69CE9C9C"></script>
         <script>
@@ -747,7 +745,6 @@
             getAccount: () => account,
             getSigner: () => signer,
         });
-        const chartLayer = window.PBTestDappChart.create();
         const faucetLayer = window.PBTestDappFaucet.create({
             contractLayer,
             refreshDashboard,
@@ -782,9 +779,6 @@
         const fillAddLPAmounts = removeLPLayer.fillAddLPAmounts;
         const updateLPRemovalPreview = removeLPLayer.updateLPRemovalPreview;
         const PBremoveUserLP = removeLPLayer.PBremoveUserLP;
-        const loadPriceHistory = chartLayer.loadPriceHistory;
-        const initChart = chartLayer.initChart;
-        const updateChartData = chartLayer.updateChartData;
         const faucetMintTUSDL = faucetLayer.faucetMintTUSDL;
 
         async function refreshDashboard(options = {}) {
@@ -893,15 +887,12 @@
                 } catch (diagErr) {
                     console.error('Diagnostics error details:', diagErr);
                 }
-
-                updateChartData(price);
             } catch (err) {
                 console.error('Price update failed:', err);
             }
         }
 
         const walletBootstrap = window.PBTestDappWallet.create({
-            loadPriceHistory,
             getQuote,
             handleBuyAmountInputChange,
             executeBuy,
@@ -932,7 +923,6 @@
             switchTab,
             populatePBtDropdowns,
             refreshDashboard,
-            initChart,
             getLatestTusdlBalance: () => latestTusdlBalance,
             getLatestPBBalanceExact: () => latestPbBalanceExact,
             getWeb3: () => web3,

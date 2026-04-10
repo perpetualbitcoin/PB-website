@@ -556,6 +556,30 @@
                 return app.getLatestTusdlBalance() > 0 ? app.getLatestTusdlBalance() : 0;
             }
 
+            async function getFreshUSDLInputBalance() {
+                try {
+                    if (typeof app.updateBalances === 'function') {
+                        await app.updateBalances();
+                    }
+                } catch (err) {
+                    console.warn('Unable to refresh USDL balance before applying quick amount:', err);
+                }
+
+                const refreshedBalance = Number(app.getLatestTusdlBalance());
+                if (Number.isFinite(refreshedBalance) && refreshedBalance >= 0) {
+                    return refreshedBalance;
+                }
+
+                return getUSDLInputBalance();
+            }
+
+            async function fillBuyAmountFromBalancePercent(multiplier) {
+                const liveBalance = await getFreshUSDLInputBalance();
+                document.getElementById('buy-amount').value = formatStableInputAmount(liveBalance * multiplier);
+                app.handleBuyAmountInputChange();
+                app.getQuote();
+            }
+
             document.getElementById('connect-btn').addEventListener('click', connectWallet);
             document.getElementById('nav-connect-btn').addEventListener('click', connectWallet);
             document.getElementById('btn-quote').addEventListener('click', app.getQuote);
@@ -597,17 +621,14 @@
             document.getElementById('remove-lp-amount')?.addEventListener('input', app.updateLPRemovalPreview);
             document.getElementById('remove-lp-slippage')?.addEventListener('input', app.updateLPRemovalPreview);
 
-            document.getElementById('buy-33').addEventListener('click', () => {
-                document.getElementById('buy-amount').value = formatStableInputAmount(getUSDLInputBalance() * 0.33);
-                app.getQuote();
+            document.getElementById('buy-33').addEventListener('click', async () => {
+                await fillBuyAmountFromBalancePercent(0.33);
             });
-            document.getElementById('buy-66').addEventListener('click', () => {
-                document.getElementById('buy-amount').value = formatStableInputAmount(getUSDLInputBalance() * 0.66);
-                app.getQuote();
+            document.getElementById('buy-66').addEventListener('click', async () => {
+                await fillBuyAmountFromBalancePercent(0.66);
             });
-            document.getElementById('buy-100').addEventListener('click', () => {
-                document.getElementById('buy-amount').value = formatStableInputAmount(getUSDLInputBalance());
-                app.getQuote();
+            document.getElementById('buy-100').addEventListener('click', async () => {
+                await fillBuyAmountFromBalancePercent(1);
             });
             document.getElementById('sell-33').addEventListener('click', () => {
                 document.getElementById('sell-amount').value = formatPercentAmount(Number(getExactPBInputBalance()) * 0.33);
@@ -770,19 +791,6 @@
         }
 
         async function init() {
-            const priceHistoryPromise = Promise.resolve()
-                .then(() => app.loadPriceHistory())
-                .then(() => {
-                    try {
-                        app.initChart();
-                    } catch (err) {
-                        console.warn('Chart refresh after history load failed:', err);
-                    }
-                })
-                .catch((err) => {
-                    console.warn('Price history bootstrap failed:', err);
-                });
-
             if (typeof ethers === 'undefined') {
                 console.error('ethers library not loaded');
                 document.getElementById('wallet-addr').innerText = 'ethers library not loaded';
@@ -812,12 +820,6 @@
                 if (app.getAccount()) app.updateBalances();
             }, 30000);
 
-            try {
-                app.initChart();
-            } catch (e) {
-                console.warn('Chart init failed:', e);
-            }
-            void priceHistoryPromise;
             setupNetworkToggle();
             syncNetworkChrome();
 
