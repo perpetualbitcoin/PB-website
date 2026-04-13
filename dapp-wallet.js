@@ -508,9 +508,10 @@
             }
         }
 
-        function copyDiagVaultAddress() {
+        function copyVaultAddress(targetId) {
             navigator.clipboard.writeText(TVault).then(() => {
-                const el = document.getElementById('diag-vault');
+                const el = document.getElementById(targetId);
+                if (!el) return;
                 const original = el.innerText;
                 el.innerText = '✓ Copied!';
                 setTimeout(() => {
@@ -519,6 +520,31 @@
             }).catch(() => {
                 alert('Failed to copy address');
             });
+        }
+
+        function copyDiagVaultAddress() {
+            copyVaultAddress('diag-vault');
+        }
+
+        function copyNavVaultAddress(event) {
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            copyVaultAddress('nav-vault-addr');
+        }
+
+        function openNavVaultLink(event) {
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+
+            const navVaultLink = document.getElementById('nav-vault-link');
+            const href = navVaultLink && navVaultLink.href;
+            if (href) {
+                window.open(href, '_blank', 'noopener,noreferrer');
+            }
         }
 
         function bindEventListeners() {
@@ -696,6 +722,8 @@
                 });
             });
             document.getElementById('diag-vault')?.addEventListener('click', copyDiagVaultAddress);
+            document.getElementById('nav-vault-link')?.addEventListener('click', copyNavVaultAddress);
+            document.getElementById('nav-vault-link')?.addEventListener('dblclick', openNavVaultLink);
 
             document.getElementById('combined-activate-password')?.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter' && !document.getElementById('btn-activate-selected-badge').disabled) {
@@ -805,6 +833,11 @@
 
             const vaultAddrShort = TVault ? TVault.substring(0, 6) + '...' + TVault.substring(TVault.length - 4) : 'Pending';
             document.getElementById('nav-vault-addr').innerText = vaultAddrShort;
+            const navVaultLink = document.getElementById('nav-vault-link');
+            if (navVaultLink && TVault) {
+                navVaultLink.href = 'https://scan.mypinata.cloud/ipfs/bafybeienxyoyrhn5tswclvd3gdjy5mtkkwmu37aqtml6onbf7xnb3o22pe/#/address/' + TVault;
+                navVaultLink.title = `${TVault} — click to copy, double-click to open in scanner`;
+            }
             const lpPairLink = document.getElementById('lp-pair-link');
             if (lpPairLink && typeof ACTIVE_NETWORK !== 'undefined' && ACTIVE_NETWORK && ACTIVE_NETWORK.explorer) {
                 lpPairLink.href = ACTIVE_NETWORK.explorer.replace(/\/$/, '') + '/address/' + PULSEX_PAIR;

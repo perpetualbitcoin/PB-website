@@ -70,13 +70,13 @@
             </ul>
             <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">
                 <button class="btn btn-primary" id="nav-connect-btn" style="padding: 4px 10px; font-size: 0.8rem; white-space: nowrap;">Connect</button>
-                <label style="font-size:0.75rem;color:#999;font-family:monospace;white-space:nowrap">Vault: <span id="nav-vault-addr">-</span></label>
+                <label style="font-size:0.75rem;color:#999;font-family:monospace;white-space:nowrap">Vault: <a id="nav-vault-link" href="#" target="_blank" rel="noopener noreferrer" style="color:#bbb;text-decoration:underline;cursor:pointer;user-select:none;" title="Click to open in block explorer. Double-click to copy."><span id="nav-vault-addr">-</span></a></label>
             </div>
         </div>
     </nav>
 
     <div class="dapp-hero">
-        <h1><br>⚡ Perpetual Bitcoin Dapp</h1>
+        <h1><br>⚡ Perpetual Bitcoin ⚡ Dapp</h1>
         <p>Buy and/or Sell | View positions | View your perpetual unlocks |  Inspect execution routes directly on-chain (in our trust TERMINAL).....<br>
             Add/remove LP positions | Lock your liquid $PB and earn LP rewards (Vlock) | Set/activate the Recovery/Inheritance option (PBr PBi). <br>
             TRUST but VERIFY!!<br> <a href="TNDapp.html" target="_blank" rel="noopener noreferrer" style="color:#F39004;font-weight:700;text-decoration:underline;">Use TestnetV4 to test and verify</a> <br>ONE PROTOCOL. FOREVER.</p>
@@ -95,16 +95,20 @@
             </div>
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 15px;">
                 <div class="stat-box">
-                    <div><div class="stat-label">Address</div><div id="wallet-addr" style="color: #ddd; font-family: monospace; font-size: 0.8rem;">Not connected</div></div>
+                    <div>
+                        <div class="stat-label">Connected Address</div>
+                        <div id="wallet-addr" style="color: #ddd; font-family: monospace; font-size: 0.8rem;">Not connected</div>
+                        <div style="margin-top: 8px; color: #aaa; font-size: 0.8rem;">Available USDL $: <span id="wallet-usdl-available" style="color: #F39004; font-weight: 600;">-</span></div>
+                    </div>
                 </div>
                 <div class="stat-box">
-                    <div><div class="stat-label"><span id="fox-link-1" style="cursor: pointer; user-select: none;" title="Click to copy address">🦊</span> PB Liquid</div><div id="balance-pb" class="stat-value">-</div></div>
+                    <div><div class="stat-label"><span id="fox-link-1" style="cursor: pointer; user-select: none;" title="Click to copy address">🦊</span> PB Liquid:</div><div id="balance-pb" class="stat-value">-</div></div>
                 </div>
                 <div class="stat-box">
-                    <div><div class="stat-label"><span id="fox-link-2" style="cursor: pointer; user-select: none;" title="Click to copy address">🦊</span> PBc Balance</div><div id="balance-pbc" class="stat-value">-</div></div>
+                    <div><div class="stat-label"><span id="fox-link-2" style="cursor: pointer; user-select: none;" title="Click to copy address">🦊</span> PBc Balance:</div><div id="balance-pbc" class="stat-value">-</div></div>
                 </div>
                 <div class="stat-box">
-                    <div><div class="stat-label"><span id="fox-link-3" style="cursor: pointer; user-select: none;" title="Click to copy address">🦊</span> Total USDL Value</div><div id="total-value" class="stat-value" style="font-size: 1.1rem; color: #4CAF50;">-</div></div>
+                    <div><div class="stat-label"><span id="fox-link-3" style="cursor: pointer; user-select: none;" title="Click to copy address">🦊</span> Total Value PB:</div><div id="total-value" class="stat-value" style="font-size: 1.1rem; color: #4CAF50;">-</div></div>
                 </div>
             </div>
         </section>
@@ -245,7 +249,7 @@
             <section class="card trade-terminal-column trade-terminal-card">
                 <details class="trade-terminal-toggle" open>
                     <summary>
-                        <span><span id="route-terminal-mode">Buy</span> Trust Terminal</span>
+                        <span><span id="route-terminal-mode">Buy</span> Trust Terminal - <a href="faq.html#verify-official-contracts" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();" style="color:#F39004;text-decoration:underline;font-size:0.82rem;font-weight:700;letter-spacing:0.04em;">VERIFY ADDRESSES</a></span>
                     </summary>
                     <section class="trade-terminal-shell">
                     <div id="route-terminal" class="trade-terminal-log"></div>
@@ -361,7 +365,7 @@
             <section class="card operation-terminal-card">
                 <details class="trade-terminal-toggle">
                     <summary>
-                        <span><span id="vlock-terminal-mode">VLock</span> Trust Terminal</span>
+                        <span><span id="vlock-terminal-mode">VLock</span> Trust Terminal - <a href="faq.html#verify-official-contracts" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();" style="color:#F39004;text-decoration:underline;font-size:0.82rem;font-weight:700;letter-spacing:0.04em;">VERIFY ADDRESSES</a></span>
                     </summary>
                     <section class="trade-terminal-shell">
                     <div id="vlock-terminal" class="trade-terminal-log"></div>
@@ -471,7 +475,7 @@
             <section class="card operation-terminal-card">
                 <details class="trade-terminal-toggle">
                     <summary>
-                        <span><span id="lp-terminal-mode">Add LP</span> Trust Terminal</span>
+                        <span><span id="lp-terminal-mode">Add LP</span> Trust Terminal - <a href="faq.html#verify-official-contracts" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();" style="color:#F39004;text-decoration:underline;font-size:0.82rem;font-weight:700;letter-spacing:0.04em;">VERIFY ADDRESSES</a></span>
                     </summary>
                     <section class="trade-terminal-shell">
                     <div id="lp-terminal" class="trade-terminal-log"></div>
@@ -583,7 +587,7 @@
             <section class="card operation-terminal-card">
                 <details class="trade-terminal-toggle">
                     <summary>
-                        <span><span id="recovery-terminal-mode">Recovery</span> Trust Terminal</span>
+                        <span><span id="recovery-terminal-mode">Recovery</span> Trust Terminal - <a href="faq.html#verify-official-contracts" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();" style="color:#F39004;text-decoration:underline;font-size:0.82rem;font-weight:700;letter-spacing:0.04em;">VERIFY ADDRESSES</a></span>
                     </summary>
                     <section class="trade-terminal-shell">
                     <div id="recovery-terminal" class="trade-terminal-log"></div>
@@ -826,6 +830,7 @@
 
                 document.getElementById('balance-pb').innerText = formatNumber(pbBal, 2);
                 document.getElementById('balance-pbc').innerText = formatNumber(pbcBal, 2);
+                document.getElementById('wallet-usdl-available').innerText = formatNumber(latestTusdlBalance, 2);
                 document.getElementById('total-value').innerText = formatNumber(totalValue, 2) + ' USDL';
             } catch (err) {
                 console.error('Balance update failed:', err);

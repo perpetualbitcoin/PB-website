@@ -80,7 +80,7 @@ tr.sell-row { background: rgba(211, 47, 47, 0.15); }
 <body>
 
 <h1><a href="index.html" style="color:#f7931a;text-decoration:none;">Perpetual Bitcoin</a> (PB) Protocol Simulator</h1>
-<p class="mini">Simulates the full PB Vault: AMM (UniV2 constant-product), Absorb &amp; Net netting (off-AMM settlement + partial triggers + internal settlement + 1 net AMM transaction), LP contributions, unlocks, phase transitions. All presale positions + new buys.</p>
+<p class="mini">Simulates the PB Vault V2 flow: AMM (UniV2 constant-product), sequential netting (off-AMM settlement + partial triggers + internal settlement + 1 net AMM transaction), LP contributions, unlocks, and phase transitions. Initialized to the 102 FOAD positions and the launched LP seed.</p>
 
 <div id="status-bar">Ready. Configure initial LP and click "Initialize".</div>
 
@@ -93,20 +93,19 @@ tr.sell-row { background: rgba(211, 47, 47, 0.15); }
         <div class="flex-row">
             <div>
                 <label>Initial USDL in LP</label>
-                <input type="number" id="init-usdl" value="5000" step="1000">
+                <input type="number" id="init-usdl" value="5555" step="1" readonly>
+            </div>
+            <div>
+                <label>Initial PB in LP</label>
+                <input type="number" id="init-pb" value="100000" step="1" readonly>
             </div>
             <div>
                 <label>Start Price (USDL/PB)</label>
-                <input type="number" id="init-price" value="0.05555" step="0.001" readonly>
+                <input type="number" id="init-price" value="0.05555" step="0.00001" readonly>
             </div>
             <div>
                 <label>Gratis Distribution</label>
-                <select id="gratis-pct" style="background:#1e1e1e;border:1px solid #444;color:#eee;padding:4px 6px;border-radius:3px;width:100%;font-size:12px;">
-                    <option value="100" selected>100% sold (all 555 allocated)</option>
-                    <option value="0">0% sold (102 FOAD primes only)</option>
-                    <option value="p1">33% sold</option>
-                    <option value="p2">55% sold</option>
-                </select>
+                <input type="text" value="102 FOAD positions only" readonly>
             </div>
             <div style="flex:0 0 auto;">
                 <label>&nbsp;</label>
@@ -328,25 +327,6 @@ function getPBPerBlock(blockNum) {
 const FOAD_BLOCK_LIST = [1,2,3,5,7,11,13,17,19,23,29,31,37,41,43,47,53,59,61,67,71,73,79,83,89,97,101,103,107,109,113,127,131,137,139,149,151,157,163,167,173,179,181,191,193,197,199,211,223,227,229,233,239,241,251,257,263,269,271,277,281,283,293,307,311,313,317,331,337,347,349,353,359,367,373,379,383,389,397,401,409,419,421,431,433,439,443,449,457,461,463,467,479,487,491,499,503,509,521,523,541,547];
 const FOAD_BLOCK_SET = new Set(FOAD_BLOCK_LIST);
 
-// ── Place gratis blocks evenly between FOAD prime positions ──
-// +1: midpoint between each consecutive pair
-// +2: 1/3 and 2/3 between each consecutive pair
-// Returns Map<blockNum, foadIndex> so gratis block goes to the right FOAD holder
-function pickGratisSpread(extraPerFoad) {
-    const picked = new Map(); // blockNum -> foadIndex (of the left prime)
-    for (let i = 0; i < FOAD_BLOCK_LIST.length - 1; i++) {
-        const lo = FOAD_BLOCK_LIST[i];
-        const hi = FOAD_BLOCK_LIST[i + 1];
-        for (let n = 1; n <= extraPerFoad; n++) {
-            const t = Math.round(lo + (hi - lo) * n / (extraPerFoad + 1));
-            if (t >= 1 && t <= TOTAL_BLOCKS && !FOAD_BLOCK_SET.has(t) && !picked.has(t)) {
-                picked.set(t, i);
-            }
-        }
-    }
-    return picked;
-}
-
 // ── Trigger price calculation (matches Vault.computeNextTriggerPrice) ──
 // Uses integer-style: (price / 10000) * 15555 repeatedly
 function computeNextTriggerPrice(buyPrice, unlockIndex) {
@@ -359,13 +339,9 @@ function computeNextTriggerPrice(buyPrice, unlockIndex) {
     return price;
 }
 
-// More precise version for display (float is fine since we're simulating)
+// Preserve the old call sites, but use the same ladder math as Vault V2.
 function computeTriggerPriceFloat(buyPrice, unlockIndex) {
-    let p = buyPrice;
-    for (let i = 0; i <= unlockIndex; i++) {
-        p = p * 1.5555;
-    }
-    return p;
+    return computeNextTriggerPrice(buyPrice, unlockIndex);
 }
 
 // ── Split calculation (matches Vault._computeSplit) ──
@@ -650,15 +626,14 @@ function buyPBDirect(buyerAddr, usdlAmount) {
     holder.lockedPBc += lockedPBc;
 
     // Mint PBt
-    const avgBuyPrice = usdlAmount / totalBuyerPB;
     const pbtId = ++S.pbtIdCounter;
     const pos = {
         pbtId,
-        buyPrice: avgBuyPrice,
+        buyPrice: priceBefore,
         pbAmount: totalBuyerPB,
         pbcLocked: lockedPBc,
         nextUnlockIndex: 0,
-        nextTriggerPrice: computeTriggerPriceFloat(avgBuyPrice, 0),
+        nextTriggerPrice: computeTriggerPriceFloat(priceBefore, 0),
         holder: buyerAddr,
         payoutAddress: buyerAddr,
         source: 'buy',
@@ -1004,15 +979,11 @@ function sellPBFromUser(userAddr, pbAmount) {
 // ════════════════════════════════════════════════════════════════
 
 function initProtocol() {
-    const initUSDL = parseFloat(document.getElementById('init-usdl').value) || 5000;
-    const initPrice = 0.05555;
-    const initPB = initUSDL / initPrice;
+    const initUSDL = parseFloat(document.getElementById('init-usdl').value) || 5555;
+    const initPB = parseFloat(document.getElementById('init-pb').value) || 100000;
+    const initPrice = initUSDL / initPB;
 
     S = freshState();
-
-    const gratisVal = document.getElementById('gratis-pct').value;
-    const isFullSale = (gratisVal === '100');
-    const extraPerFoad = gratisVal === 'p1' ? 1 : gratisVal === 'p2' ? 2 : 0;
 
     // Seed LP
     S.reservePB = initPB;
@@ -1022,46 +993,18 @@ function initProtocol() {
     // Holders
     const foadHolders = [];
     for (let i = 0; i < 102; i++) foadHolders.push('FOAD_' + (i + 1).toString().padStart(3, '0'));
-    const presaleHolders = [];
-    for (let i = 0; i < 40; i++) presaleHolders.push('Holder_' + (i + 1).toString().padStart(2, '0'));
 
-    if (isFullSale) {
-        // 100% sold: all 555 blocks allocated (453 buyers + 102 FOAD primes)
-        for (let blockNum = 1; blockNum <= TOTAL_BLOCKS; blockNum++) {
-            const entryPrice = getEntryPriceAtBlock(blockNum);
-            const pbAmount = getPBPerBlock(blockNum);
-            if (FOAD_BLOCK_SET.has(blockNum)) {
-                allocatePresaleUser(foadHolders[blockNum % foadHolders.length], pbAmount, entryPrice);
-            } else {
-                allocatePresaleUser(presaleHolders[blockNum % presaleHolders.length], pbAmount, entryPrice);
-            }
-        }
-        setStatus(`Initialized: ${initUSDL.toFixed(0)} USDL + ${initPB.toFixed(0)} PB in LP @ $${initPrice}. 100% sold: 453 buyer + 102 FOAD = 555 blocks. Price: $${getPrice(S.reservePB, S.reserveUSDL).toFixed(8)}`);
-    } else {
-        // Nothing sold. FOAD primes + optionally +1 or +2 spread gratis blocks.
-        const gratisMap = extraPerFoad > 0 ? pickGratisSpread(extraPerFoad) : new Map();
-
-        // Allocate 102 FOAD prime blocks (each to its own FOAD holder)
-        let allocated = 0;
-        for (let fi = 0; fi < FOAD_BLOCK_LIST.length; fi++) {
-            const blockNum = FOAD_BLOCK_LIST[fi];
-            const entryPrice = getEntryPriceAtBlock(blockNum);
-            const pbAmount = getPBPerBlock(blockNum);
-            allocatePresaleUser(foadHolders[fi], pbAmount, entryPrice);
-            allocated++;
-        }
-
-        // Allocate gratis blocks to the FOAD holder of the nearest left prime
-        for (const [blockNum, foadIdx] of gratisMap) {
-            const entryPrice = getEntryPriceAtBlock(blockNum);
-            const pbAmount = getPBPerBlock(blockNum);
-            allocatePresaleUser(foadHolders[foadIdx], pbAmount, entryPrice);
-            allocated++;
-        }
-
-        const label = extraPerFoad > 0 ? `+${extraPerFoad}/FOAD = ${gratisMap.size} gratis` : 'no gratis';
-        setStatus(`Initialized: ${initUSDL.toFixed(0)} USDL + ${initPB.toFixed(0)} PB in LP @ $${initPrice}. 0% sold, ${label}: 102 FOAD holders, 102 primes + ${gratisMap.size} gratis = ${allocated} blocks (${TOTAL_BLOCKS - allocated} unallocated). Price: $${getPrice(S.reservePB, S.reserveUSDL).toFixed(8)}`);
+    // Allocate only the 102 FOAD prime blocks (each to its own FOAD holder)
+    let allocated = 0;
+    for (let fi = 0; fi < FOAD_BLOCK_LIST.length; fi++) {
+        const blockNum = FOAD_BLOCK_LIST[fi];
+        const entryPrice = getEntryPriceAtBlock(blockNum);
+        const pbAmount = getPBPerBlock(blockNum);
+        allocatePresaleUser(foadHolders[fi], pbAmount, entryPrice);
+        allocated++;
     }
+
+    setStatus(`Initialized: ${initUSDL.toFixed(0)} USDL + ${initPB.toFixed(0)} PB in LP @ $${initPrice.toFixed(5)}. FOAD-only mode: 102 FOAD holders, 102 allocated prime blocks, ${TOTAL_BLOCKS - allocated} unallocated blocks. Price: $${getPrice(S.reservePB, S.reserveUSDL).toFixed(8)}`);
 
     // Calculate LP-stop price
     calculateLPStopPrice();

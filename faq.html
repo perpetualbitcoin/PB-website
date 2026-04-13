@@ -48,6 +48,7 @@
         .faq-section details > summary::after { content:'+'; color:#F39004; font-weight:700; font-size:1.05rem; }
         .faq-section details[open] > summary::after { content:'−'; }
         .faq-section details .faq-item { padding:12px; background:#0f0f14; border-top:1px solid rgba(255,165,0,0.02); }
+        .faq-item h4[id] { scroll-margin-top: 110px; }
         .address-panels { display:grid; grid-template-columns:repeat(auto-fit, minmax(320px, 1fr)); gap:1rem; margin-top:1rem; }
         .address-panel { background:linear-gradient(180deg, rgba(243,144,4,0.08), rgba(243,144,4,0.02)); border:1px solid rgba(243,144,4,0.18); border-radius:12px; padding:1rem; }
         .address-panel-header { display:flex; justify-content:space-between; align-items:flex-start; gap:0.75rem; margin-bottom:1rem; }
@@ -1349,10 +1350,9 @@
             </div>
 
             <div class="faq-item">
-                <h4>Where can I verify the official PB contracts?</h4>
+                <h4 id="verify-official-contracts">Where can I verify the official PB contracts?</h4>
                 <p>
-                    Use the cards below to click any published address to copy it, open it on the official block explorer,
-                    add the correct PulseChain network to MetaMask, and import PB or PBc directly into your wallet.
+                    Use the cards below to verify official PB contract addresses. On <strong>mainnet</strong>, one click copies a published address and double click opens that address in the Pinata scanner. You can also add the correct PulseChain network to MetaMask and import PB or PBc directly into your wallet.
                 </p>
                 <div class="address-panels">
                     <div class="address-panel">
@@ -1368,7 +1368,7 @@
                         </div>
                         <div id="mainnet-address-list" class="address-list"></div>
                         <div id="mainnet-address-status" class="address-status"></div>
-                        <p class="address-note">Only published addresses are shown as copyable. Empty slots remain clearly marked until the deployment is finalized and verified.</p>
+                        <p class="address-note">Published mainnet addresses: one click copies, double click opens Pinata scanner.</p>
                     </div>
 
                     <div class="address-panel">
@@ -1481,6 +1481,8 @@
             return '🦊';
         }
 
+        const MAINNET_PINATA_EXPLORER_BASE = 'https://scan.mypinata.cloud/ipfs/bafybeienxyoyrhn5tswclvd3gdjy5mtkkwmu37aqtml6onbf7xnb3o22pe/#/address/';
+
         function setAddressStatus(networkKey, message, isError = false) {
             const status = document.getElementById(`${networkKey}-address-status`);
             if (!status) return;
@@ -1507,6 +1509,24 @@
             } catch (error) {
                 setAddressStatus(networkKey, `Copy failed for ${label}.`, true);
             }
+        }
+
+        function openAddressExplorer(address, networkKey, label) {
+            let href = '';
+            if (networkKey === 'mainnet') {
+                href = MAINNET_PINATA_EXPLORER_BASE + address;
+            } else {
+                const explorer = NETWORKS[networkKey] && NETWORKS[networkKey].explorer ? NETWORKS[networkKey].explorer : '';
+                href = explorer ? explorer.replace(/\/$/, '') + '/address/' + address : '';
+            }
+
+            if (!href) {
+                setAddressStatus(networkKey, `Explorer link unavailable for ${label}.`, true);
+                return;
+            }
+
+            window.open(href, '_blank', 'noopener,noreferrer');
+            setAddressStatus(networkKey, `Opened ${label} in explorer.`);
         }
 
         async function addNetworkToWallet(networkKey) {
@@ -1586,6 +1606,12 @@
                     ? `<button type="button" class="fox-icon-btn" onclick="addTokenToWallet('${networkKey}', '${key}')" title="Add ${safeLabel} to MetaMask" aria-label="Add ${safeLabel} to MetaMask">${getFoxIconSvg()}</button>`
                     : '';
 
+                const interactionAttrs = hasAddress
+                    ? networkKey === 'mainnet'
+                        ? ` onclick="copyAddress('${value}', '${networkKey}', '${safeLabel}')" ondblclick="openAddressExplorer('${value}', '${networkKey}', '${safeLabel}')" title="Click to copy ${safeLabel}. Double-click to open in Pinata scanner"`
+                        : ` onclick="copyAddress('${value}', '${networkKey}', '${safeLabel}')" title="Click to copy ${safeLabel}"`
+                    : '';
+
                 return `
                     <div class="address-row">
                         <div class="address-row-header">
@@ -1593,7 +1619,7 @@
                             <div class="address-state">${hasAddress ? 'LIVE' : 'SOON'}</div>
                         </div>
                         <div class="address-value-wrap">
-                            <div class="address-value${hasAddress ? ' copyable' : ' unpublished'}"${hasAddress ? ` onclick="copyAddress('${value}', '${networkKey}', '${safeLabel}')" title="Click to copy ${safeLabel}"` : ''}>${hasAddress ? value : 'Pending publication'}</div>
+                            <div class="address-value${hasAddress ? ' copyable' : ' unpublished'}"${interactionAttrs}>${hasAddress ? value : 'Pending publication'}</div>
                             ${foxAction}
                         </div>
                     </div>
@@ -1603,6 +1629,39 @@
 
         renderAddressPanel('mainnet', 'mainnet-address-list', ADDRESSES_MAINNET);
         renderAddressPanel('testnet', 'testnet-address-list', ADDRESSES_TESTNET);
+
+        function scrollFaqTargetToTop(target, fallback) {
+            const scrollTarget = target || fallback;
+            if (!scrollTarget) return;
+
+            const top = window.pageYOffset + scrollTarget.getBoundingClientRect().top - 110;
+            window.scrollTo({
+                top: Math.max(0, top),
+                behavior: 'smooth'
+            });
+        }
+
+        function openFaqItemFromHash() {
+            const hash = window.location.hash;
+            if (!hash) return;
+
+            const target = document.querySelector(hash);
+            if (!target) return;
+
+            const faqItem = target.classList && target.classList.contains('faq-item')
+                ? target
+                : target.closest('.faq-item');
+
+            if (!faqItem) return;
+
+            faqItem.classList.add('open');
+            const heading = target.matches('h4') ? target : faqItem.querySelector('h4');
+
+            requestAnimationFrame(() => {
+                scrollFaqTargetToTop(heading, faqItem);
+                window.setTimeout(() => scrollFaqTargetToTop(heading, faqItem), 120);
+            });
+        }
 
         // Build accordion: wrap all content after h4 into .faq-answer > .faq-answer-inner
         document.querySelectorAll('.faq-item').forEach((item, idx) => {
@@ -1622,6 +1681,9 @@
             // Open first item by default
             if (idx === 0) item.classList.add('open');
         });
+
+        openFaqItemFromHash();
+        window.addEventListener('hashchange', openFaqItemFromHash);
 
         function filterFAQ() {
             const search = document.getElementById('faq-search').value.toLowerCase();
