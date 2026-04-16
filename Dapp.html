@@ -77,8 +77,8 @@
 
     <div class="dapp-hero">
         <h1><br>⚡ Perpetual Bitcoin ⚡ Dapp</h1>
-        <p>Buy and/or Sell | View positions | View your perpetual unlocks |  Inspect execution routes directly on-chain (in our trust TERMINAL).....<br>
-            Add/remove LP positions | Lock your liquid $PB and earn LP rewards (Vlock) | Set/activate the Recovery/Inheritance option (PBr PBi). <br>
+        <p>Buy and/or Sell -|- View positions -|- View your perpetual unlocks -|-  Inspect execution routes directly on-chain (in our trust TERMINAL).....<br>
+            Add/remove LP positions -|- Lock your liquid $PB and earn LP rewards (Vlock) -|- Set/activate the Recovery/Inheritance option (PBr PBi). <br>
             TRUST but VERIFY!!<br> <a href="TNDapp.html" target="_blank" rel="noopener noreferrer" style="color:#F39004;font-weight:700;text-decoration:underline;">Use TestnetV4 to test and verify</a> <br>ONE PROTOCOL. FOREVER.</p>
     </div>
 
@@ -725,6 +725,10 @@
             refreshDashboard,
             getAccount: () => account,
             getSigner: () => signer,
+            getWeb3: () => web3,
+            getReadProvider: () => readProvider,
+            getWalletProvider: () => walletBootstrap?.getActiveWalletProvider?.() || null,
+            setLatestTusdlBalance: (value) => { latestTusdlBalance = value; },
         });
         const positionsLayer = window.PBTestDappPositions.create({
             contractLayer,
@@ -929,6 +933,7 @@
             populatePBtDropdowns,
             refreshDashboard,
             getLatestTusdlBalance: () => latestTusdlBalance,
+            setLatestTusdlBalance: (value) => { latestTusdlBalance = value; },
             getLatestPBBalanceExact: () => latestPbBalanceExact,
             getWeb3: () => web3,
             setWeb3: (value) => { web3 = value; },

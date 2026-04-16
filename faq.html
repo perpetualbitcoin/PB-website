@@ -1648,9 +1648,13 @@
             const target = document.querySelector(hash);
             if (!target) return;
 
-            const faqItem = target.classList && target.classList.contains('faq-item')
+            let faqItem = target.classList && target.classList.contains('faq-item')
                 ? target
                 : target.closest('.faq-item');
+
+            if (!faqItem && target.classList && target.classList.contains('faq-section')) {
+                faqItem = target.querySelector('.faq-item:last-of-type') || target.querySelector('.faq-item');
+            }
 
             if (!faqItem) return;
 

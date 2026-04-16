@@ -75,6 +75,91 @@
             return (newReserveUSDL * (10n ** 18n)) / newReservePB;
         }
 
+        async function readFreshWalletUsdlBalance() {
+            const account = typeof app.getAccount === 'function' ? app.getAccount() : null;
+            if (!account) throw new Error('Wallet not connected');
+
+            const providers = [];
+            const signer = typeof app.getSigner === 'function' ? app.getSigner() : null;
+            if (signer?.provider) providers.push({ provider: signer.provider, label: 'signer.provider' });
+
+            const web3 = typeof app.getWeb3 === 'function' ? app.getWeb3() : null;
+            if (web3) providers.push({ provider: web3, label: 'app.getWeb3()' });
+
+            const walletProvider = typeof app.getWalletProvider === 'function' ? app.getWalletProvider() : null;
+            if (walletProvider) {
+                providers.push({ provider: new ethers.BrowserProvider(walletProvider), label: 'wallet provider' });
+            }
+
+            const readProvider = typeof app.getReadProvider === 'function' ? app.getReadProvider() : null;
+            if (readProvider) providers.push({ provider: readProvider, label: 'read provider' });
+
+            let lastError = null;
+            let bestResult = null;
+            for (const entry of providers) {
+                try {
+                    const usdlContract = new ethers.Contract(
+                        TUSDL,
+                        ['function balanceOf(address) view returns (uint256)'],
+                        entry.provider
+                    );
+                    const balance = await usdlContract.balanceOf(account);
+                    const formatted = Number(ethers.formatEther(balance));
+                    let blockNumber = null;
+
+                    try {
+                        if (typeof entry.provider.getBlockNumber === 'function') {
+                            blockNumber = await entry.provider.getBlockNumber();
+                        }
+                    } catch (blockErr) {
+                        blockNumber = null;
+                    }
+
+                    if (Number.isFinite(formatted) && formatted >= 0) {
+                        const candidate = { balance, formatted, source: entry.label, blockNumber };
+
+                        if (!bestResult) {
+                            bestResult = candidate;
+                            continue;
+                        }
+
+                        const bestBlock = Number.isFinite(bestResult.blockNumber) ? bestResult.blockNumber : -1;
+                        const candidateBlock = Number.isFinite(candidate.blockNumber) ? candidate.blockNumber : -1;
+
+                        if (candidateBlock > bestBlock) {
+                            bestResult = candidate;
+                            continue;
+                        }
+
+                        if (candidateBlock === bestBlock && balance.gt(bestResult.balance)) {
+                            bestResult = candidate;
+                        }
+                    }
+                } catch (err) {
+                    lastError = err;
+                }
+            }
+
+            if (bestResult) {
+                if (typeof app.setLatestTusdlBalance === 'function') {
+                    app.setLatestTusdlBalance(bestResult.formatted);
+                }
+                const walletUsdl = document.getElementById('wallet-usdl-available');
+                if (walletUsdl) {
+                    walletUsdl.innerText = formatNumber(bestResult.formatted, 2);
+                }
+                return {
+                    balance: bestResult.balance,
+                    source: bestResult.blockNumber != null
+                        ? `${bestResult.source} @ block ${bestResult.blockNumber}`
+                        : bestResult.source,
+                };
+            }
+
+            if (lastError) throw lastError;
+            throw new Error('No provider available for USDL balance check');
+        }
+
         async function validateUnlockSelectionLive(selection, usdlWei) {
             const unlockIds = Array.isArray(selection?.unlockIds) ? selection.unlockIds : [];
             if (!unlockIds.length) return selection;
@@ -1250,7 +1335,7 @@
                 const buyChunks = autoChunkEnabled ? buildChunkPlan(normalizedTotal) : [normalizedTotal];
                 const totalUsdlWei = ethers.parseEther(normalizedTotal);
                 const approvalAmount = totalUsdlWei + ethers.parseEther('1');
-                const walletUsdlBalance = await tusdlReadContract.balanceOf(app.getAccount());
+                const { balance: walletUsdlBalance, source: walletUsdlSource } = await readFreshWalletUsdlBalance();
 
                 if (walletUsdlBalance < totalUsdlWei) {
                     const availableUsdl = ethers.formatEther(walletUsdlBalance);
@@ -1258,6 +1343,7 @@
                     pushChainEvent('buy', 'Insufficient USDL balance', 'The wallet does not hold enough USDL for this buy size.', 'error', [
                         ['Available USDL', formatNumber(availableUsdl, 4)],
                         ['Required USDL', formatNumber(requiredUsdl, 4)],
+                        ['Balance source', walletUsdlSource],
                     ]);
                     showStatus(
                         'buy-status',
@@ -1273,6 +1359,7 @@
                     ['Spend', '$' + formatNumber(usdlAmountNum, 2) + ' USDL'],
                     ['Recipient', giftRecipient === '0x0000000000000000000000000000000000000000' ? app.getAccount() : giftRecipient],
                     ['Quote context', quoteContext],
+                    ['Balance source', walletUsdlSource],
                 ]);
                 if (currentAllowance < totalUsdlWei) {
                     pushChainEvent('buy', 'Approval required', 'Wallet must approve the vault to spend USDL before the buy call.', 'warning', [

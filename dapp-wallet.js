@@ -582,8 +582,41 @@
                 return app.getLatestTusdlBalance() > 0 ? app.getLatestTusdlBalance() : 0;
             }
 
+            async function readFreshUSDLBalanceDirect() {
+                const account = app.getAccount ? app.getAccount() : null;
+                const provider = (app.getReadProvider && app.getReadProvider()) || (app.getWeb3 && app.getWeb3());
+                if (!account || !provider || !TUSDL) return null;
+
+                const usdlContract = new ethers.Contract(
+                    TUSDL,
+                    ['function balanceOf(address) view returns (uint256)'],
+                    provider
+                );
+
+                const balance = await usdlContract.balanceOf(account);
+                const formatted = Number(ethers.formatEther(balance));
+
+                if (Number.isFinite(formatted) && formatted >= 0) {
+                    if (typeof app.setLatestTusdlBalance === 'function') {
+                        app.setLatestTusdlBalance(formatted);
+                    }
+                    const walletUsdl = document.getElementById('wallet-usdl-available');
+                    if (walletUsdl) {
+                        walletUsdl.innerText = formatNumber(formatted, 2);
+                    }
+                    return formatted;
+                }
+
+                return null;
+            }
+
             async function getFreshUSDLInputBalance() {
                 try {
+                    const directBalance = await readFreshUSDLBalanceDirect();
+                    if (Number.isFinite(directBalance) && directBalance >= 0) {
+                        return directBalance;
+                    }
+
                     if (typeof app.updateBalances === 'function') {
                         await app.updateBalances();
                     }

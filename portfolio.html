@@ -2106,7 +2106,7 @@
         }
 
         return wallet.positions.map((pos) => {
-            const readyText = pos.eligible ? 'READY' : `${Math.round(pos.progressPct)}% to trigger`;
+            const readyText = pos.eligible ? 'READY' : `<span style="display:inline-flex;align-items:center;gap:6px;"><span style="display:inline-block;width:100px;height:2px;background:rgba(255,255,255,0.12);border-radius:1px;overflow:hidden;"><span style="display:block;width:${Math.round(pos.progressPct)}%;height:100%;background:${pos.progressPct >= 50 ? '#4CAF50' : '#F39004'};border-radius:1px;"></span></span><span style="font-size:0.75rem;color:#aaa;">${Math.round(pos.progressPct)}%</span></span>`;
             const readyClass = pos.eligible ? ' portfolio-mobile-badge--green' : '';
             const soldPB = pos.pbAmount - pos.pbcRemaining;
             const soldValue = soldPB * currentPrice;
@@ -2242,7 +2242,7 @@
         const { wallet, currentPrice } = cachedDetails[addr];
         let rows = '';
         for (const pos of wallet.positions) {
-            const badgeText = pos.eligible ? '<span style="color:#4CAF50;font-weight:700;">✅ READY</span>' : `<span style="color:#F39004;">🔒 ${Math.round(pos.progressPct)}%</span>`;
+            const badgeText = pos.eligible ? '<span style="color:#4CAF50;font-weight:700;">✅ READY</span>' : `<span style="display:inline-flex;align-items:center;gap:6px;"><span style="display:inline-block;width:100px;height:2px;background:rgba(255,255,255,0.12);border-radius:1px;overflow:hidden;"><span style="display:block;width:${Math.round(pos.progressPct)}%;height:100%;background:${pos.progressPct >= 50 ? '#4CAF50' : '#F39004'};border-radius:1px;"></span></span><span style="font-size:0.75rem;color:#aaa;">${Math.round(pos.progressPct)}%</span></span>`;
             const posValue = pos.pbcRemaining * currentPrice;
             const totalSold = pos.pbAmount - pos.pbcRemaining;
             const soldValue = totalSold * currentPrice;
@@ -2428,13 +2428,19 @@
             const displayHistory = unlockHistory.history.concat(futureUnlockRows);
 
             const historyRows = displayHistory.length === 0
-                ? '<tr><td colspan="5" style="padding:10px;color:#888;">No unlock data available yet.</td></tr>'
+                ? '<tr><td colspan="6" style="padding:10px;color:#888;">No unlock data available yet.</td></tr>'
                 : displayHistory.map(h => {
                     const rowTextColor = h.upcoming ? '#F39004' : h.estimated ? '#aaa' : '#4CAF50';
                     const sourceLabel = h.upcoming ? 'next' : h.txAdjusted ? 'tx-adjusted' : h.source === 'db/netted' ? 'db/netted' : h.estimated ? 'est.' : 'on-chain';
+                    const tierExecPrice = h.executionPrice || 0;
+                    const tierPct = tierExecPrice > 0 ? Math.min((currentPrice / tierExecPrice) * 100, 100) : 0;
+                    const tierPctRound = Math.round(tierPct);
+                    const tierBarColor = h.upcoming ? (tierPct >= 50 ? '#4CAF50' : '#F39004') : '#4CAF50';
+                    const tierBar = `<span style="display:inline-flex;align-items:center;gap:6px;"><span style="display:inline-block;width:100px;height:2px;background:rgba(255,255,255,0.12);border-radius:1px;overflow:hidden;"><span style="display:block;width:${h.upcoming ? tierPctRound : 100}%;height:100%;background:${tierBarColor};border-radius:1px;"></span></span><span style="font-size:0.75rem;color:#aaa;">${h.upcoming ? tierPctRound : 100}%</span></span>`;
                     return `
                     <tr style="border-bottom:1px solid rgba(255,255,255,0.06);color:${rowTextColor};">
                         <td style="padding:8px;color:${rowTextColor};">T${h.unlockIndex + 1}</td>
+                        <td style="padding:8px;text-align:center;">${tierBar}</td>
                         <td style="padding:8px;text-align:right;color:${rowTextColor};">${fmtPB(h.pbcAmount)}</td>
                         <td style="padding:8px;text-align:right;color:${rowTextColor};">$${fmt(h.proceeds)}${h.txAdjusted ? '<div style="font-size:0.72rem;color:#888;">tx-adjusted</div>' : ''}</td>
                         <td style="padding:8px;text-align:right;color:${rowTextColor};">$${fmt(h.executionPrice, 5)}</td>
@@ -2447,7 +2453,7 @@
                 <div style="border:1px solid rgba(243,144,4,0.25);border-radius:12px;padding:18px;background:rgba(243,144,4,0.05);">
                     <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px;">
                         <div style="font-size:1.1rem;font-weight:800;color:#F39004;">PBt #${pbtId}</div>
-                        <div style="font-size:0.9rem;color:${eligible ? '#4CAF50' : '#F39004'};font-weight:700;">${eligible ? 'READY TO UNLOCK' : `${Math.round(progressPct)}% to next trigger`}</div>
+                        <div style="font-size:0.9rem;color:${eligible ? '#4CAF50' : '#F39004'};font-weight:700;">${eligible ? 'READY TO UNLOCK' : `<span style="display:inline-flex;align-items:center;gap:6px;"><span style="display:inline-block;width:100px;height:2px;background:rgba(255,255,255,0.12);border-radius:1px;overflow:hidden;"><span style="display:block;width:${Math.round(progressPct)}%;height:100%;background:${progressPct >= 50 ? '#4CAF50' : '#F39004'};border-radius:1px;"></span></span><span style="font-size:0.75rem;color:#aaa;">${Math.round(progressPct)}%</span></span>`}</div>
                     </div>
 
                     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:16px;align-items:stretch;grid-auto-flow:dense;">
@@ -2504,6 +2510,7 @@
                             <thead>
                                 <tr style="border-bottom:1px solid rgba(243,144,4,0.35);">
                                     <th style="padding:8px;text-align:left;color:#F39004;">Unlock</th>
+                                    <th style="padding:8px;text-align:center;color:#F39004;"></th>
                                     <th style="padding:8px;text-align:right;color:#F39004;">PB Settled</th>
                                     <th style="padding:8px;text-align:right;color:#F39004;">USDL Paid</th>
                                     <th style="padding:8px;text-align:right;color:#F39004;">Exec Price</th>

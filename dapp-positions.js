@@ -132,8 +132,11 @@
                     const buyValueUSDL = buyPriceNum * parseFloat(pbAmountFormatted);
                     const eligible = nextTriggerPriceNum > 0 && currentPrice >= nextTriggerPriceNum;
                     const progressPct = nextTriggerPriceNum > 0 ? Math.min((currentPrice / nextTriggerPriceNum) * 100, 100) : 0;
+                    const headerBarColor = progressPct >= 50 ? '#4CAF50' : '#F39004';
                     const badgeClass = eligible ? 'ready' : 'pending';
-                    const badgeText = eligible ? '✅ READY' : `🔒 ${Math.round(progressPct)}% Maturity`;
+                    const badgeText = eligible
+                        ? '✅ READY'
+                        : `<span style="display:inline-flex;align-items:center;gap:6px;"><span style="display:inline-block;width:100px;height:2px;background:rgba(255,255,255,0.12);border-radius:1px;overflow:hidden;"><span style="display:block;width:${Math.round(progressPct)}%;height:100%;background:${headerBarColor};border-radius:1px;"></span></span><span style="font-size:0.75rem;color:#aaa;">${Math.round(progressPct)}%</span></span>`;
 
                     const eventMap = allEventMap[Number(pbtId)] || {};
                     let tableHtml = '';
@@ -145,6 +148,7 @@
                             <thead>
                                 <tr style="border-bottom: 2px solid #F39004;">
                                     <th style="padding: 8px; text-align: left; color: #F39004; font-weight: bold;">Unlock ID#</th>
+                                    <th style="padding: 8px; text-align: center; color: #F39004; font-weight: bold;"></th>
                                     <th style="padding: 8px; text-align: right; color: #F39004; font-weight: bold;">@ $ Price</th>
                                     <th style="padding: 8px; text-align: right; color: #F39004; font-weight: bold;">PBc #</th>
                                     <th style="padding: 8px; text-align: right; color: #F39004; font-weight: bold;">$ $ $</th>
@@ -174,9 +178,12 @@
                         const bgColor = isConfirmed ? 'rgba(76, 175, 80, 0.15)' : 'rgba(76, 175, 80, 0.05)';
                         const textColor = isConfirmed ? MATRIX_GREEN : '#1bf408';
 
+                        const pastTierPct = 100;
+                        const pastTierBar = `<span style="display:inline-flex;align-items:center;gap:6px;"><span style="display:inline-block;width:100px;height:2px;background:rgba(255,255,255,0.12);border-radius:1px;overflow:hidden;"><span style="display:block;width:100%;height:100%;background:#4CAF50;border-radius:1px;"></span></span><span style="font-size:0.75rem;color:#aaa;">100%</span></span>`;
                         tableHtml += `
                             <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.1); background: ${bgColor};">
                                 <td style="padding: 8px; color: ${textColor}; font-weight: bold;">T${tNumber}${isConfirmed ? ' ✓' : ''}</td>
+                                <td style="padding: 8px; text-align: center;">${pastTierBar}</td>
                                 <td style="padding: 8px; text-align: right; color: ${textColor};">${formatPrice(executionPrice)}</td>
                                 <td style="padding: 8px; text-align: right; color: ${textColor};">${formatNumber(pbcSoldAmount, 2)}</td>
                                 <td style="padding: 8px; text-align: right; color: ${textColor}; font-weight: bold;">$${formatNumber(valuePaid, 2)}${eventMap[unlockIdx]?.txAdjusted ? '<div style="font-size:0.72rem;color:#888;">tx-adjusted</div>' : ''}</td>
@@ -205,6 +212,10 @@
                             estimatedValue = pbcAmountForRow * execPrice;
                         }
 
+                        const nextTierPct = execPrice > 0 ? Math.min((currentPrice / execPrice) * 100, 100) : 0;
+                        const nextTierPctRound = Math.round(nextTierPct);
+                        const nextTierBarColor = isConfirmed ? '#4CAF50' : nextTierPct >= 50 ? '#4CAF50' : '#F39004';
+                        const nextTierBar = `<span style="display:inline-flex;align-items:center;gap:6px;"><span style="display:inline-block;width:100px;height:2px;background:rgba(255,255,255,0.12);border-radius:1px;overflow:hidden;"><span style="display:block;width:${isConfirmed ? 100 : nextTierPctRound}%;height:100%;background:${nextTierBarColor};border-radius:1px;"></span></span><span style="font-size:0.75rem;color:#aaa;">${isConfirmed ? 100 : nextTierPctRound}%</span></span>`;
                         const statusColor = isConfirmed ? 'rgba(76, 175, 80, 0.15)' : 'rgba(244, 152, 4, 0.1)';
                         const textColor = isConfirmed ? MATRIX_GREEN : '#F39004';
                         const badge = isConfirmed ? ' ✓ PAID' : ' (next)';
@@ -212,6 +223,7 @@
                         tableHtml += `
                             <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.1); background: ${statusColor};">
                                 <td style="padding: 8px; color: ${textColor}; font-weight: bold;">T${tNumber}${badge}</td>
+                                <td style="padding: 8px; text-align: center;">${nextTierBar}</td>
                                 <td style="padding: 8px; text-align: right; color: ${textColor};">${formatPrice(execPrice)}</td>
                                 <td style="padding: 8px; text-align: right; color: ${textColor};">${formatNumber(pbcAmountForRow, 2)}</td>
                                 <td style="padding: 8px; text-align: right; color: ${textColor}; font-weight: bold;">${isConfirmed ? '$' + formatNumber(proceeds, 2) : '$' + formatNumber(estimatedValue, 2)}</td>
@@ -240,7 +252,7 @@
                                     <strong style="color: #F39004;">PB Tracker #${pbtId}:</strong>
                                     <span style="color: #aaa; margin-left: 8px;">$${formatNumber(buyValueUSDL, 2)} USDL @ ${formatPrice(buyPriceNum)} = ${formatNumber(pbAmountFormatted, 0)} (PB+PBc)</span>
                                 </div>
-                                <span class="unlock-badge ${badgeClass}">${badgeText}</span>
+                                ${eligible ? `<span class="unlock-badge ready">${badgeText}</span>` : ''}
                             </div>
                             ${tableHtml}
                         </div>
@@ -270,14 +282,19 @@
                         let rowColor;
                         const paidEvent = eventMap[t - 1];
 
+                        const tierPct = triggerPrice > 0 ? Math.min((currentPrice / triggerPrice) * 100, 100) : 0;
+                        const tierPctRound = Math.round(tierPct);
+                        const tierBarColor = tierPct >= 100 ? '#4CAF50' : tierPct >= 50 ? '#4CAF50' : '#F39004';
+                        const tierBar = `<span style="display:inline-flex;align-items:center;gap:6px;"><span style="display:inline-block;width:100px;height:2px;background:rgba(255,255,255,0.12);border-radius:1px;overflow:hidden;"><span style="display:block;width:${tierPctRound}%;height:100%;background:${tierBarColor};border-radius:1px;"></span></span><span style="font-size:0.75rem;color:#aaa;">${tierPctRound}%</span></span>`;
+
                         if (t - 1 < nextUnlockIndexNum) {
                             status = paidEvent && paidEvent.proceeds > 0 ? `✅ Unlocked & PAID $${formatNumber(paidEvent.proceeds, 2)}${paidEvent.txAdjusted ? ' (tx-adjusted)' : ''}` : '✅ Unlocked & PAID';
                             rowColor = 'rgba(76, 175, 80, 0.1)';
                         } else if (t - 1 === nextUnlockIndexNum) {
-                            status = eligible ? '🎯 READY NOW' : '⏳ PENDING';
+                            status = eligible ? '🎯 READY NOW' : `⏳ ${tierBar}`;
                             rowColor = eligible ? 'rgba(244, 67, 54, 0.15)' : 'rgba(255, 193, 7, 0.1)';
                         } else {
-                            status = '⏳ FUTURE';
+                            status = tierBar;
                             rowColor = 'rgba(255, 255, 255, 0.02)';
                         }
 
