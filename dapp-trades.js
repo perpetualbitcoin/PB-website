@@ -25,6 +25,9 @@
         const AUTO_CHUNK_MAX = 3000;
         const INDEXER_CHECKPOINT_POLL_MS = 1500;
         const INDEXER_CHECKPOINT_TIMEOUT_MS = 20000;
+        const TRANCHE_FRACTION = 3n;
+        const DUST_THRESHOLD = 15n;
+        const LP_CONTRIBUTION_BPS = 3690n;
         let buyQuoteRefreshTimer = null;
         let lastBuyQuoteTimestamp = null;
         let lastBuyQuoteAmount = null;
@@ -37,7 +40,6 @@
         let activeTerminalMode = 'buy';
         let buyQuoteInFlight = false;
         let buyExecutionInFlight = false;
-        let nettingPreviewEndpointMissing = false;
         const receiptVaultInterface = new ethers.Interface([
             'event UnlockNetted(uint256 indexed pbtId, uint256 unlockIndex, uint256 pbcSettled, uint256 usdlPaid, address payoutAddress, uint256 settlementPrice, uint256 newTriggerPrice, uint256 remainingPBcLocked)',
             'event BuyWithNetting(address indexed buyer, address indexed recipient, uint256 indexed pbtId, uint256 usdlIn, uint256 totalPBOut, uint256 nettedPB, uint256 ammPB, uint256 lpPB, uint256 lpUSDL, uint256 unlocksNetted)'
@@ -75,10 +77,7 @@
             return (newReserveUSDL * (10n ** 18n)) / newReservePB;
         }
 
-        async function readFreshWalletUsdlBalance() {
-            const account = typeof app.getAccount === 'function' ? app.getAccount() : null;
-            if (!account) throw new Error('Wallet not connected');
-
+        function getWalletReadProviders() {
             const providers = [];
             const signer = typeof app.getSigner === 'function' ? app.getSigner() : null;
             if (signer?.provider) providers.push({ provider: signer.provider, label: 'signer.provider' });
@@ -94,17 +93,20 @@
             const readProvider = typeof app.getReadProvider === 'function' ? app.getReadProvider() : null;
             if (readProvider) providers.push({ provider: readProvider, label: 'read provider' });
 
+            return providers;
+        }
+
+        async function readFreshUsdlValue(loadValue, valueLabel) {
+            const providers = getWalletReadProviders();
             let lastError = null;
             let bestResult = null;
+
             for (const entry of providers) {
                 try {
-                    const usdlContract = new ethers.Contract(
-                        TUSDL,
-                        ['function balanceOf(address) view returns (uint256)'],
-                        entry.provider
-                    );
-                    const balance = await usdlContract.balanceOf(account);
-                    const formatted = Number(ethers.formatEther(balance));
+                    const value = await loadValue(entry.provider);
+                    const normalizedValue = typeof value === 'bigint'
+                        ? value
+                        : BigInt(value?.toString?.() ?? value ?? 0);
                     let blockNumber = null;
 
                     try {
@@ -115,25 +117,27 @@
                         blockNumber = null;
                     }
 
-                    if (Number.isFinite(formatted) && formatted >= 0) {
-                        const candidate = { balance, formatted, source: entry.label, blockNumber };
+                    if (normalizedValue < 0n) {
+                        continue;
+                    }
 
-                        if (!bestResult) {
-                            bestResult = candidate;
-                            continue;
-                        }
+                    const candidate = { value: normalizedValue, source: entry.label, blockNumber };
 
-                        const bestBlock = Number.isFinite(bestResult.blockNumber) ? bestResult.blockNumber : -1;
-                        const candidateBlock = Number.isFinite(candidate.blockNumber) ? candidate.blockNumber : -1;
+                    if (!bestResult) {
+                        bestResult = candidate;
+                        continue;
+                    }
 
-                        if (candidateBlock > bestBlock) {
-                            bestResult = candidate;
-                            continue;
-                        }
+                    const bestBlock = Number.isFinite(bestResult.blockNumber) ? bestResult.blockNumber : -1;
+                    const candidateBlock = Number.isFinite(candidate.blockNumber) ? candidate.blockNumber : -1;
 
-                        if (candidateBlock === bestBlock && balance.gt(bestResult.balance)) {
-                            bestResult = candidate;
-                        }
+                    if (candidateBlock > bestBlock) {
+                        bestResult = candidate;
+                        continue;
+                    }
+
+                    if (candidateBlock === bestBlock && candidate.value > bestResult.value) {
+                        bestResult = candidate;
                     }
                 } catch (err) {
                     lastError = err;
@@ -141,15 +145,8 @@
             }
 
             if (bestResult) {
-                if (typeof app.setLatestTusdlBalance === 'function') {
-                    app.setLatestTusdlBalance(bestResult.formatted);
-                }
-                const walletUsdl = document.getElementById('wallet-usdl-available');
-                if (walletUsdl) {
-                    walletUsdl.innerText = formatNumber(bestResult.formatted, 2);
-                }
                 return {
-                    balance: bestResult.balance,
+                    value: bestResult.value,
                     source: bestResult.blockNumber != null
                         ? `${bestResult.source} @ block ${bestResult.blockNumber}`
                         : bestResult.source,
@@ -157,7 +154,57 @@
             }
 
             if (lastError) throw lastError;
+            throw new Error(`No provider available for USDL ${valueLabel} check`);
+        }
+
+        async function readFreshWalletUsdlBalance() {
+            const account = typeof app.getAccount === 'function' ? app.getAccount() : null;
+            if (!account) throw new Error('Wallet not connected');
+
+            const bestResult = await readFreshUsdlValue(async (provider) => {
+                const usdlContract = new ethers.Contract(
+                    TUSDL,
+                    ['function balanceOf(address) view returns (uint256)'],
+                    provider
+                );
+                return usdlContract.balanceOf(account);
+            }, 'balance');
+            const formatted = Number(ethers.formatEther(bestResult.value));
+
+            if (Number.isFinite(formatted) && formatted >= 0) {
+                if (typeof app.setLatestTusdlBalance === 'function') {
+                    app.setLatestTusdlBalance(formatted);
+                }
+                const walletUsdl = document.getElementById('wallet-usdl-available');
+                if (walletUsdl) {
+                    walletUsdl.innerText = formatNumber(formatted, 2);
+                }
+                return {
+                    balance: bestResult.value,
+                    source: bestResult.source,
+                };
+            }
+
             throw new Error('No provider available for USDL balance check');
+        }
+
+        async function readFreshUsdlAllowance(owner, spender) {
+            if (!owner) throw new Error('Wallet not connected');
+            if (!spender) throw new Error('USDL spender not provided');
+
+            const bestResult = await readFreshUsdlValue(async (provider) => {
+                const usdlContract = new ethers.Contract(
+                    TUSDL,
+                    ['function allowance(address,address) view returns (uint256)'],
+                    provider
+                );
+                return usdlContract.allowance(owner, spender);
+            }, 'allowance');
+
+            return {
+                allowance: bestResult.value,
+                source: bestResult.source,
+            };
         }
 
         async function validateUnlockSelectionLive(selection, usdlWei) {
@@ -219,12 +266,227 @@
                 count: sanitizedUnlockIds.length,
                 coreCount: normalizedCoreCount,
                 overflowCount: Math.max(0, sanitizedUnlockIds.length - normalizedCoreCount),
+                liveRows,
                 liveValidated: true,
                 liveEstimatedMaxPrice: estimatedMaxPrice.toString(),
                 liveCurrentPrice: pool.price.toString(),
                 liveDroppedCount: droppedRows.length,
                 liveUnreachableCount: unreachableCount,
                 liveSanitizedChanged: changed,
+            };
+        }
+
+        async function readDistributionState() {
+            const vaultContract = app.contractLayer.getReadContract('vault');
+            const vaultViewsContract = app.contractLayer.getReadContract('vaultviews');
+            const [distributionPhase, vaultPBBalance, outstandingPBc] = await Promise.all([
+                vaultContract.isDistributionPhase(),
+                vaultContract.vaultPBBalance(),
+                vaultViewsContract.totalOutstandingPBc(),
+            ]);
+
+            return {
+                distributionPhase: Boolean(distributionPhase),
+                vaultPBBalance: BigInt(vaultPBBalance.toString()),
+                outstandingPBc: BigInt(outstandingPBc.toString()),
+            };
+        }
+
+        function computeLpContributionPreview(ammBuyAmount, reservePB, reserveUSDL, distributionState) {
+            if (!distributionState?.distributionPhase) {
+                return { compensationPB: 0n, lpUSDLUsed: 0n, reservePBDelta: 0n, reserveUSDLDelta: 0n };
+            }
+
+            if (distributionState.vaultPBBalance <= distributionState.outstandingPBc) {
+                return { compensationPB: 0n, lpUSDLUsed: 0n, reservePBDelta: 0n, reserveUSDLDelta: 0n };
+            }
+
+            let usdlForLP = (ammBuyAmount * LP_CONTRIBUTION_BPS) / 10000n;
+            if (usdlForLP <= 0n || reserveUSDL <= 0n || reservePB <= 0n) {
+                return { compensationPB: 0n, lpUSDLUsed: 0n, reservePBDelta: 0n, reserveUSDLDelta: 0n };
+            }
+
+            const availablePB = distributionState.vaultPBBalance - distributionState.outstandingPBc;
+            let pbForLP = (usdlForLP * reservePB) / reserveUSDL;
+            let totalPBNeeded = pbForLP * 2n;
+
+            if (totalPBNeeded > availablePB) {
+                totalPBNeeded = availablePB;
+                pbForLP = totalPBNeeded / 2n;
+                usdlForLP = (pbForLP * reserveUSDL) / reservePB;
+            }
+
+            if (pbForLP < 2n || usdlForLP < 2n) {
+                return { compensationPB: 0n, lpUSDLUsed: 0n, reservePBDelta: 0n, reserveUSDLDelta: 0n };
+            }
+
+            return {
+                compensationPB: pbForLP,
+                lpUSDLUsed: usdlForLP,
+                reservePBDelta: pbForLP,
+                reserveUSDLDelta: usdlForLP,
+            };
+        }
+
+        function simulateBuyPreviewFromHints(usdlWei, reservePB, reserveUSDL, selection, distributionState) {
+            const hintRows = Array.isArray(selection?.liveRows)
+                ? selection.liveRows.filter((row) => row && typeof row.id === 'number')
+                : [];
+
+            let vReservePB = reservePB;
+            let vReserveUSDL = reserveUSDL;
+            let budget = usdlWei;
+            let totalVBuy = 0n;
+            let totalNettedSettlement = 0n;
+            let absorbedPBc = 0n;
+            let nettedCount = 0;
+            let partialPBc = 0n;
+            let unsettledPBc = 0n;
+            let unsettledOwed = 0n;
+            let hasPartial = false;
+            let nettingStopIdx = hintRows.length;
+
+            for (let index = 0; index < hintRows.length; index++) {
+                const row = hintRows[index];
+                const triggerPrice = BigInt(row.liveTrigger || 0n);
+                const pbcLocked = BigInt(row.liveRemaining || 0n);
+                if (pbcLocked <= 0n) continue;
+
+                const vBuy = computeUSDLForPrice(vReservePB, vReserveUSDL, triggerPrice);
+                const isDust = pbcLocked < DUST_THRESHOLD;
+                const tranche = isDust ? pbcLocked : (pbcLocked / TRANCHE_FRACTION);
+                const settlement = (tranche * triggerPrice) / (10n ** 18n);
+
+                if (budget < vBuy || (budget - vBuy) < settlement) {
+                    if (budget >= vBuy) {
+                        nettingStopIdx = index + 1;
+
+                        if (vBuy > 0n) {
+                            const partialPbBought = getAmountOut(vBuy, vReserveUSDL, vReservePB);
+                            vReserveUSDL += vBuy;
+                            vReservePB -= partialPbBought;
+                            budget -= vBuy;
+                            totalVBuy += vBuy;
+                        }
+
+                        const partialPayment = budget;
+                        partialPBc = settlement > 0n ? (tranche * partialPayment) / settlement : 0n;
+                        unsettledPBc = tranche - partialPBc;
+                        unsettledOwed = settlement - partialPayment;
+                        budget = 0n;
+                        totalNettedSettlement += partialPayment;
+                        absorbedPBc += partialPBc;
+                        nettedCount += 1;
+                        hasPartial = true;
+                    } else {
+                        nettingStopIdx = index;
+                    }
+                    break;
+                }
+
+                budget -= (vBuy + settlement);
+                totalVBuy += vBuy;
+                totalNettedSettlement += settlement;
+
+                if (vBuy > 0n) {
+                    const pbBought = getAmountOut(vBuy, vReserveUSDL, vReservePB);
+                    vReserveUSDL += vBuy;
+                    vReservePB -= pbBought;
+                }
+
+                absorbedPBc += tranche;
+                nettedCount += 1;
+            }
+
+            let finalReservePB = reservePB;
+            let finalReserveUSDL = reserveUSDL;
+            let ammBuyAmount = usdlWei - totalNettedSettlement;
+            let internalPBc = 0n;
+            let ammSellPB = 0n;
+            let ammPBOut = 0n;
+            let compensationPB = 0n;
+            let lpUSDLUsed = 0n;
+            let postAmmUnlockCount = 0;
+            let postAmmUnlockPB = 0n;
+            let postAmmUnlockUSDL = 0n;
+
+            if (hasPartial && unsettledOwed > 0n && ammBuyAmount > 0n) {
+                const internalUSDL = ammBuyAmount < unsettledOwed ? ammBuyAmount : unsettledOwed;
+                internalPBc = (unsettledPBc * internalUSDL) / unsettledOwed;
+                unsettledPBc -= internalPBc;
+                unsettledOwed -= internalUSDL;
+                ammBuyAmount -= internalUSDL;
+            }
+
+            if (unsettledOwed > 0n) {
+                if (unsettledPBc > 0n) {
+                    const usdlOut = getAmountOut(unsettledPBc, finalReservePB, finalReserveUSDL);
+                    finalReservePB += unsettledPBc;
+                    finalReserveUSDL -= usdlOut;
+                    ammSellPB = unsettledPBc;
+                }
+            } else {
+                if (ammBuyAmount > 0n) {
+                    const lpContribution = computeLpContributionPreview(ammBuyAmount, finalReservePB, finalReserveUSDL, distributionState);
+                    compensationPB = lpContribution.compensationPB;
+                    lpUSDLUsed = lpContribution.lpUSDLUsed;
+
+                    if (lpUSDLUsed > 0n) {
+                        finalReservePB += lpContribution.reservePBDelta;
+                        finalReserveUSDL += lpContribution.reserveUSDLDelta;
+                        ammBuyAmount -= lpUSDLUsed;
+                    }
+                }
+
+                if (ammBuyAmount > 0n) {
+                    ammPBOut = getAmountOut(ammBuyAmount, finalReserveUSDL, finalReservePB);
+                    finalReserveUSDL += ammBuyAmount;
+                    finalReservePB -= ammPBOut;
+
+                    for (let index = nettingStopIdx; index < hintRows.length; index++) {
+                        const row = hintRows[index];
+                        const triggerPrice = BigInt(row.liveTrigger || 0n);
+                        const pbcLocked = BigInt(row.liveRemaining || 0n);
+                        if (pbcLocked <= 0n) continue;
+
+                        const currentPrice = finalReservePB > 0n
+                            ? (finalReserveUSDL * (10n ** 18n)) / finalReservePB
+                            : 0n;
+                        if (currentPrice < triggerPrice) break;
+
+                        const isDust = pbcLocked < DUST_THRESHOLD;
+                        const tranche = isDust ? pbcLocked : (pbcLocked / TRANCHE_FRACTION);
+                        const usdlOut = getAmountOut(tranche, finalReservePB, finalReserveUSDL);
+                        finalReservePB += tranche;
+                        finalReserveUSDL -= usdlOut;
+                        postAmmUnlockCount += 1;
+                        postAmmUnlockPB += tranche;
+                        postAmmUnlockUSDL += usdlOut;
+                    }
+                }
+            }
+
+            const totalNettedPBc = absorbedPBc + internalPBc;
+            const totalPB = totalNettedPBc + compensationPB + ammPBOut;
+
+            return {
+                nettedCount,
+                hasPartial,
+                totalVBuy,
+                totalNettedSettlement,
+                absorbedPBc,
+                internalPBc,
+                compensationPB,
+                lpUSDLUsed,
+                ammPBOut,
+                ammSellPB,
+                postAmmUnlockCount,
+                postAmmUnlockPB,
+                postAmmUnlockUSDL,
+                totalPB,
+                finalReservePB,
+                finalReserveUSDL,
+                finalPrice: finalReservePB > 0n ? (finalReserveUSDL * (10n ** 18n)) / finalReservePB : 0n,
             };
         }
 
@@ -325,13 +587,16 @@
             renderActiveTerminals();
         }
 
-        function resetChainEvents(mode) {
+        function resetChainEvents(mode, options = {}) {
+            const { render = true } = options;
             if (mode === 'sell') {
                 lastSellChainTerminalEntries = [];
             } else {
                 lastBuyChainTerminalEntries = [];
             }
-            renderActiveTerminals();
+            if (render) {
+                renderActiveTerminals();
+            }
         }
 
         function renderActiveTerminals() {
@@ -386,6 +651,24 @@
             return contractMethod?.fragment?.name
                 || contractMethod?.name
                 || '';
+        }
+
+        function getFriendlyWalletWriteError(err, fallbackMessage = null) {
+            const rawMessage = String(err?.reason || err?.shortMessage || err?.message || fallbackMessage || 'Transaction failed');
+            const lower = rawMessage.trim().toLowerCase();
+            const code = Number(err?.code);
+
+            if (
+                code === 4001
+                || lower === 'rejected'
+                || lower.includes('user rejected')
+                || lower.includes('user denied')
+                || lower.includes('request rejected')
+            ) {
+                return 'The wallet rejected the request before broadcast. If you did not cancel it yourself, the wallet likely failed its preflight simulation or the quote changed before signing.';
+            }
+
+            return fallbackMessage || rawMessage;
         }
 
         function getFallbackGasLimit(methodName, args) {
@@ -588,7 +871,7 @@
 
         function getBuyRouteLabel(preview) {
             if (!preview) return '-';
-            if (preview.nettedCount > 0 && preview.ammSellPB > 0n) return 'Mixed settlement';
+            if (preview.nettedCount > 0 && (preview.ammSellPB > 0n || preview.postAmmUnlockCount > 0)) return 'Mixed settlement';
             if (preview.nettedCount > 0) return 'Netting + AMM';
             return 'AMM only';
         }
@@ -602,7 +885,9 @@
                 reasons.push(`${preview.nettedCount} position(s) are expected to net before or during the AMM leg`);
             }
             if (preview.ammSellPB > 0n) {
-                reasons.push('the route includes mixed internal settlement instead of a clean AMM buy');
+                reasons.push('the route includes a partial netting branch that finishes with an AMM sell');
+            } else if (preview.postAmmUnlockCount > 0) {
+                reasons.push(`${preview.postAmmUnlockCount} additional unlock(s) should fire after the final AMM buy`);
             } else {
                 reasons.push('the remainder should execute through the AMM after internal netting');
             }
@@ -996,133 +1281,41 @@
                     reserveUSDL = reserve0;
                 }
 
-                let positions = [];
-                if (nettingPreviewEndpointMissing) {
-                    showNettingPreviewUnavailable();
-                    quoteWarningShown = true;
-                } else {
-                    try {
-                        const resp = await fetch(`${INDEXER_URL}/netting-positions?usdl=${usdlWei.toString()}`);
-                        if (resp.ok) {
-                            const data = await resp.json();
-                            positions = (data.positions || []).map((p) => ({
-                                id: p.id,
-                                triggerPrice: BigInt(p.triggerPrice),
-                                nextTriggerUSDL: BigInt(p.nextTriggerUSDL || '0'),
-                                nextTriggerPBc: BigInt(p.nextTriggerPBc || '0'),
-                                pbcRemaining: BigInt(p.pbcLocked),
-                            }));
-                        } else if (resp.status === 404) {
-                            nettingPreviewEndpointMissing = true;
-                            showNettingPreviewUnavailable('⚠️ Netting preview endpoint is not deployed yet - quote without netting');
-                            quoteWarningShown = true;
-                        } else if (!silent) {
-                            showNettingPreviewUnavailable('⚠️ Netting preview unavailable - quote without netting');
-                            quoteWarningShown = true;
-                        }
-                    } catch (fetchErr) {
-                        console.warn('Indexer fetch failed for netting positions:', fetchErr.message);
-                        if (!silent) {
-                            showNettingPreviewUnavailable('⚠️ Netting preview unavailable - quote without netting');
-                            quoteWarningShown = true;
-                        }
-                    }
-                }
+                const selection = await fetchUnlockSelection(usdlWei, getBuyQuoteExecutionContext());
+                const validatedSelection = await validateUnlockSelectionLive(selection, usdlWei);
+                const distributionState = await readDistributionState();
+                const simulated = simulateBuyPreviewFromHints(
+                    usdlWei,
+                    BigInt(reservePB.toString()),
+                    BigInt(reserveUSDL.toString()),
+                    validatedSelection,
+                    distributionState
+                );
+                const unlockIds = Array.isArray(validatedSelection.unlockIds) ? validatedSelection.unlockIds : [];
 
-                let vReservePB = reservePB;
-                let vReserveUSDL = reserveUSDL;
-                let budget = usdlWei;
-                let totalNettedSettlement = 0n;
-                let absorbedPBc = 0n;
-                let nettedCount = 0;
-                let partialPBc = 0n;
-                let unsettledPBc = 0n;
-                let unsettledOwed = 0n;
-                let hasPartial = false;
-                const E18 = 10n ** 18n;
-                const TRANCHE_FRACTION = 3n;
+                const totalNettedSettlement = simulated.totalNettedSettlement;
+                const absorbedPBc = simulated.absorbedPBc;
+                const internalPBc = simulated.internalPBc;
+                const compensationPB = simulated.compensationPB;
+                const lpUSDLUsed = simulated.lpUSDLUsed;
+                const ammPBOut = simulated.ammPBOut;
+                const ammSellPB = simulated.ammSellPB;
+                const nettedCount = simulated.nettedCount;
 
-                for (const pos of positions) {
-                    const triggerPrice = pos.triggerPrice;
-                    const pbcLocked = pos.pbcRemaining;
-                    if (pbcLocked === 0n) continue;
-
-                    const vBuy = computeUSDLForPrice(vReservePB, vReserveUSDL, triggerPrice);
-                    const tranche = pos.nextTriggerPBc > 0n ? pos.nextTriggerPBc : (pbcLocked / TRANCHE_FRACTION);
-                    const settlement = pos.nextTriggerUSDL > 0n ? pos.nextTriggerUSDL : ((tranche * triggerPrice) / E18);
-
-                    if (budget < vBuy + settlement) {
-                        if (budget >= vBuy) {
-                            if (vBuy > 0n) {
-                                const pbBought = getAmountOut(vBuy, vReserveUSDL, vReservePB);
-                                vReserveUSDL += vBuy;
-                                vReservePB -= pbBought;
-                                budget -= vBuy;
-                            }
-                            const partialPayment = budget;
-                            partialPBc = settlement > 0n ? (tranche * partialPayment) / settlement : 0n;
-                            unsettledPBc = tranche - partialPBc;
-                            unsettledOwed = settlement - partialPayment;
-                            budget = 0n;
-                            totalNettedSettlement += partialPayment;
-                            absorbedPBc += partialPBc;
-                            nettedCount++;
-                            hasPartial = true;
-                        }
-                        break;
-                    }
-
-                    budget -= (vBuy + settlement);
-                    totalNettedSettlement += settlement;
-
-                    if (vBuy > 0n) {
-                        const pbBought = getAmountOut(vBuy, vReserveUSDL, vReservePB);
-                        vReserveUSDL += vBuy;
-                        vReservePB -= pbBought;
-                    }
-
-                    absorbedPBc += tranche;
-                    nettedCount++;
-                }
-
-                let ammBuyAmount = usdlWei - totalNettedSettlement;
-                let internalPBc = 0n;
-                let ammSellPB = 0n;
-
-                if (hasPartial && unsettledOwed > 0n && ammBuyAmount > 0n) {
-                    const internalUSDL = ammBuyAmount < unsettledOwed ? ammBuyAmount : unsettledOwed;
-                    internalPBc = (unsettledPBc * internalUSDL) / unsettledOwed;
-                    unsettledOwed -= internalUSDL;
-                    ammBuyAmount -= internalUSDL;
-                }
-
-                let ammPBOut = 0n;
                 let ammDetailText = 'AMM Buy: 0 PB';
                 let ammDetailType = 'buy';
-                const isNetBuy = ammBuyAmount > unsettledOwed;
-                const isNetSell = ammBuyAmount < unsettledOwed;
-
-                if (isNetBuy) {
-                    let netAMM = ammBuyAmount - unsettledOwed;
-                    const usdlForLP = (netAMM * 3690n) / 10000n;
-                    netAMM -= usdlForLP;
-                    if (netAMM > 0n) {
-                        ammPBOut = getAmountOut(netAMM, reserveUSDL, reservePB);
-                    }
-                    if (usdlForLP > 0n) {
-                        ammPBOut += (usdlForLP * reservePB) / reserveUSDL;
-                    }
-                    ammDetailText = `AMM Buy: ${formatNumber(ethers.formatEther(ammPBOut), 2)} PB`;
-                    ammDetailType = 'buy';
-                } else if (isNetSell) {
-                    const netSellUSDL = unsettledOwed - ammBuyAmount;
-                    ammSellPB = getAmountIn(netSellUSDL, reservePB, reserveUSDL);
+                if (ammSellPB > 0n) {
                     ammDetailText = `AMM Sell: ${formatNumber(ethers.formatEther(ammSellPB), 2)} PB`;
                     ammDetailType = 'sell';
+                } else if (simulated.postAmmUnlockCount > 0) {
+                    ammDetailText = `AMM Buy + ${simulated.postAmmUnlockCount} post-buy unlock${simulated.postAmmUnlockCount === 1 ? '' : 's'}`;
+                    ammDetailType = 'buy';
+                } else if ((ammPBOut + compensationPB) > 0n) {
+                    ammDetailText = `AMM Buy: ${formatNumber(ethers.formatEther(ammPBOut + compensationPB), 2)} PB`;
                 }
 
                 const totalNettedPBc = absorbedPBc + internalPBc;
-                const totalPB = totalNettedPBc + ammPBOut;
+                const totalPB = simulated.totalPB;
                 const liquid = (totalPB * 369n) / 10000n;
                 const locked = totalPB - liquid;
 
@@ -1133,14 +1326,15 @@
                 const currentPrice = reservePB > 0n
                     ? parseFloat(ethers.formatEther(reserveUSDL)) / parseFloat(ethers.formatEther(reservePB))
                     : 0;
-                const predictedValue = totalPBFloat * currentPrice;
+                const finalSpotPrice = simulated.finalPrice > 0n
+                    ? parseFloat(ethers.formatEther(simulated.finalPrice))
+                    : currentPrice;
+                const predictedValue = totalPBFloat * finalSpotPrice;
                 const avgPrice = totalPBFloat > 0 ? parseFloat(usdlAmountStr) / totalPBFloat : 0;
                 document.getElementById('quote-pb').innerText = '~' + totalFormatted;
                 document.getElementById('quote-liquid').innerText = liquidFormatted + ' PB';
                 document.getElementById('quote-locked').innerText = lockedFormatted + ' PBc';
                 document.getElementById('quote-avg-price').innerText = totalPBFloat > 0 ? formatPrice(avgPrice) : '-';
-                const selection = await fetchUnlockSelection(usdlWei, getBuyQuoteExecutionContext());
-                const unlockIds = Array.isArray(selection.unlockIds) ? selection.unlockIds : [];
                 const rawPB = getAmountOut(usdlWei, reserveUSDL, reservePB);
                 const minPBOut = rawPB * 50n / 100n;
                 lastBuyPreview = {
@@ -1154,13 +1348,19 @@
                     unlockIds,
                     nettedCount,
                     currentPrice,
+                    finalSpotPrice,
                     predictedValue,
                     avgPrice,
                     totalNettedSettlement,
                     absorbedPBc,
                     internalPBc,
+                    compensationPB,
+                    lpUSDLUsed,
                     ammPBOut,
                     ammSellPB,
+                    postAmmUnlockCount: simulated.postAmmUnlockCount,
+                    postAmmUnlockPB: simulated.postAmmUnlockPB,
+                    postAmmUnlockUSDL: simulated.postAmmUnlockUSDL,
                     chunkPlan: document.getElementById('buy-autochunk-checkbox')?.checked ? buildChunkPlan(usdlAmountStr) : [normalizeBuyAmount(usdlAmountStr)],
                 };
                 lastBuyPreviewTerminalState = {
@@ -1169,6 +1369,7 @@
                         ['Action', 'Buy PB'],
                         ['Input', '$' + formatNumber(parseFloat(usdlAmountStr), 2) + ' USDL'],
                         ['Current Price', formatPrice(currentPrice)],
+                        ['Projected Final Spot', formatPrice(finalSpotPrice)],
                         ['Expected PB', formatNumber(ethers.formatEther(totalPB), 4) + ' PB'],
                         ['Predicted $', '$' + formatNumber(predictedValue, 2)],
                         ['Liquid / Locked', `${formatNumber(ethers.formatEther(liquid), 2)} / ${formatNumber(ethers.formatEther(locked), 2)}`],
@@ -1212,8 +1413,11 @@
                             details: [
                                 ['Settlement USDL', '$' + formatNumber(ethers.formatEther(totalNettedSettlement), 2)],
                                 ['Netted PBc', formatNumber(ethers.formatEther(absorbedPBc + internalPBc), 2)],
+                                ['LP compensation PB', formatNumber(ethers.formatEther(compensationPB), 2)],
+                                ['LP USDL used', '$' + formatNumber(ethers.formatEther(lpUSDLUsed), 2)],
                                 ['AMM buy PB', formatNumber(ethers.formatEther(ammPBOut), 2)],
                                 ['AMM sell PB', formatNumber(ethers.formatEther(ammSellPB), 2)],
+                                ['Post-AMM unlocks', String(simulated.postAmmUnlockCount)],
                             ]
                         },
                         {
@@ -1222,6 +1426,7 @@
                             body: 'If execution matches the preview, the route should end with freshly split PB and PBc output.',
                             details: [
                                 ['Predicted avg / PB', formatPrice(avgPrice)],
+                                ['Projected final spot', formatPrice(finalSpotPrice)],
                                 ['Expected PB liquid', formatNumber(ethers.formatEther(liquid), 2)],
                                 ['Expected PBc locked', formatNumber(ethers.formatEther(locked), 2)],
                                 ['Predicted $ value', '$' + formatNumber(predictedValue, 2)],
@@ -1264,6 +1469,9 @@
                         ['PB/USDL Pair', PULSEX_PAIR],
                     ],
                 };
+                if (!silent) {
+                    resetChainEvents('buy', { render: false });
+                }
                 setTerminalMode('buy');
                 lastBuyQuoteTimestamp = Date.now();
                 lastBuyQuoteAmount = normalizeBuyAmount(usdlAmountStr);
@@ -1330,7 +1538,6 @@
 
                 const vaultContract = app.contractLayer.getWriteContract('vault');
                 const tusdlContract = app.contractLayer.getWriteContract('tusdl');
-                const tusdlReadContract = app.contractLayer.getReadContract('tusdl');
                 const normalizedTotal = normalizeBuyAmount(usdlAmountNum.toFixed(6));
                 const buyChunks = autoChunkEnabled ? buildChunkPlan(normalizedTotal) : [normalizedTotal];
                 const totalUsdlWei = ethers.parseEther(normalizedTotal);
@@ -1353,13 +1560,14 @@
                     return;
                 }
 
-                const currentAllowance = await tusdlReadContract.allowance(app.getAccount(), TVault);
+                const { allowance: currentAllowance, source: allowanceSource } = await readFreshUsdlAllowance(app.getAccount(), TVault);
                 pushChainEvent('buy', 'Buy execution started', 'Preparing allowance and vault call flow.', 'info', [
                     ['Account', app.getAccount()],
                     ['Spend', '$' + formatNumber(usdlAmountNum, 2) + ' USDL'],
                     ['Recipient', giftRecipient === '0x0000000000000000000000000000000000000000' ? app.getAccount() : giftRecipient],
                     ['Quote context', quoteContext],
                     ['Balance source', walletUsdlSource],
+                    ['Allowance source', allowanceSource],
                 ]);
                 if (currentAllowance < totalUsdlWei) {
                     pushChainEvent('buy', 'Approval required', 'Wallet must approve the vault to spend USDL before the buy call.', 'warning', [
@@ -1367,6 +1575,7 @@
                         ['Spender', TVault],
                         ['Allowance', ethers.formatEther(currentAllowance)],
                         ['Required', ethers.formatEther(totalUsdlWei)],
+                        ['Allowance source', allowanceSource],
                     ]);
                     showStatus('buy-status', `⏳ Approving $${(usdlAmountNum + 1).toFixed(2)} USDL (buy amount + $1 buffer)...`, 'info');
                     try {
@@ -1382,13 +1591,16 @@
                         ]);
                         showStatus('buy-status', '✅ Approval confirmed!', 'success');
                     } catch (approveErr) {
-                        pushChainEvent('buy', 'Approval failed', approveErr.reason || approveErr.message, 'error');
-                        showStatus('buy-status', `⚠️ Approval failed: ${approveErr.reason || approveErr.message}`, 'error');
+                        const friendlyMessage = getFriendlyWalletWriteError(approveErr);
+                        approveErr.userMessage = friendlyMessage;
+                        pushChainEvent('buy', 'Approval failed', friendlyMessage, 'error');
+                        showStatus('buy-status', `⚠️ Approval failed: ${friendlyMessage}`, 'error');
                         throw approveErr;
                     }
                 } else {
                     pushChainEvent('buy', 'Allowance ok', 'Existing allowance is sufficient, approval skipped.', 'success', [
                         ['Allowance', ethers.formatEther(currentAllowance)],
+                        ['Allowance source', allowanceSource],
                     ]);
                     showStatus('buy-status', '✅ Allowance sufficient - skipping approve', 'success');
                 }
@@ -1525,7 +1737,8 @@
                     const decodedError = decodeVaultCustomError(buyErr);
                     const friendlyMessage = (decodedError === 'InvalidAmount' || decodedError === 'NotExist')
                         ? 'Vault rejected the netting hints. This usually means the quote or unlockIds went stale before execution.'
-                        : (buyErr.reason || buyErr.message);
+                        : getFriendlyWalletWriteError(buyErr);
+                    buyErr.userMessage = friendlyMessage;
                     pushChainEvent('buy', 'Buy failed', friendlyMessage, 'error');
                     showStatus('buy-status', `❌ Transaction failed: ${friendlyMessage}`, 'error');
                     throw buyErr;
@@ -1536,7 +1749,7 @@
                 }, 2000);
             } catch (err) {
                 console.error('Buy failed:', err);
-                showStatus('buy-status', '❌ Buy failed: ' + (err.reason || err.message), 'error');
+                showStatus('buy-status', '❌ Buy failed: ' + (err?.userMessage || getFriendlyWalletWriteError(err)), 'error');
             } finally {
                 buyExecutionInFlight = false;
                 updateBuyQuoteMeta();
@@ -1626,6 +1839,7 @@
                         ['PB/USDL Pair', PULSEX_PAIR],
                     ],
                 };
+                resetChainEvents('sell', { render: false });
                 setTerminalMode('sell');
                 renderSellSigningPreview(lastSellPreview);
             } catch (err) {

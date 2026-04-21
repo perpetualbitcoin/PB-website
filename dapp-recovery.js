@@ -32,12 +32,19 @@
             return /^[A-Za-z0-9 ,.\-]*$/.test(value || '');
         }
 
+        function getConfirmationStatus(password, confirmation) {
+            if (!password) return 'Missing';
+            if (!confirmation) return 'Awaiting confirmation';
+            return password === confirmation ? 'Matched' : 'Mismatch';
+        }
+
         function updateRecoveryTerminalPreview(mode) {
             const nextMode = mode || 'recovery';
             if (nextMode === 'inheritance') {
                 const pbtId = document.getElementById('inheritance-pbtid')?.value || '-';
                 const beneficiary = document.getElementById('beneficiary-addr')?.value || '';
                 const password = document.getElementById('inheritance-password')?.value || '';
+                const confirmation = document.getElementById('inheritance-password-confirm')?.value || '';
                 const memo = document.getElementById('inheritance-memo')?.value || '';
                 recoveryTerminal.setMode('Inheritance');
                 recoveryTerminal.setPreview({
@@ -47,6 +54,7 @@
                         ['PBt ID', pbtId],
                         ['Beneficiary', shortAddress(beneficiary)],
                         ['Password length', password ? `${password.length} chars` : 'Missing'],
+                        ['Password confirm', getConfirmationStatus(password, confirmation)],
                     ],
                     steps: [
                         { title: 'password hash', badge: 'Client', body: 'The plaintext password is hashed locally before the transaction is sent.', details: [['Memo length', `${memo.length} chars`]] },
@@ -85,6 +93,7 @@
             const pbtId = document.getElementById('recovery-pbtid')?.value || '-';
             const recoveryAddr = document.getElementById('recovery-addr')?.value || '';
             const password = document.getElementById('recovery-password')?.value || '';
+            const confirmation = document.getElementById('recovery-password-confirm')?.value || '';
             const memo = document.getElementById('recovery-memo')?.value || '';
             recoveryTerminal.setMode('Recovery');
             recoveryTerminal.setPreview({
@@ -94,6 +103,7 @@
                     ['PBt ID', pbtId],
                     ['Recovery wallet', shortAddress(recoveryAddr)],
                     ['Password length', password ? `${password.length} chars` : 'Missing'],
+                    ['Password confirm', getConfirmationStatus(password, confirmation)],
                 ],
                 steps: [
                     { title: 'password hash', badge: 'Client', body: 'The password is hashed in-browser before the transaction is signed.', details: [['Memo length', `${memo.length} chars`]] },
@@ -168,9 +178,14 @@
                 const pbtId = document.getElementById('recovery-pbtid').value;
                 const recoveryAddr = document.getElementById('recovery-addr').value;
                 const password = document.getElementById('recovery-password').value;
+                const confirmation = document.getElementById('recovery-password-confirm').value;
 
-                if (!pbtId || !recoveryAddr || !password) {
+                if (!pbtId || !recoveryAddr || !password || !confirmation) {
                     alert('Fill in all fields');
+                    return;
+                }
+                if (password !== confirmation) {
+                    alert('Recovery passwords do not match');
                     return;
                 }
                 if (recoveryAddr.toLowerCase() === account.toLowerCase()) {
@@ -215,9 +230,14 @@
                 const pbtId = document.getElementById('inheritance-pbtid').value;
                 const beneficiary = document.getElementById('beneficiary-addr').value;
                 const password = document.getElementById('inheritance-password').value;
+                const confirmation = document.getElementById('inheritance-password-confirm').value;
 
-                if (!pbtId || !beneficiary || !password) {
+                if (!pbtId || !beneficiary || !password || !confirmation) {
                     alert('Fill in all fields');
+                    return;
+                }
+                if (password !== confirmation) {
+                    alert('Inheritance passwords do not match');
                     return;
                 }
                 if (beneficiary.toLowerCase() === account.toLowerCase()) {

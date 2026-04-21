@@ -733,10 +733,12 @@
             document.getElementById('recovery-pbtid')?.addEventListener('change', () => app.updateRecoveryTerminalPreview('recovery'));
             document.getElementById('recovery-addr')?.addEventListener('input', () => app.updateRecoveryTerminalPreview('recovery'));
             document.getElementById('recovery-password')?.addEventListener('input', () => app.updateRecoveryTerminalPreview('recovery'));
+            document.getElementById('recovery-password-confirm')?.addEventListener('input', () => app.updateRecoveryTerminalPreview('recovery'));
             document.getElementById('recovery-memo')?.addEventListener('input', () => app.updateRecoveryTerminalPreview('recovery'));
             document.getElementById('inheritance-pbtid')?.addEventListener('change', () => app.updateRecoveryTerminalPreview('inheritance'));
             document.getElementById('beneficiary-addr')?.addEventListener('input', () => app.updateRecoveryTerminalPreview('inheritance'));
             document.getElementById('inheritance-password')?.addEventListener('input', () => app.updateRecoveryTerminalPreview('inheritance'));
+            document.getElementById('inheritance-password-confirm')?.addEventListener('input', () => app.updateRecoveryTerminalPreview('inheritance'));
             document.getElementById('inheritance-memo')?.addEventListener('input', () => app.updateRecoveryTerminalPreview('inheritance'));
             document.getElementById('combined-activate-password')?.addEventListener('input', () => app.updateRecoveryTerminalPreview('activation'));
             document.getElementById('refresh-positions-btn')?.addEventListener('click', app.updatePositions);

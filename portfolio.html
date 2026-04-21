@@ -51,7 +51,6 @@
 
         #totals-section,
         #wallet-results,
-        #pbt-result,
         #reporting-section,
         #grand-price,
         #export-code-value,
@@ -530,26 +529,14 @@
             </div>
         </section>
 
-        <section class="card">
-            <h3 class="section-title">🎫 PBt Tracker Lookup</h3>
-            <div style="margin-bottom: 15px;">
-                <label style="color: #aaa; font-size: 0.85rem; display: block; margin-bottom: 8px;">
-                    Enter a single PBt ID to inspect one tracker directly
-                </label>
-                <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
-                    <input type="number" id="pbt-input" class="input-field" placeholder="122" min="1" step="1" style="width:140px;flex:none;" />
-                    <button class="btn btn-primary" id="btn-pbt-load" style="padding: 10px 24px; font-size: 0.95rem;">Load PBt</button>
-                    <span id="pbt-status" style="font-size:0.85rem;color:#aaa;"></span>
-                </div>
-            </div>
-            <div id="pbt-result"></div>
-        </section>
-
         <!-- RESULTS TABLE -->
         <section class="card" id="totals-section" style="display: none;">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
                 <h3 class="section-title" style="margin:0;">💰 Portfolio</h3>
-                <div style="font-size:0.9rem;color:#aaa;">PB Price: <span id="grand-price" style="color:#F39004;font-weight:700;">-</span></div>
+                <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end;">
+                    <div style="font-size:0.9rem;color:#aaa;padding:8px 12px;border:1px solid rgba(243,144,4,0.18);border-radius:999px;background:rgba(243,144,4,0.08);">PB+PBc Value: <span id="grand-holdings-value" style="color:#4CAF50;font-weight:700;">-</span></div>
+                    <div style="font-size:0.9rem;color:#aaa;">PB Price: <span id="grand-price" style="color:#F39004;font-weight:700;">-</span></div>
+                </div>
             </div>
             <div class="portfolio-table-wrap" style="overflow-x:auto;">
                 <table id="portfolio-table" style="width:100%;border-collapse:collapse;font-size:0.9rem;table-layout:fixed;">
@@ -1207,58 +1194,6 @@
         }
 
         return eventMap;
-    }
-
-    async function fetchBuyNettingForPbt(pbtId) {
-        try {
-            const response = await fetch(`${API_BASE}/buy-netting?affectedPbtId=${encodeURIComponent(pbtId)}`);
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
-            return await response.json();
-        } catch (err) {
-            console.warn('Buy-netting fetch failed for PBt', pbtId, err.message);
-            return { count: 0, buys: [] };
-        }
-    }
-
-    function mergeIndexedNettingIntoEventMap(eventMap, nettingData, pbtId) {
-        const merged = { ...(eventMap || {}) };
-        const buys = Array.isArray(nettingData?.buys) ? nettingData.buys : [];
-        for (const buy of buys) {
-            for (const link of (buy.links || [])) {
-                if (Number(link.affectedPbtId) !== Number(pbtId)) continue;
-                const unlockIndex = Number(link.unlockIndex);
-                const prev = merged[unlockIndex] || {};
-                const pbcAmount = Number.isFinite(prev?.pbcAmount)
-                    ? prev.pbcAmount
-                    : Number(ethers.formatEther(link.pbcSettled ?? link.pbAmount ?? 0));
-                const loggedProceeds = Number.isFinite(prev?.loggedProceeds)
-                    ? prev.loggedProceeds
-                    : Number(ethers.formatEther(link.usdlAmount ?? 0));
-                const extraProceeds = Number.isFinite(prev?.extraProceeds) ? prev.extraProceeds : 0;
-                const executionPrice = Number.isFinite(prev?.executionPrice)
-                    ? prev.executionPrice
-                    : Number(ethers.formatEther(link.settlementPrice ?? 0));
-                const logIndex = Number.isFinite(prev?.logIndex)
-                    ? prev.logIndex
-                    : Number(link.logIndex);
-                merged[unlockIndex] = {
-                    pbcAmount,
-                    proceeds: loggedProceeds + extraProceeds,
-                    loggedProceeds,
-                    extraProceeds,
-                    executionPrice,
-                    blockNumber: Number.isFinite(prev?.blockNumber) ? prev.blockNumber : (Number(buy.blockNumber) || null),
-                    timestamp: Number.isFinite(prev?.timestamp) ? prev.timestamp : (Number(buy.timestamp) || null),
-                    txHash: prev?.txHash || buy.txHash || '',
-                    logIndex,
-                    payoutAddress: link.payoutAddress || prev?.payoutAddress || '',
-                    kind: 'netted',
-                    txAdjusted: Boolean(prev?.txAdjusted),
-                    source: 'db/netted',
-                };
-            }
-        }
-        return merged;
     }
 
     function downloadCsv(filename, headers, rows) {
@@ -2050,7 +1985,7 @@
         <tr id="${rowId}" style="display:none;"><td colspan="8" style="padding:0;"></td></tr>`;
     }
 
-    function buildTotalsRow(wallets, currentPrice) {
+    function computePortfolioTotals(wallets, currentPrice) {
         let tIn = 0, tPaid = 0, tPB = 0, tPBc = 0, tT = 0;
         for (const w of wallets) {
             tIn += w.totalUsdlIn;
@@ -2059,7 +1994,18 @@
             tPBc += w.totalPBc;
             tT += w.positions.reduce((s, p) => s + p.nextUnlockIdx, 0);
         }
-        const tVal = (tPB + tPBc) * currentPrice;
+        return {
+            tIn,
+            tPaid,
+            tPB,
+            tPBc,
+            tT,
+            tVal: (tPB + tPBc) * currentPrice,
+        };
+    }
+
+    function buildTotalsRow(wallets, currentPrice) {
+        const { tIn, tPaid, tPB, tPBc, tT, tVal } = computePortfolioTotals(wallets, currentPrice);
         return `<tr style="font-weight:700;font-size:0.95rem;">
             <td style="padding:12px 8px;color:#F39004;">TOTAL</td>
             <td style="padding:12px 8px;text-align:right;color:#ddd;white-space:nowrap;">$${fmt(tIn)}</td>
@@ -2073,15 +2019,7 @@
     }
 
     function buildMobileTotalsCard(wallets, currentPrice) {
-        let tIn = 0, tPaid = 0, tPB = 0, tPBc = 0, tT = 0;
-        for (const w of wallets) {
-            tIn += w.totalUsdlIn;
-            tPaid += w.totalUsdlPaid;
-            tPB += w.pbLiquid;
-            tPBc += w.totalPBc;
-            tT += w.positions.reduce((s, p) => s + p.nextUnlockIdx, 0);
-        }
-        const tVal = (tPB + tPBc) * currentPrice;
+        const { tIn, tPaid, tPB, tPBc, tT, tVal } = computePortfolioTotals(wallets, currentPrice);
         return `<div class="portfolio-mobile-card portfolio-mobile-card--totals">
             <div class="portfolio-mobile-card__header">
                 <div>
@@ -2330,9 +2268,11 @@
             );
 
             const validWallets = wallets.filter(Boolean);
+            const portfolioTotals = computePortfolioTotals(validWallets, currentPrice);
 
             document.getElementById('totals-section').style.display = '';
             document.getElementById('grand-price').textContent = '$' + fmt(currentPrice, 4);
+            document.getElementById('grand-holdings-value').textContent = '$' + fmt(portfolioTotals.tVal);
 
             // Store for sorting
             lastWallets = validWallets;
@@ -2359,174 +2299,6 @@
         } catch (err) {
             statusEl.innerHTML = `<span style="color:#ff6b6b;">Error: ${err.message}</span>`;
             console.error('Portfolio load error:', err);
-        }
-    }
-
-    async function loadSinglePbt() {
-        const raw = document.getElementById('pbt-input').value.trim();
-        const statusEl = document.getElementById('pbt-status');
-        const resultEl = document.getElementById('pbt-result');
-
-        if (!raw || !/^\d+$/.test(raw) || Number(raw) <= 0) {
-            statusEl.innerHTML = '<span style="color:#ff6b6b;">Enter a valid PBt ID.</span>';
-            resultEl.innerHTML = '';
-            return;
-        }
-
-        const pbtId = Number(raw);
-        statusEl.innerHTML = '<span style="color:#F39004;">⏳ Loading PBt...</span>';
-        resultEl.innerHTML = '';
-
-        try {
-            const [currentPrice, allEvents, registry, unlockStatus, indexedNetting] = await Promise.all([
-                getCurrentPrice(),
-                fetchAllEvents(),
-                vault.pbtRegistry(pbtId),
-                vaultViews.getPositionUnlockStatus(pbtId),
-                fetchBuyNettingForPbt(pbtId),
-            ]);
-
-            const holder = registry.holder;
-            if (!holder || /^0x0{40}$/i.test(holder)) {
-                statusEl.innerHTML = `<span style="color:#ff6b6b;">PBt #${pbtId} was not found on ${activeNet}.</span>`;
-                return;
-            }
-
-            const buyPriceNum = Number(ethers.formatEther(registry.buyPrice));
-            const pbAmountNum = Number(ethers.formatEther(registry.pbAmount));
-            const initialLockedPBcNum = Number(ethers.formatEther(getInitialLockedPBcFromWei(registry.pbAmount)));
-            const pbcLockedNum = Number(ethers.formatEther(registry.pbcLocked));
-            const nextTriggerNum = Number(ethers.formatEther(registry.nextTriggerPrice));
-            const nextUnlockIdx = Number(registry.nextUnlockIndex);
-            const [unlockIndex, nextPrice, eligible, pbcRemaining] = unlockStatus;
-            const pbcRemainingNum = Number(ethers.formatEther(pbcRemaining));
-            const eventMap = mergeIndexedNettingIntoEventMap(allEvents[pbtId] || {}, indexedNetting, pbtId);
-            await applySplitPayoutAdjustments({ [pbtId]: eventMap });
-            const unlockHistory = getUnlockHistoryForPosition(initialLockedPBcNum, nextUnlockIdx, buyPriceNum, eventMap);
-            const currentValue = pbcRemainingNum * currentPrice;
-            const progressPct = nextTriggerNum > 0 ? Math.min((currentPrice / nextTriggerNum) * 100, 100) : 0;
-            const settledPBc = initialLockedPBcNum - pbcRemainingNum;
-            const initialInvestment = buyPriceNum * pbAmountNum;
-
-            let projectedRemaining = pbcRemainingNum;
-            const futureUnlockRows = [];
-            for (let futureIdx = nextUnlockIdx; futureIdx < nextUnlockIdx + 2; futureIdx++) {
-                const projectedPbcAmount = projectedRemaining / 3;
-                const projectedExecPrice = localTriggerPrice(buyPriceNum, futureIdx);
-                const projectedProceeds = projectedPbcAmount * projectedExecPrice;
-                futureUnlockRows.push({
-                    unlockIndex: futureIdx,
-                    pbcAmount: projectedPbcAmount,
-                    proceeds: projectedProceeds,
-                    executionPrice: projectedExecPrice,
-                    estimated: true,
-                    upcoming: true,
-                });
-                projectedRemaining -= projectedPbcAmount;
-            }
-
-            const displayHistory = unlockHistory.history.concat(futureUnlockRows);
-
-            const historyRows = displayHistory.length === 0
-                ? '<tr><td colspan="6" style="padding:10px;color:#888;">No unlock data available yet.</td></tr>'
-                : displayHistory.map(h => {
-                    const rowTextColor = h.upcoming ? '#F39004' : h.estimated ? '#aaa' : '#4CAF50';
-                    const sourceLabel = h.upcoming ? 'next' : h.txAdjusted ? 'tx-adjusted' : h.source === 'db/netted' ? 'db/netted' : h.estimated ? 'est.' : 'on-chain';
-                    const tierExecPrice = h.executionPrice || 0;
-                    const tierPct = tierExecPrice > 0 ? Math.min((currentPrice / tierExecPrice) * 100, 100) : 0;
-                    const tierPctRound = Math.round(tierPct);
-                    const tierBarColor = h.upcoming ? (tierPct >= 50 ? '#4CAF50' : '#F39004') : '#4CAF50';
-                    const tierBar = `<span style="display:inline-flex;align-items:center;gap:6px;"><span style="display:inline-block;width:100px;height:2px;background:rgba(255,255,255,0.12);border-radius:1px;overflow:hidden;"><span style="display:block;width:${h.upcoming ? tierPctRound : 100}%;height:100%;background:${tierBarColor};border-radius:1px;"></span></span><span style="font-size:0.75rem;color:#aaa;">${h.upcoming ? tierPctRound : 100}%</span></span>`;
-                    return `
-                    <tr style="border-bottom:1px solid rgba(255,255,255,0.06);color:${rowTextColor};">
-                        <td style="padding:8px;color:${rowTextColor};">T${h.unlockIndex + 1}</td>
-                        <td style="padding:8px;text-align:center;">${tierBar}</td>
-                        <td style="padding:8px;text-align:right;color:${rowTextColor};">${fmtPB(h.pbcAmount)}</td>
-                        <td style="padding:8px;text-align:right;color:${rowTextColor};">$${fmt(h.proceeds)}${h.txAdjusted ? '<div style="font-size:0.72rem;color:#888;">tx-adjusted</div>' : ''}</td>
-                        <td style="padding:8px;text-align:right;color:${rowTextColor};">$${fmt(h.executionPrice, 5)}</td>
-                        <td style="padding:8px;text-align:center;color:${rowTextColor};">${sourceLabel}</td>
-                    </tr>
-                `;
-                }).join('');
-
-            resultEl.innerHTML = `
-                <div style="border:1px solid rgba(243,144,4,0.25);border-radius:12px;padding:18px;background:rgba(243,144,4,0.05);">
-                    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px;">
-                        <div style="font-size:1.1rem;font-weight:800;color:#F39004;">PBt #${pbtId}</div>
-                        <div style="font-size:0.9rem;color:${eligible ? '#4CAF50' : '#F39004'};font-weight:700;">${eligible ? 'READY TO UNLOCK' : `<span style="display:inline-flex;align-items:center;gap:6px;"><span style="display:inline-block;width:100px;height:2px;background:rgba(255,255,255,0.12);border-radius:1px;overflow:hidden;"><span style="display:block;width:${Math.round(progressPct)}%;height:100%;background:${progressPct >= 50 ? '#4CAF50' : '#F39004'};border-radius:1px;"></span></span><span style="font-size:0.75rem;color:#aaa;">${Math.round(progressPct)}%</span></span>`}</div>
-                    </div>
-
-                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:16px;align-items:stretch;grid-auto-flow:dense;">
-                        <div style="padding:10px;border:1px solid rgba(255,255,255,0.08);border-radius:8px;grid-column:span 2;grid-row:span 2;display:grid;gap:8px;align-content:start;">
-                            <div style="font-size:0.75rem;color:#888;">Holder</div>
-                            <div style="font-family:var(--font-data);font-size:0.76rem;line-height:1.45;color:#ddd;overflow-wrap:anywhere;">${holder}</div>
-                            <div style="font-size:0.75rem;color:#888;">Payout Address</div>
-                            <div style="font-family:var(--font-data);font-size:0.76rem;line-height:1.45;color:#ddd;overflow-wrap:anywhere;">${registry.payoutAddress}</div>
-                        </div>
-                        <div style="padding:10px;border:1px solid rgba(255,255,255,0.08);border-radius:8px;">
-                            <div style="font-size:0.75rem;color:#888;">Initial Investment</div>
-                            <div style="color:#4CAF50;">$${fmt(initialInvestment)}</div>
-                        </div>
-                        <div style="padding:10px;border:1px solid rgba(255,255,255,0.08);border-radius:8px;">
-                            <div style="font-size:0.75rem;color:#888;">Entry Price</div>
-                            <div style="color:#ddd;">$${fmt(buyPriceNum, 5)}</div>
-                        </div>
-                        <div style="padding:10px;border:1px solid rgba(255,255,255,0.08);border-radius:8px;">
-                            <div style="font-size:0.75rem;color:#888;">Mint Block</div>
-                            <div style="color:#ddd;">${registry.mintBlock.toString()}</div>
-                        </div>
-                        <div style="padding:10px;border:1px solid rgba(255,255,255,0.08);border-radius:8px;">
-                            <div style="font-size:0.75rem;color:#888;">Total PB</div>
-                            <div style="color:#ddd;">${fmtPB(pbAmountNum)}</div>
-                        </div>
-                        <div style="padding:10px;border:1px solid rgba(255,255,255,0.08);border-radius:8px;">
-                            <div style="font-size:0.75rem;color:#888;">Remaining PBc</div>
-                            <div style="color:#ff9800;">${fmtPB(pbcRemainingNum)}</div>
-                        </div>
-                        <div style="padding:10px;border:1px solid rgba(255,255,255,0.08);border-radius:8px;">
-                            <div style="font-size:0.75rem;color:#888;">Settled PBc</div>
-                            <div style="color:#4CAF50;">${fmtPB(settledPBc)}</div>
-                        </div>
-                        <div style="padding:10px;border:1px solid rgba(255,255,255,0.08);border-radius:8px;">
-                            <div style="font-size:0.75rem;color:#888;">USDL Paid So Far</div>
-                            <div style="color:#4CAF50;">$${fmt(unlockHistory.usdlPaid)}</div>
-                        </div>
-                        <div style="padding:10px;border:1px solid rgba(255,255,255,0.08);border-radius:8px;">
-                            <div style="font-size:0.75rem;color:#888;">Next Unlock Index</div>
-                            <div style="color:#ddd;">${nextUnlockIdx}</div>
-                        </div>
-                        <div style="padding:10px;border:1px solid rgba(255,255,255,0.08);border-radius:8px;">
-                            <div style="font-size:0.75rem;color:#888;">Next Trigger</div>
-                            <div style="color:#F39004;">$${fmt(nextTriggerNum, 5)}</div>
-                        </div>
-                        <div style="padding:10px;border:1px solid rgba(255,255,255,0.08);border-radius:8px;">
-                            <div style="font-size:0.75rem;color:#888;">Current PBc Value</div>
-                            <div style="color:#4CAF50;">$${fmt(currentValue)}</div>
-                        </div>
-                    </div>
-
-                    <div style="overflow-x:auto;">
-                        <table style="width:100%;border-collapse:collapse;font-size:0.9rem;">
-                            <thead>
-                                <tr style="border-bottom:1px solid rgba(243,144,4,0.35);">
-                                    <th style="padding:8px;text-align:left;color:#F39004;">Unlock</th>
-                                    <th style="padding:8px;text-align:center;color:#F39004;"></th>
-                                    <th style="padding:8px;text-align:right;color:#F39004;">PB Settled</th>
-                                    <th style="padding:8px;text-align:right;color:#F39004;">USDL Paid</th>
-                                    <th style="padding:8px;text-align:right;color:#F39004;">Exec Price</th>
-                                    <th style="padding:8px;text-align:center;color:#F39004;">Source</th>
-                                </tr>
-                            </thead>
-                            <tbody>${historyRows}</tbody>
-                        </table>
-                    </div>
-                </div>
-            `;
-
-            statusEl.innerHTML = `<span style="color:#4CAF50;">✅ Loaded PBt #${pbtId}</span>`;
-        } catch (err) {
-            console.error('PBt lookup error:', err);
-            statusEl.innerHTML = `<span style="color:#ff6b6b;">Error: ${err.message}</span>`;
         }
     }
 
@@ -2782,18 +2554,14 @@
         saveAlertEmail(email);
         loadSettlementAlertsForEmail(email);
     });
-    document.getElementById('btn-pbt-load').addEventListener('click', loadSinglePbt);
     document.getElementById('btn-clear').addEventListener('click', () => {
         localStorage.removeItem(STORAGE_KEY);
         document.getElementById('address-input').value = '';
-        document.getElementById('pbt-input').value = '';
         document.getElementById('totals-section').style.display = 'none';
         document.getElementById('reporting-section').style.display = 'none';
         document.getElementById('wallet-results').innerHTML = '';
         document.getElementById('saved-addresses').innerHTML = '';
         document.getElementById('load-status').innerHTML = '';
-        document.getElementById('pbt-status').innerHTML = '';
-        document.getElementById('pbt-result').innerHTML = '';
         clearAllRememberedShareCodes();
         hideShareCodeDisplay();
         document.getElementById('share-status').innerHTML = '';
@@ -2815,13 +2583,6 @@
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
             loadPortfolio();
-        }
-    });
-
-    document.getElementById('pbt-input').addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            loadSinglePbt();
         }
     });
 

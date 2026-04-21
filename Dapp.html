@@ -133,7 +133,7 @@
                         <div style="font-size: 1rem; color: #FFD700; font-weight: 600;" id="pool-value">-</div>
                     </div>
                 </div>
-                    <div style="font-size: 0.8rem; color: #888; text-align: right;">DEXTools live chart</div>
+                    <div style="font-size: 0.8rem; color: #888; text-align: right;">DEXTools live chart - Price vs WPLS!</div>
             </div>
                 <div class="chart-container" style="position: relative; min-height: 500px;">
                     <div style="opacity: 0.8; border-radius: 12px; overflow: hidden;">
@@ -510,8 +510,16 @@
                             <input type="text" id="recovery-addr" class="input-field" placeholder="0x..." style="width: 100%; min-width: 0; display: block; box-sizing: border-box;" />
                         </div>
                         <div class="form-group">
-                            <label for="recovery-password">Password (min 11 chars)</label>
-                            <input type="password" id="recovery-password" class="input-field" placeholder="••••••••••••" style="width: 100%; min-width: 0; display: block; box-sizing: border-box;" />
+                            <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;">
+                                <div>
+                                    <label for="recovery-password">Password (min 11 chars)</label>
+                                    <input type="password" id="recovery-password" class="input-field" placeholder="••••••••••••" style="width: 100%; min-width: 0; display: block; box-sizing: border-box;" />
+                                </div>
+                                <div>
+                                    <label for="recovery-password-confirm">Confirm Password</label>
+                                    <input type="password" id="recovery-password-confirm" class="input-field" placeholder="••••••••••••" style="width: 100%; min-width: 0; display: block; box-sizing: border-box;" />
+                                </div>
+                            </div>
                         </div>
                         <div class="form-group">
                             <label for="recovery-memo" style="font-size:0.8rem">Memo <span style="color:#888;font-weight:normal;font-size:0.7rem">(optional, max 280 chars, letters numbers spaces dash comma period only)</span></label>
@@ -539,8 +547,16 @@
                             <input type="text" id="beneficiary-addr" class="input-field" placeholder="0x..." style="width: 100%; min-width: 0; display: block; box-sizing: border-box;" />
                         </div>
                         <div class="form-group">
-                            <label for="inheritance-password">Password (min 11 chars)</label>
-                            <input type="password" id="inheritance-password" class="input-field" placeholder="••••••••••••" style="width: 100%; min-width: 0; display: block; box-sizing: border-box;" />
+                            <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;">
+                                <div>
+                                    <label for="inheritance-password">Password (min 11 chars)</label>
+                                    <input type="password" id="inheritance-password" class="input-field" placeholder="••••••••••••" style="width: 100%; min-width: 0; display: block; box-sizing: border-box;" />
+                                </div>
+                                <div>
+                                    <label for="inheritance-password-confirm">Confirm Password</label>
+                                    <input type="password" id="inheritance-password-confirm" class="input-field" placeholder="••••••••••••" style="width: 100%; min-width: 0; display: block; box-sizing: border-box;" />
+                                </div>
+                            </div>
                         </div>
                         <div class="form-group">
                             <label for="inheritance-memo" style="font-size:0.8rem">Memo <span style="color:#888;font-weight:normal;font-size:0.7rem">(optional, max 280 chars, letters numbers spaces dash comma period only)</span></label>
