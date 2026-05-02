@@ -133,33 +133,34 @@
                         <div style="font-size: 1rem; color: #FFD700; font-weight: 600;" id="pool-value">-</div>
                     </div>
                 </div>
-                    <div style="font-size: 0.8rem; color: #888; text-align: right;">DEXTools live chart - Price vs WPLS!</div>
-            </div>
-                <div class="chart-container" style="position: relative; min-height: 500px;">
-                    <div style="opacity: 0.8; border-radius: 12px; overflow: hidden;">
-                        <iframe
-                            id="dextools-widget"
-                            title="DEXTools Trading Chart"
-                            width="100%"
-                            height="500"
-                            style="border:none; display:block;"
-                            src="https://www.dextools.io/widget-chart/en/pulse/pe-light/0x3533719b2f72cb55e19da72155e2fc5ec0bca4f1?theme=dark&chartType=1&chartResolution=15&drawingToolbars=false&chartInUsd=true&headerColor=1F2937&tvPlatformColor=1F2937&tvPaneColor=111827">
-                        </iframe>
-                        <script>
-                            (function () {
-                                const chartFrame = document.getElementById('dextools-widget');
-                                const pairAddress = (typeof ADDRESSES !== 'undefined' && ADDRESSES && ADDRESSES.PB_USDL_PAIR)
-                                    ? String(ADDRESSES.PB_USDL_PAIR).toLowerCase()
-                                    : '0x3533719b2f72cb55e19da72155e2fc5ec0bca4f1';
-                                if (!chartFrame || !pairAddress) return;
-                                chartFrame.src = 'https://www.dextools.io/widget-chart/en/pulse/pe-light/'
-                                    + pairAddress
-                                    + '?theme=dark&chartType=1&chartResolution=15&drawingToolbars=false&chartInUsd=true&headerColor=1F2937&tvPlatformColor=1F2937&tvPaneColor=111827';
-                            })();
-                        </script>
-                    </div>
-            </div>
-        </section>
+</div>
+    <div class="chart-container" style="position: relative; min-height: 555px;">
+        <div style="opacity: 0.8; border-radius: 12px; overflow: hidden;">
+            <iframe
+                id="geckoterminal-embed"
+                title="GeckoTerminal Trading Chart"
+                width="100%"
+                height="555"
+                style="border:none; display:block;"
+                frameborder="0"
+                allow="clipboard-write"
+                allowfullscreen
+            src="https://www.geckoterminal.com/pulsechain/pools/0x3533719b2f72cb55e19da72155e2fc5ec0bca4f1?embed=1&info=0&swaps=0&light_chart=0&bg_color=111827&resolution=D&quote=token1">
+            </iframe>
+            <script>
+                (function () {
+                    const chartFrame = document.getElementById('geckoterminal-embed');
+                    const defaultPair = '0x3533719b2f72cb55e19da72155e2fc5ec0bca4f1';
+                    const pairAddress = (typeof ADDRESSES !== 'undefined' && ADDRESSES && ADDRESSES.PB_USDL_PAIR)
+                        ? String(ADDRESSES.PB_USDL_PAIR).toLowerCase()
+                        : defaultPair;
+                    if (!chartFrame || pairAddress === defaultPair) return; // skip if same address
+                    chartFrame.src = 'https://www.geckoterminal.com/pulsechain/pools/'
+                        + pairAddress
+                        + '?embed=1&info=0&swaps=0&light_chart=0&bg_color=111827&resolution=D&quote=token1';
+                })();
+            </script>        </div>
+            </div>        </section>
 
         <!-- BUY / SELL + SHARED TERMINAL -->
         <div class="trade-shell">
@@ -171,7 +172,11 @@
                     <strong></strong> Vault-centric atomic buy via PulseX. Split into: 3.69% PB liquid + 96.31% PBc locked.
                 </div>
                 <div class="form-group" style="margin-bottom: 20px;">
-                    <label for="buy-amount">USDL $</label>
+                    <label for="buy-amount" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                        <span>USDL $</span>
+                        <span style="font-size:0.66rem;color:#01e401;letter-spacing:0.02em;">Don't have USDL? No problem:</span>
+                        <a href="#switch-now-card" style="display:inline-flex;align-items:center;justify-content:center;padding:3px 9px;border-radius:999px;border:1px solid #01e401;background:linear-gradient(135deg, rgba(0,0,0,0.92) 0%, rgba(0,255,47,0.12) 100%);color:#01e401;font-size:0.66rem;font-weight:800;letter-spacing:0.08em;text-decoration:none;box-shadow:0 0 10px rgba(0,255,47,0.14);">SWITCH NOW</a>
+                    </label>
                     <div style="display: flex; gap: 12px; align-items: center;">
                         <input type="number" id="buy-amount" class="input-field" placeholder="100" value="100" style="width: 100px !important; flex: none !important; min-width: unset !important;" />
                         <button class="btn btn-primary" id="btn-quote" style="padding: 8px 16px; font-size: 0.85rem; white-space: nowrap;">Get Quote</button>
@@ -678,6 +683,320 @@
                 <a href="portfolio.html" class="btn btn-secondary">&laquo; Portfolio</a>
             </div>
         </section>
+
+        <section class="card" id="switch-now-card" style="max-width: 1080px; margin: 1.5rem auto 0; border: 1px solid rgba(1, 228, 1, 0.68); background: linear-gradient(180deg, rgba(0, 0, 0, 0.96) 0%, rgba(6, 20, 6, 0.96) 100%); box-shadow: 0 0 0 1px rgba(1, 228, 1, 0.12), 0 0 28px rgba(1, 228, 1, 0.12); scroll-margin-top: 96px; color: #ffffff;">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;">
+                <div>
+                    <h2 style="margin:0;color:#ffffff;letter-spacing:0.03em;">SWITCH NOW</h2>
+                    <p style="margin:10px 0 0;color:#7a7a7a;max-width:760px;line-height:1.6;">SWITCH live path for ANY token to buy #PerpetualBitcoin through the Switch router and the new PB zapper. This card is isolated from the normal USDL buy flow so people can inspect the exact builder output and wallet transaction path before signing.</p>
+                </div>
+                <div style="padding:8px 12px;border-radius:999px;border:1px solid rgba(1, 228, 1, 0.8);background:#000000;color:#ffffff;font-size:0.78rem;font-weight:700;letter-spacing:0.08em;box-shadow:0 0 12px rgba(1, 228, 1, 0.12);">Switch Directly to $PB</div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:minmax(320px,1fr) auto;gap:14px;margin-top:18px;align-items:end;">
+                <div class="form-group" style="margin-bottom:0;min-width:0;">
+                    <label for="switch-test-token" style="color:#7a7a7a;">Input Token</label>
+                    <select id="switch-test-token" class="input-field" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background:#000000;border:1px solid rgba(1, 228, 1, 0.6);color:#ffffff;box-shadow:none;"></select>
+                </div>
+                <div class="form-group" style="margin-bottom:0;width:min(100%,220px);justify-self:end;">
+                    <label for="switch-test-amount" style="color:#7a7a7a;">Amount</label>
+                    <input type="number" id="switch-test-amount" class="input-field" value="1" min="0" step="any" placeholder="1" style="background:#000000;border:1px solid rgba(1, 228, 1, 0.6);color:#ffffff;box-shadow:none;" />
+                    <div style="display:flex;gap:6px;margin-top:8px;justify-content:flex-end;">
+                        <button type="button" class="btn" id="switch-33" style="padding:1px 6px;font-size:0.66rem;min-height:18px;line-height:1;background:#000000;border:1px solid rgba(1, 228, 1, 0.55);color:#01e401;box-shadow:none;">33%</button>
+                        <button type="button" class="btn" id="switch-66" style="padding:1px 6px;font-size:0.66rem;min-height:18px;line-height:1;background:#000000;border:1px solid rgba(1, 228, 1, 0.55);color:#01e401;box-shadow:none;">66%</button>
+                        <button type="button" class="btn" id="switch-100" style="padding:1px 6px;font-size:0.66rem;min-height:18px;line-height:1;background:#000000;border:1px solid rgba(1, 228, 1, 0.75);color:#ffffff;box-shadow:0 0 10px rgba(1, 228, 1, 0.14);">100%</button>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:minmax(320px,1fr) auto;gap:14px;margin-top:12px;align-items:start;">
+                <div class="form-group" style="margin-bottom:0;min-width:0;">
+                    <label for="switch-test-recipient" style="color:#7a7a7a;">Recipient</label>
+                    <input type="text" id="switch-test-recipient" class="input-field" placeholder="Blank = connected wallet" style="background:#000000;border:1px solid rgba(1, 228, 1, 0.6);color:#ffffff;box-shadow:none;" />
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(2,minmax(150px,1fr));gap:14px;width:min(100%,394px);justify-self:end;">
+                    <div class="form-group" style="margin-bottom:0;min-width:0;">
+                        <label for="switch-test-deadline" style="color:#7a7a7a;">Deadline (minutes)</label>
+                        <input type="number" id="switch-test-deadline" class="input-field" value="20" min="1" max="120" step="1" style="background:#000000;border:1px solid rgba(1, 228, 1, 0.6);color:#ffffff;box-shadow:none;" />
+                    </div>
+                    <div class="form-group" style="margin-bottom:0;min-width:0;">
+                        <label for="switch-test-expected-usdl" style="color:#7a7a7a;">Expected USDL</label>
+                        <input type="text" id="switch-test-expected-usdl" class="input-field" value="-" readonly style="background:#000000;border:1px solid rgba(1, 228, 1, 0.6);color:#7a7a7a;box-shadow:none;cursor:default;" />
+                    </div>
+                </div>
+            </div>
+            <script>
+            const PITEAS_TOKENLIST_URL = "https://raw.githubusercontent.com/piteasio/app-tokens/main/piteas-tokenlist.json";
+            const NATIVE_TOKEN_ADDRESS = "0x0000000000000000000000000000000000000000";
+            const ERC20_ABI = ["function balanceOf(address) view returns (uint256)"];
+            let piteasTokenList = [];
+            let filteredTokenList = [];
+            let selectedToken = null;
+            let userAddress = null;
+
+            function getSwitchAccount() {
+                return (typeof account === 'string' && account) || userAddress || '';
+            }
+
+            function getSwitchInjectedProvider() {
+                try {
+                    if (typeof walletBootstrap !== 'undefined' && walletBootstrap && typeof walletBootstrap.getActiveWalletProvider === 'function') {
+                        return walletBootstrap.getActiveWalletProvider() || window.ethereum || null;
+                    }
+                } catch (err) {}
+                return window.ethereum || null;
+            }
+
+            function updateSwitchTokenStatus(message, tone = 'info') {
+                const el = document.getElementById('switch-test-status');
+                if (!el || !message) return;
+                el.textContent = message;
+                el.style.color = tone === 'error'
+                    ? '#ff8a80'
+                    : tone === 'success'
+                        ? '#01e401'
+                        : tone === 'warning'
+                            ? '#bdbdbd'
+                            : '#7a7a7a';
+            }
+
+            async function mapWithConcurrency(items, limit, mapper) {
+                const results = new Array(items.length);
+                let index = 0;
+                async function worker() {
+                    while (index < items.length) {
+                        const current = index;
+                        index += 1;
+                        results[current] = await mapper(items[current]);
+                    }
+                }
+                const workers = Array.from({ length: Math.max(1, limit) }, () => worker());
+                await Promise.all(workers);
+                return results;
+            }
+
+            function ensureNativePLSToken(tokens, chainId) {
+                const list = Array.isArray(tokens) ? tokens.slice() : [];
+                const nativeIndex = list.findIndex((token) => String(token?.address || '').toLowerCase() === NATIVE_TOKEN_ADDRESS);
+                const nativeEntry = {
+                    chainId,
+                    name: 'PulseChain',
+                    address: NATIVE_TOKEN_ADDRESS,
+                    symbol: 'PLS',
+                    decimals: 18,
+                };
+
+                if (nativeIndex >= 0) {
+                    list[nativeIndex] = {
+                        ...list[nativeIndex],
+                        ...nativeEntry,
+                    };
+                    return list;
+                }
+
+                return [nativeEntry, ...list];
+            }
+
+            async function fetchPiteasTokenList() {
+                try {
+                    const resp = await fetch(PITEAS_TOKENLIST_URL, { cache: 'no-store' });
+                    if (!resp.ok) throw new Error(`token list request failed (${resp.status})`);
+                    const data = await resp.json();
+                    const currentChainId = Number(typeof CHAIN_ID !== 'undefined' ? CHAIN_ID : 369);
+                    const allTokens = Array.isArray(data?.tokens) ? data.tokens : [];
+                    const chainTokens = allTokens.filter((token) => {
+                        if (typeof token?.chainId !== 'number') return true;
+                        return token.chainId === currentChainId;
+                    });
+                    piteasTokenList = ensureNativePLSToken(chainTokens, currentChainId);
+                    filteredTokenList = piteasTokenList.slice();
+                    populateTokenDropdown();
+                    const scanAddress = getSwitchAccount();
+                    if (scanAddress) {
+                        await filterTokensByBalance();
+                    }
+                } catch (err) {
+                    console.error('Failed to fetch token list', err);
+                    updateSwitchTokenStatus('Token list fetch failed. Reload and try again.', 'error');
+                }
+            }
+
+            async function filterTokensByBalance() {
+                const scanAddress = getSwitchAccount();
+                const injectedProvider = getSwitchInjectedProvider();
+                if (!scanAddress || !injectedProvider || !window.ethers || !window.ethers.BrowserProvider || !window.ethers.Contract) {
+                    filteredTokenList = piteasTokenList.slice();
+                    populateTokenDropdown();
+                    return;
+                }
+
+                updateSwitchTokenStatus('Scanning wallet balances for switchable tokens...', 'info');
+                const provider = new window.ethers.BrowserProvider(injectedProvider);
+                const balances = await mapWithConcurrency(piteasTokenList, 24, async (token) => {
+                    if (token.address === NATIVE_TOKEN_ADDRESS) {
+                        try {
+                            const bal = await provider.getBalance(scanAddress);
+                            return { ...token, _balance: bal };
+                        } catch (err) {
+                            return { ...token, _balance: 0n };
+                        }
+                    }
+                    try {
+                        const contract = new window.ethers.Contract(token.address, ERC20_ABI, provider);
+                        const bal = await contract.balanceOf(scanAddress);
+                        return { ...token, _balance: bal };
+                    } catch (err) {
+                        return { ...token, _balance: 0n };
+                    }
+                });
+
+                const positive = balances.filter((token) => typeof token._balance === 'bigint' && token._balance > 0n);
+                if (positive.length > 0) {
+                    filteredTokenList = positive;
+                    updateSwitchTokenStatus(`Found ${positive.length} wallet tokens with balance > 0.`, 'success');
+                } else {
+                    filteredTokenList = piteasTokenList.slice();
+                    updateSwitchTokenStatus('No positive balances found, showing full token list.', 'warning');
+                }
+                populateTokenDropdown();
+            }
+
+            function populateTokenDropdown() {
+                const sel = document.getElementById('switch-test-token');
+                if (!sel) return;
+                const previousAddress = selectedToken?.address ? String(selectedToken.address).toLowerCase() : '';
+                sel.innerHTML = '';
+
+                filteredTokenList.forEach((token) => {
+                    const opt = document.createElement('option');
+                    const balanceSuffix = typeof token._balance === 'bigint'
+                        ? ` | bal: ${formatSwitchBalancePreview(token._balance, Number(token.decimals || 18))}`
+                        : '';
+                    opt.value = token.address;
+                    opt.textContent = `${token.symbol} (${token.name})${balanceSuffix}`;
+                    opt.dataset.decimals = String(token.decimals ?? 18);
+                    opt.dataset.symbol = token.symbol || '';
+                    sel.appendChild(opt);
+                });
+
+                if (!filteredTokenList.length) {
+                    const empty = document.createElement('option');
+                    empty.value = '';
+                    empty.textContent = 'No tokens available';
+                    sel.appendChild(empty);
+                    selectedToken = null;
+                    updateAmountPlaceholder();
+                    return;
+                }
+
+                let nextIndex = filteredTokenList.findIndex((token) => String(token.address).toLowerCase() === previousAddress);
+                if (nextIndex < 0) {
+                    nextIndex = filteredTokenList.findIndex((token) => String(token.symbol || '').toUpperCase() === 'PLS');
+                }
+                if (nextIndex < 0) nextIndex = 0;
+                sel.selectedIndex = nextIndex;
+                selectedToken = filteredTokenList[nextIndex] || null;
+                updateAmountPlaceholder();
+            }
+
+            function updateAmountPlaceholder() {
+                const amountInput = document.getElementById('switch-test-amount');
+                if (!amountInput) return;
+                amountInput.placeholder = selectedToken ? `e.g. 1 (${selectedToken.symbol})` : 'e.g. 1';
+            }
+
+            function formatSwitchTokenAmountRaw(balance, decimals) {
+                if (typeof balance !== 'bigint') return '0';
+                const formatted = window.ethers
+                    ? window.ethers.formatUnits(balance, Number(decimals || 18))
+                    : balance.toString();
+                return formatted.includes('.')
+                    ? formatted.replace(/\.0+$/, '').replace(/(\.\d*?[1-9])0+$/, '$1')
+                    : formatted;
+            }
+
+            function formatSwitchBalancePreview(balance, decimals, maxDecimals = 4) {
+                const formatted = formatSwitchTokenAmountRaw(balance, decimals);
+                if (!formatted.includes('.')) return formatted;
+                const [whole, fraction = ''] = formatted.split('.');
+                const trimmedFraction = fraction.slice(0, maxDecimals).replace(/0+$/, '');
+                return trimmedFraction ? `${whole}.${trimmedFraction}` : whole;
+            }
+
+            function applySwitchBalancePercentage(percent) {
+                const amountInput = document.getElementById('switch-test-amount');
+                const decimals = Number(selectedToken?.decimals || 18);
+                const balance = selectedToken?._balance;
+                if (!amountInput || typeof balance !== 'bigint' || balance <= 0n) {
+                    updateSwitchTokenStatus('No positive balance found for the selected token.', 'warning');
+                    return;
+                }
+                const targetBalance = percent >= 100
+                    ? balance
+                    : (balance * BigInt(percent)) / 100n;
+                amountInput.value = formatSwitchTokenAmountRaw(targetBalance, decimals);
+                resetSwitchExpectedUsdl();
+            }
+
+            function resetSwitchExpectedUsdl() {
+                const expectedInput = document.getElementById('switch-test-expected-usdl');
+                if (!expectedInput) return;
+                expectedInput.value = '-';
+                expectedInput.style.color = '#7a7a7a';
+            }
+
+            async function onWalletConnect(address) {
+                userAddress = address || '';
+                await filterTokensByBalance();
+            }
+
+            document.addEventListener('DOMContentLoaded', () => {
+                fetchPiteasTokenList();
+                const sel = document.getElementById('switch-test-token');
+                sel?.addEventListener('change', () => {
+                    selectedToken = filteredTokenList[sel.selectedIndex] || null;
+                    updateAmountPlaceholder();
+                    resetSwitchExpectedUsdl();
+                });
+                document.getElementById('switch-test-amount')?.addEventListener('input', resetSwitchExpectedUsdl);
+                document.getElementById('switch-test-deadline')?.addEventListener('input', resetSwitchExpectedUsdl);
+                document.getElementById('switch-test-recipient')?.addEventListener('input', resetSwitchExpectedUsdl);
+                document.getElementById('switch-33')?.addEventListener('click', () => applySwitchBalancePercentage(33));
+                document.getElementById('switch-66')?.addEventListener('click', () => applySwitchBalancePercentage(66));
+                document.getElementById('switch-100')?.addEventListener('click', () => applySwitchBalancePercentage(100));
+
+                if (window.ethereum && window.ethereum.on) {
+                    window.ethereum.on('accountsChanged', (accounts) => {
+                        onWalletConnect(accounts && accounts[0] ? accounts[0] : '');
+                    });
+                    window.ethereum.on('chainChanged', () => {
+                        fetchPiteasTokenList();
+                    });
+                    window.ethereum.request({ method: 'eth_accounts' }).then((accounts) => {
+                        if (accounts && accounts[0]) onWalletConnect(accounts[0]);
+                    }).catch(() => {});
+                }
+            });
+            </script>
+
+            <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:16px;">
+                <button class="btn" id="btn-switch-test-preview" style="padding:12px 16px;background:#000000;border:1px solid rgba(1, 228, 1, 0.82);color:#ffffff;border-radius:999px;box-shadow:0 0 14px rgba(1, 228, 1, 0.12);">VERIFY Switch</button>
+                <button class="btn" id="btn-switch-test-execute" style="padding:12px 16px;background:#01e401;border:1px solid #01e401;color:#000000;border-radius:999px;font-weight:700;box-shadow:0 0 16px rgba(1, 228, 1, 0.2);">Execute Switch</button>
+            </div>
+
+            <div id="switch-test-status" style="margin-top:14px;font-size:0.92rem;min-height:1.5rem;color:#7a7a7a;"></div>
+
+            <section class="card operation-terminal-card" style="margin-top:18px;background:rgba(0,0,0,0.78);border:1px solid rgba(1, 228, 1, 0.38);box-shadow:0 0 22px rgba(1, 228, 1, 0.08);">
+                <details class="trade-terminal-toggle" open>
+                    <summary>
+                        <span style="color:#ffffff;"><span id="switch-terminal-mode">Switch</span> Trust Terminal - <span style="color:#01e401;font-size:0.82rem;font-weight:700;letter-spacing:0.04em;">LIVE BUILDER + WALLET PATH</span></span>
+                    </summary>
+                    <section class="trade-terminal-shell">
+                    <div id="switch-terminal" class="trade-terminal-log"></div>
+                    </section>
+                </details>
+            </section>
+        </section>
     </div>
 
     <footer class="footer">
@@ -723,7 +1042,9 @@
             CHAIN_ID,
             CHAIN_NAME,
             RPC_URL,
+            INDEXER_URL,
             TVault,
+            TPBt,
             formatNumber,
             formatPrice,
         } = window.PBTestDapp;
@@ -731,6 +1052,17 @@
         let web3, readProvider, account, signer;
         let latestTusdlBalance = 0;
         let latestPbBalanceExact = '0';
+        let lastSwitchTestBuild = null;
+        let switchTerminalEntries = [];
+
+        const NATIVE_PLS_PLACEHOLDER = '0x0000000000000000000000000000000000000000';
+        const WPLS_ADDRESS = '0xA1077a294dDE1B09bB078844df40758a5D0f9a27';
+        const switchVaultReceiptInterface = new ethers.Interface([
+            'event BuyWithNetting(address indexed buyer, address indexed recipient, uint256 indexed pbtId, uint256 usdlIn, uint256 totalPBOut, uint256 nettedPB, uint256 ammPB, uint256 lpPB, uint256 lpUSDL, uint256 unlocksNetted)'
+        ]);
+        const switchPbtReceiptInterface = new ethers.Interface([
+            'event Transfer(address indexed from, address indexed to, uint256 indexed tokenId)'
+        ]);
 
         const contractLayer = window.PBTestDappContracts.create({
             getWeb3: () => web3,
@@ -775,6 +1107,396 @@
             getAccount: () => account,
             getSigner: () => signer,
         });
+
+        function escapeSwitchHtml(value) {
+            return String(value ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function switchTerminalInline(value) {
+            const text = String(value ?? '');
+            if (/^0x[a-fA-F0-9]{40}$/.test(text) || /^0x[a-fA-F0-9]{64}$/.test(text)) {
+                return `<span class="terminal-address">${escapeSwitchHtml(text)}</span>`;
+            }
+            return `<span class="terminal-value">${escapeSwitchHtml(text)}</span>`;
+        }
+
+        function shortSwitchHash(hash) {
+            if (!hash || hash.length < 16) return hash || '-';
+            return `${hash.slice(0, 10)}...${hash.slice(-6)}`;
+        }
+
+        function formatTokenFromWei(value, digits = 6, suffix = '') {
+            try {
+                const formatted = formatNumber(ethers.formatEther(String(value || '0')), digits);
+                return suffix ? `${formatted} ${suffix}` : formatted;
+            } catch (err) {
+                return String(value || '0');
+            }
+        }
+
+        function formatBpsPercent(value) {
+            const numeric = Number(value ?? 0);
+            if (!Number.isFinite(numeric)) return String(value ?? '-');
+            return `${(numeric / 100).toFixed(2)}%`;
+        }
+
+        async function enrichSwitchBuild(body) {
+            if (!body || typeof body !== 'object') return body;
+
+            const expectedUsdlWei = body?.zapperBuild?.expectedUSDL;
+            if (!expectedUsdlWei) {
+                body.switchDerived = null;
+                return body;
+            }
+
+            try {
+                const pool = await contractLayer.getPoolSnapshot();
+                const price = Number(pool?.price || 0);
+                const expectedUsdl = Number(ethers.formatEther(String(expectedUsdlWei)));
+                if (!Number.isFinite(price) || price <= 0 || !Number.isFinite(expectedUsdl) || expectedUsdl <= 0) {
+                    body.switchDerived = null;
+                    return body;
+                }
+
+                const totalPb = expectedUsdl / price;
+                const liquidPb = totalPb * 0.0369;
+                const lockedPbc = totalPb * 0.9631;
+                body.switchDerived = {
+                    pbPrice: price,
+                    expectedUsdl,
+                    totalPb,
+                    liquidPb,
+                    lockedPbc,
+                };
+            } catch (err) {
+                body.switchDerived = null;
+            }
+
+            return body;
+        }
+
+        function setSwitchStatus(message, tone = 'info') {
+            const el = document.getElementById('switch-test-status');
+            if (!el) return;
+            el.textContent = message || '';
+            el.style.color = tone === 'error'
+                ? '#ff8a80'
+                : tone === 'success'
+                    ? '#8cf5a6'
+                    : tone === 'warning'
+                        ? '#ffd180'
+                        : '#bfeff5';
+        }
+
+        function setSwitchExpectedUsdl(value, tone = 'idle') {
+            const el = document.getElementById('switch-test-expected-usdl');
+            if (!el) return;
+            el.value = value || '-';
+            el.style.color = tone === 'ready' ? '#ffffff' : '#7a7a7a';
+        }
+
+        function pushSwitchEvent(title, body, tone = 'info', details = []) {
+            switchTerminalEntries.push({ title, body, tone, details });
+            renderSwitchTerminal();
+        }
+
+        function resetSwitchEvents() {
+            switchTerminalEntries = [];
+            renderSwitchTerminal();
+        }
+
+        function getSwitchTestRecipient() {
+            const raw = document.getElementById('switch-test-recipient')?.value?.trim() || '';
+            if (raw) return raw;
+            return account || '';
+        }
+
+        function getSwitchTestPayload() {
+            const amountStr = document.getElementById('switch-test-amount')?.value?.trim() || '';
+            const deadlineMinutes = parseInt(document.getElementById('switch-test-deadline')?.value || '20', 10);
+            const recipient = getSwitchTestRecipient();
+            const token = selectedToken || null;
+            const inputToken = token?.address || NATIVE_PLS_PLACEHOLDER;
+            const inputSymbol = token?.symbol || 'PLS';
+            const inputDecimals = Number(token?.decimals ?? 18);
+
+            if (!amountStr || Number(amountStr) <= 0) {
+                throw new Error(`Enter a valid ${inputSymbol} amount`);
+            }
+            if (!recipient || !/^0x[a-fA-F0-9]{40}$/.test(recipient)) {
+                throw new Error('Enter a valid recipient or connect wallet');
+            }
+            if (!Number.isFinite(deadlineMinutes) || deadlineMinutes < 1) {
+                throw new Error('Enter a valid deadline in minutes');
+            }
+
+            let amountIn;
+            try {
+                amountIn = ethers.parseUnits(amountStr, inputDecimals).toString();
+            } catch (err) {
+                throw new Error(`Invalid amount for ${inputSymbol} (decimals ${inputDecimals})`);
+            }
+
+            return {
+                inputToken,
+                amountIn,
+                minPBOut: '1',
+                recipient,
+                deadline: Math.floor(Date.now() / 1000) + (deadlineMinutes * 60),
+            };
+        }
+
+        function buildSwitchRouteLines(routes) {
+            const lines = [];
+            (routes || []).forEach((route, routeIndex) => {
+                lines.push(`<div class="terminal-line"><span class="terminal-prefix">#</span><span class="terminal-key">Route ${routeIndex + 1} amountIn:</span> ${switchTerminalInline(route.amountIn || '-')}</div>`);
+                (route.hops || []).forEach((hop, hopIndex) => {
+                    lines.push(`<div class="terminal-line"><span class="terminal-prefix">|</span><span class="terminal-key">Hop ${hopIndex + 1}:</span> ${switchTerminalInline(hop.tokenIn || '-')} <span class="terminal-muted">-&gt;</span> ${switchTerminalInline(hop.tokenOut || '-')}</div>`);
+                    (hop.legs || []).forEach((leg, legIndex) => {
+                        lines.push(`<div class="terminal-line"><span class="terminal-prefix">|</span><span class="terminal-key">Leg ${routeIndex + 1}.${hopIndex + 1}.${legIndex + 1}:</span> ${switchTerminalInline(leg.adapter || '-')}</div>`);
+                        lines.push(`<div class="terminal-line"><span class="terminal-prefix">|</span><span class="terminal-muted">amountIn=${escapeSwitchHtml(leg.amountIn || '-')}, fee=${escapeSwitchHtml(leg.fee || 0)}, data=${escapeSwitchHtml((leg.data || '0x').slice(0, 18))}${(leg.data || '0x').length > 18 ? '...' : ''}</span></div>`);
+                    });
+                });
+            });
+            return lines.join('');
+        }
+
+        function renderSwitchTerminal() {
+            const terminal = document.getElementById('switch-terminal');
+            if (!terminal) return;
+
+            const predictionLines = [];
+            if (!lastSwitchTestBuild) {
+                predictionLines.push('<div class="terminal-line"><span class="terminal-prefix">$</span><span class="terminal-muted">No Switch test built yet.</span></div>');
+            } else {
+                const build = lastSwitchTestBuild;
+                const tx = build.tx || {};
+                const switchQuote = build.switchQuote || {};
+                const zapperBuild = build.zapperBuild || {};
+                const derived = build.switchDerived || null;
+                predictionLines.push('<div class="terminal-line"><span class="terminal-prefix">$</span><span class="terminal-function">build-switch-zapper-call</span></div>');
+                predictionLines.push(`<div class="terminal-line"><span class="terminal-prefix">&gt;</span><span class="terminal-key">To:</span> ${switchTerminalInline(tx.to || '-')}</div>`);
+                predictionLines.push(`<div class="terminal-line"><span class="terminal-prefix">&gt;</span><span class="terminal-key">Value:</span> ${switchTerminalInline(formatTokenFromWei(tx.value || '0', 6, 'PLS'))}</div>`);
+                predictionLines.push(`<div class="terminal-line"><span class="terminal-prefix">&gt;</span><span class="terminal-key">Selector:</span> ${switchTerminalInline(typeof tx.data === 'string' ? tx.data.slice(0, 10) : '-')}</div>`);
+                predictionLines.push(`<div class="terminal-line"><span class="terminal-prefix">&gt;</span><span class="terminal-key">Expected USDL:</span> ${switchTerminalInline(formatTokenFromWei(zapperBuild.expectedUSDL || '0', 6, 'USDL'))}</div>`);
+                predictionLines.push(`<div class="terminal-line"><span class="terminal-prefix">&gt;</span><span class="terminal-key">Min USDL:</span> ${switchTerminalInline(formatTokenFromWei(zapperBuild.minUSDLFromSwitch || '0', 6, 'USDL'))}</div>`);
+                predictionLines.push(`<div class="terminal-line"><span class="terminal-prefix">&gt;</span><span class="terminal-key">Switch Fee:</span> ${switchTerminalInline(formatBpsPercent(zapperBuild.switchFeeBps ?? '-'))}</div>`);
+                predictionLines.push(`<div class="terminal-line"><span class="terminal-prefix">&gt;</span><span class="terminal-key">Fee On Output:</span> ${switchTerminalInline(String(zapperBuild.feeOnOutput ?? '-'))}</div>`);
+                predictionLines.push(`<div class="terminal-line"><span class="terminal-prefix">&gt;</span><span class="terminal-key">Switch Quote:</span> ${switchTerminalInline(`${switchQuote.fromToken || '-'} -> ${switchQuote.toToken || '-'}`)}</div>`);
+                if (derived) {
+                    predictionLines.push(`<div class="terminal-line"><span class="terminal-prefix">&gt;</span><span class="terminal-key">Est. PB Total:</span> ${switchTerminalInline(`${formatNumber(derived.totalPb, 4)} PB`)}</div>`);
+                    predictionLines.push(`<div class="terminal-line"><span class="terminal-prefix">&gt;</span><span class="terminal-key">Split:</span> ${switchTerminalInline(`${formatNumber(derived.liquidPb, 4)} PB + ${formatNumber(derived.lockedPbc, 4)} PBc`)}</div>`);
+                    predictionLines.push(`<div class="terminal-line"><span class="terminal-prefix">&gt;</span><span class="terminal-key">PB Price Used:</span> ${switchTerminalInline(formatPrice(derived.pbPrice))}</div>`);
+                }
+                predictionLines.push(`<div class="terminal-line"><span class="terminal-prefix">&gt;</span><span class="terminal-key">Unlock IDs:</span> ${switchTerminalInline((build.unlockSelection?.unlockIds || []).join(', ') || 'None')}</div>`);
+                predictionLines.push('<div class="terminal-line"><span class="terminal-prefix">#</span><span class="terminal-muted">switch path</span></div>');
+                predictionLines.push(buildSwitchRouteLines(extractSwitchRoutesFromCalldata(build.tx?.data)));
+            }
+
+            const chainLines = switchTerminalEntries.length
+                ? switchTerminalEntries.map((entry) => {
+                    const toneClass = entry.tone === 'success'
+                        ? 'terminal-success'
+                        : entry.tone === 'error'
+                            ? 'terminal-error'
+                            : entry.tone === 'warning'
+                                ? 'terminal-warning'
+                                : 'terminal-value';
+                    const details = (entry.details || []).map(([label, value]) => `<div class="terminal-line"><span class="terminal-prefix">|</span><span class="terminal-key">${escapeSwitchHtml(label)}:</span> ${switchTerminalInline(value)}</div>`).join('');
+                    return `<div class="terminal-line"><span class="terminal-prefix">$</span><span class="${toneClass}">${escapeSwitchHtml(entry.title)}</span></div><div class="terminal-line"><span class="terminal-prefix">|</span><span class="terminal-muted">${escapeSwitchHtml(entry.body || '')}</span></div>${details}`;
+                }).join('')
+                : '<div class="terminal-line"><span class="terminal-prefix">$</span><span class="terminal-muted">No wallet execution yet.</span></div>';
+
+            terminal.innerHTML = `<div class="terminal-divider">Prediction</div>${predictionLines.join('')}<div class="terminal-divider">On-Chain</div>${chainLines}`;
+        }
+
+        function decodeSwitchReceipt(receipt) {
+            const result = {
+                buyWithNetting: [],
+                pbtMints: [],
+            };
+
+            const logs = Array.isArray(receipt?.logs) ? receipt.logs : [];
+            logs.forEach((log) => {
+                const logAddress = String(log?.address || '').toLowerCase();
+                try {
+                    if (logAddress === String(TVault || '').toLowerCase()) {
+                        const parsed = switchVaultReceiptInterface.parseLog(log);
+                        if (parsed?.name === 'BuyWithNetting') {
+                            result.buyWithNetting.push({
+                                buyer: parsed.args.buyer,
+                                recipient: parsed.args.recipient,
+                                pbtId: parsed.args.pbtId?.toString?.() || String(parsed.args.pbtId),
+                                usdlIn: parsed.args.usdlIn?.toString?.() || String(parsed.args.usdlIn),
+                                totalPBOut: parsed.args.totalPBOut?.toString?.() || String(parsed.args.totalPBOut),
+                                nettedPB: parsed.args.nettedPB?.toString?.() || String(parsed.args.nettedPB),
+                                ammPB: parsed.args.ammPB?.toString?.() || String(parsed.args.ammPB),
+                                unlocksNetted: parsed.args.unlocksNetted?.toString?.() || String(parsed.args.unlocksNetted),
+                            });
+                        }
+                    }
+                } catch (err) {}
+
+                try {
+                    if (logAddress === String(TPBt || '').toLowerCase()) {
+                        const parsed = switchPbtReceiptInterface.parseLog(log);
+                        if (parsed?.name === 'Transfer' && String(parsed.args.from || '').toLowerCase() === ethers.ZeroAddress.toLowerCase()) {
+                            result.pbtMints.push({
+                                to: parsed.args.to,
+                                tokenId: parsed.args.tokenId?.toString?.() || String(parsed.args.tokenId),
+                            });
+                        }
+                    }
+                } catch (err) {}
+            });
+
+            return result;
+        }
+
+        function extractSwitchRoutesFromCalldata(calldata) {
+            try {
+                if (!calldata || typeof calldata !== 'string' || calldata.length < 10) return [];
+                const abi = [
+                    'function zapIntoPB(address inputToken,uint256 amountIn,(uint256 amountIn,(address tokenIn,address tokenOut,(address adapter,uint256 amountIn,uint24 fee,bytes data)[] legs)[] hops)[] routes,uint256 minUSDLFromSwitch,uint256 switchFeeBps,bool feeOnOutput,uint256 minPBOut,address recipient,uint256[] unlockIds,uint256 deadline) payable returns (uint256)'
+                ];
+                const iface = new ethers.Interface(abi);
+                const decoded = iface.decodeFunctionData('zapIntoPB', calldata);
+                return (decoded[2] || []).map((route) => ({
+                    amountIn: route.amountIn?.toString?.() || String(route.amountIn || '0'),
+                    hops: (route.hops || []).map((hop) => ({
+                        tokenIn: hop.tokenIn,
+                        tokenOut: hop.tokenOut,
+                        legs: (hop.legs || []).map((leg) => ({
+                            adapter: leg.adapter,
+                            amountIn: leg.amountIn?.toString?.() || String(leg.amountIn || '0'),
+                            fee: leg.fee?.toString?.() || String(leg.fee || '0'),
+                            data: leg.data || '0x',
+                        })),
+                    })),
+                }));
+            } catch (err) {
+                return [];
+            }
+        }
+
+        async function previewSwitchTest() {
+            try {
+                const payload = getSwitchTestPayload();
+                setSwitchStatus('Building live Switch test payload...', 'info');
+                setSwitchExpectedUsdl('Building...', 'idle');
+                resetSwitchEvents();
+                pushSwitchEvent('Builder request', 'Requesting live Switch quote and zapper calldata from the API.', 'info', [
+                    ['API', INDEXER_URL || ACTIVE_NETWORK.apiBase || '-'],
+                    ['Input token', selectedToken ? `${selectedToken.symbol} (${selectedToken.address})` : 'Native PLS'],
+                    ['Amount in (raw)', payload.amountIn],
+                    ['Amount in (human)', selectedToken ? `${document.getElementById('switch-test-amount')?.value || '0'} ${selectedToken.symbol}` : `${ethers.formatEther(payload.amountIn)} PLS`],
+                    ['Recipient', payload.recipient],
+                ]);
+                const response = await fetch(`${INDEXER_URL || ACTIVE_NETWORK.apiBase}/build-switch-zapper-call`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload),
+                });
+                const body = await response.json();
+                if (!response.ok) {
+                    throw new Error(body?.message || body?.error || `Builder failed (${response.status})`);
+                }
+                await enrichSwitchBuild(body);
+                lastSwitchTestBuild = body;
+                pushSwitchEvent('Builder response ok', 'Live Switch builder returned a complete wallet transaction.', 'success', [
+                    ['Zapper', body?.tx?.to || '-'],
+                    ['Value', formatTokenFromWei(body?.tx?.value || '0', 6, 'PLS')],
+                    ['Route count', String(body?.zapperBuild?.routeCount || 0)],
+                    ['Expected USDL', formatTokenFromWei(body?.zapperBuild?.expectedUSDL || '0', 6, 'USDL')],
+                    ['Est. PB', body?.switchDerived ? `${formatNumber(body.switchDerived.totalPb, 4)} PB` : 'Unavailable'],
+                ]);
+                setSwitchExpectedUsdl(formatTokenFromWei(body?.zapperBuild?.expectedUSDL || '0', 6, 'USDL'), 'ready');
+                renderSwitchTerminal();
+                setSwitchStatus('Switch test preview ready. Inspect the terminal before signing.', 'success');
+                return body;
+            } catch (err) {
+                lastSwitchTestBuild = null;
+                setSwitchExpectedUsdl('-', 'idle');
+                renderSwitchTerminal();
+                pushSwitchEvent('Builder failed', err.message || 'Unable to build Switch test payload.', 'error');
+                setSwitchStatus(`Switch test preview failed: ${err.message}`, 'error');
+                throw err;
+            }
+        }
+
+        async function executeSwitchTest() {
+            if (!account || !signer) {
+                alert('Connect wallet first');
+                return;
+            }
+            try {
+                const build = await previewSwitchTest();
+                const tx = build?.tx;
+                if (!tx?.to || !tx?.data) {
+                    throw new Error('Builder did not return a wallet transaction');
+                }
+                pushSwitchEvent('Signature request', 'Review the wallet prompt for the Switch zapper transaction.', 'warning', [
+                    ['Wallet', account],
+                    ['To', tx.to],
+                    ['Value', tx.value || '0'],
+                    ['Selector', tx.data.slice(0, 10)],
+                ]);
+                setSwitchStatus('Waiting for wallet signature...', 'warning');
+                const sentTx = await signer.sendTransaction({
+                    to: tx.to,
+                    data: tx.data,
+                    value: BigInt(tx.value || '0'),
+                });
+                pushSwitchEvent('Transaction submitted', 'Switch zapper transaction was sent to chain.', 'warning', [
+                    ['Tx hash', sentTx.hash],
+                    ['Short hash', shortSwitchHash(sentTx.hash)],
+                ]);
+                setSwitchStatus('Transaction submitted. Waiting for confirmation...', 'info');
+                const receipt = await sentTx.wait();
+                pushSwitchEvent('Transaction confirmed', 'Switch zapper receipt confirmed on chain.', 'success', [
+                    ['Tx hash', receipt?.hash || sentTx.hash],
+                    ['Block', String(receipt?.blockNumber || '-')],
+                    ['Gas used', String(receipt?.gasUsed || '-')],
+                ]);
+                const decoded = decodeSwitchReceipt(receipt);
+                decoded.buyWithNetting.forEach((event, index) => {
+                    pushSwitchEvent(`BuyWithNetting ${index + 1}`, 'Decoded vault summary event from the Switch zapper receipt.', 'info', [
+                        ['PBt ID', event.pbtId],
+                        ['Recipient', event.recipient],
+                        ['USDL In', formatTokenFromWei(event.usdlIn, 6, 'USDL')],
+                        ['Total PB Out', formatTokenFromWei(event.totalPBOut, 6, 'PB')],
+                        ['Netted PB', formatTokenFromWei(event.nettedPB, 6, 'PB')],
+                        ['AMM PB', formatTokenFromWei(event.ammPB, 6, 'PB')],
+                        ['Unlocks Netted', event.unlocksNetted],
+                    ]);
+                });
+                decoded.pbtMints.forEach((mint, index) => {
+                    pushSwitchEvent(`PBt mint ${index + 1}`, 'Observed PBt mint in the Switch zapper receipt.', 'success', [
+                        ['Token ID', mint.tokenId],
+                        ['Recipient', mint.to],
+                    ]);
+                });
+                setSwitchStatus('Switch test transaction confirmed.', 'success');
+            } catch (err) {
+                pushSwitchEvent('Execution failed', err?.shortMessage || err?.message || 'Switch test transaction failed.', 'error');
+                setSwitchStatus(`Switch test failed: ${err?.shortMessage || err?.message || 'Transaction failed'}`, 'error');
+            }
+        }
+
+        function initSwitchTestCard() {
+            document.getElementById('btn-switch-test-preview')?.addEventListener('click', () => {
+                previewSwitchTest().catch(() => {});
+            });
+            document.getElementById('btn-switch-test-execute')?.addEventListener('click', () => {
+                executeSwitchTest().catch(() => {});
+            });
+            renderSwitchTerminal();
+        }
 
         const handleBuyAmountInputChange = tradeLayer.handleBuyAmountInputChange;
         const getQuote = tradeLayer.getQuote;
@@ -974,7 +1696,10 @@
         // ================================================================
         // START
         // ================================================================
-        window.addEventListener('DOMContentLoaded', init);
+        window.addEventListener('DOMContentLoaded', () => {
+            init();
+            initSwitchTestCard();
+        });
     </script>
     <script>window.gtranslateSettings = {"default_language":"en","native_language_names":true,"detect_browser_language":true,"languages":["en","zh-CN","fr","de","hi","es","pt","nl","el"],"wrapper_selector":".gtranslate_wrapper","flag_style":"3d","alt_flags":{"en":"usa"}}</script>
     <script src="https://cdn.gtranslate.net/widgets/latest/float.js" defer></script>

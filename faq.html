@@ -42,12 +42,12 @@
         @keyframes calcFade { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:translateY(0); } }
         /* FAQ details styling to match other FAQ cards */
         .faq-section details { margin-bottom:12px; }
-        .faq-section details > summary { list-style:none; cursor:pointer; padding:10px 12px; display:flex; align-items:center; justify-content:space-between; gap:12px; background:#0f0f14; border:1px solid rgba(255,165,0,0.04); border-radius:6px; }
+        .faq-section details > summary { list-style:none; cursor:pointer; padding:10px 12px; display:flex; align-items:center; justify-content:space-between; gap:12px; background:linear-gradient(135deg, rgba(255,165,0,0.04) 0%, rgba(255,107,53,0.04) 100%); border:1px solid rgba(255,165,0,0.12); border-radius:6px; }
         .faq-section details > summary h4, .faq-section details > summary h2 { margin:0; font-size:1rem; }
         .faq-section details > summary::-webkit-details-marker { display:none; }
         .faq-section details > summary::after { content:'+'; color:#F39004; font-weight:700; font-size:1.05rem; }
         .faq-section details[open] > summary::after { content:'−'; }
-        .faq-section details .faq-item { padding:12px; background:#0f0f14; border-top:1px solid rgba(255,165,0,0.02); }
+        .faq-section details .faq-item { padding:12px; border-top:1px solid rgba(255,165,0,0.08); }
         .faq-item h4[id] { scroll-margin-top: 110px; }
         .address-panels { display:grid; grid-template-columns:repeat(auto-fit, minmax(320px, 1fr)); gap:1rem; margin-top:1rem; }
         .address-panel { background:linear-gradient(180deg, rgba(243,144,4,0.08), rgba(243,144,4,0.02)); border:1px solid rgba(243,144,4,0.18); border-radius:12px; padding:1rem; }
@@ -219,7 +219,7 @@
         <section class="faq-section" id="disclaimer">
             <h2>Disclaimer: Perpetual Bitcoin (PB) Legal Disclaimer</h2>
             <div class="faq-item">
-                <h4>Full Legal Disclaimer - Read Before Connecting Your Wallet</h4>
+                <h4 id="legal">Full Legal Disclaimer - Read Before Connecting Your Wallet</h4>
                 <p><strong>Important Notice: Read Before Connecting Your Wallet</strong></p>
                 <p>By interacting with the Perpetual Bitcoin (PB) protocol, you acknowledge and agree to the following terms. If you do not accept these terms in full, you should not proceed.</p>
                 <ol>
@@ -336,7 +336,7 @@
             <h2>General Questions</h2>
 
             <div class="faq-item" id="what-is-pb">
-                <h4>What is Perpetual Bitcoin (PB)?</h4>
+                <h4 id="bitcoin">What is Perpetual Bitcoin (PB)?</h4>
                 <p>
                     PB is a <strong>finished, immutable 21 million supply protocol</strong> with price-based unlocks that settle into USDL.
                     When market price reaches your specific <a href="#hardcore-price" style="color: var(--primary-color);">checkpoints</a>, 
@@ -355,7 +355,7 @@
             </div>
 
             <div class="faq-item">
-                <h4>Why 21 million? Isn't that just like Bitcoin?</h4>
+                <h4 id="scarcity">Why 21 million? Isn't that just like Bitcoin?</h4>
                 <p>
                     The 21M number is a reference to Bitcoin's "total supply," a proven model of fixed scarcity. However, PB is 
                     unique in its unlock mechanism. We're not copying Bitcoin's success; we're building on its philosophy with 
@@ -364,7 +364,7 @@
             </div>
 
             <div class="faq-item">
-                <h4>What chain is PB deployed on?</h4>
+                <h4 id="chain">What chain is PB deployed on?</h4>
                 <p>
                     PB is deployed on <strong>PulseChain</strong>, a high-speed, EVM-compatible blockchain. We chose PulseChain 
                     for its low transaction costs and growing ecosystem.
@@ -372,7 +372,7 @@
             </div>
 
             <div class="faq-item">
-                <h4>Is PB a security?</h4>
+                <h4 id="security">Is PB a security?</h4>
                 <p>
                     PB is a utility token on a decentralized protocol. There is no company, no team, no issuer, and no 
                     counterparty, just you and the smart contract. No one promises you returns. There is no yield, no 
@@ -386,7 +386,7 @@
             </div>
 
             <div class="faq-item">
-                <h4>Who controls PB? Is there a team?</h4>
+                <h4 id="team">Who controls PB? Is there a team?</h4>
                 <p>
                     PB is a fully autonomous protocol. No admin. No upgradeability. 
                     The team that built it has no special control or governance rights. Everyone is equal.
@@ -394,7 +394,7 @@
             </div>
 
             <div class="faq-item">
-                <h4>Is there a DAO or governance token?</h4>
+                <h4 id="dao">Is there a DAO or governance token?</h4>
                 <p>
                     No. PB has no governance, no DAO, and no voting. All protocol logic is hard-coded and immutable. 
                     This removes bureaucracy and ensures fair, deterministic execution.
@@ -402,7 +402,7 @@
             </div>
 
             <div class="faq-item">
-                <h4>Why does PB use USDL?</h4>
+                <h4 id="usdl">Why does PB use USDL?</h4>
                 <p>
                     PB is built around one core rule: <strong>no outside party should be able to interfere with the system.</strong>
                     If the stable asset inside the protocol has freeze, blacklist, pause, or admin controls, then PB is not truly trustless.
@@ -425,10 +425,10 @@
         </section>
 
         <section class="faq-section">
-            <h2>Pre-Launch & Purchasing</h2>
+            <h2>Pre-Launch & Purchasing => CLOSED</h2>
 
             <div class="faq-item">
-                <h4>How do I buy PB during presale?</h4>
+                <h4 id="presale">How do I buy PB during presale? => CLOSED</h4>
                 <p>
                     Presale offers 555 blocks at a fixed cost of <strong>555.5 USDL per block</strong>. When you buy, 
                     you receive a <strong>PBIOU NFT</strong> (ERC-721, non-transferable) representing your block purchase. 
@@ -448,7 +448,7 @@
             </div>
 
             <div class="faq-item">
-                <h4>What's the minimum and maximum investment?</h4>
+                <h4 id="limits">What's the minimum and maximum investment?</h4>
                 <p>
                     <strong>During presale:</strong> minimum is 1 block (555.5 USDL) and maximum is 5 blocks per address (enforced on-chain).
                     Purchase price is fixed per block, while entry prices vary by block for unlock timing.
@@ -459,24 +459,25 @@
             </div>
 
             <div class="faq-item">
-                <h4>Shielding, buy & send in one transaction</h4>
+                <h4 id="shielding">Shielding, buy & send in one transaction</h4>
                 <p>
                     You can "shield" a purchase by providing a recipient address when calling the buy flow (the Dapp uses the Vault's <code>recipient</code> parameter). This lets you buy and send in a single on‑chain transaction, useful for gifting, custodial transfers, or directly routing purchases into recovery/inheritance workflows (PBr / PBi). Shielding is simply a user pattern: the buy mints the PBt for the specified recipient so no additional move is needed.
                 </p>
             </div>
 
             <div class="faq-item">
-                <h4>Do I need an account or KYC?</h4>
+                <h4 id="kyc">Do I need an account or KYC?</h4>
                 <p>
                     PB is fully on-chain and decentralized. You'll need a crypto wallet (e.g., 
                     <a href="https://internetmoney.io/" target="_blank" rel="noopener" style="color: var(--primary-color);">Internet Money</a>, 
                     <a href="https://www.okx.com/" target="_blank" rel="noopener" style="color: var(--primary-color);">OKX</a>, 
+                    <a href="https://chromewebstore.google.com/detail/zkx-web3-wallet/fibfaangghabdbndamiaceoahiajfgck" target="_blank" rel="noopener" style="color: var(--primary-color);">ZKX Wallet</a>, 
                     MetaMask, Trust Wallet) connected to PulseChain. No KYC, no usernames, no middlemen.
                 </p>
             </div>
 
             <div class="faq-item">
-                <h4>Can I get a refund?</h4>
+                <h4 id="refund">Can I get a refund?</h4>
                 <p>
                     No. All purchases are final. Once you participate, you get a PBt tracker NFT recording your purchase, entry price, and unlock schedule.
                     This is by design. It ensures commitment and prevents gaming.
@@ -484,7 +485,7 @@
             </div>
 
             <div class="faq-item">
-                <h4>What happens if I buy multiple blocks?</h4>
+                <h4 id="blocks">What happens if I buy multiple blocks?</h4>
                 <p>
                     Each block gets its own entry price and its own unlock schedule, so yes, buying multiple blocks lets you build a
                     <strong>ladder</strong> instead of relying on one single entry.
@@ -494,7 +495,7 @@
             </div>
 
             <div class="faq-item">
-                <h4>How is my entry price determined?</h4>
+                <h4 id="entry">How is my entry price determined?</h4>
                 <p>
                     Each block has an entry price on a fixed curve. Block #1 = 0.0369 USDL/PB, Block #555 = 0.05352 USDL/PB. 
                     Linear interpolation fills in between. Early blocks = lower entry price = lower unlock thresholds. Purchase price remains fixed at 555.5 USDL per block.
@@ -506,7 +507,7 @@
             <h2>PBc & Unlocks</h2>
 
             <div class="faq-item">
-                <h4>What is a PBc?</h4>
+                <h4 id="pbc">What is a PBc?</h4>
                 <p>
                     PBc (Perpetual Bitcoin Claim) is a non-transferable ERC-20 token issued when you buy PB. It represents your 
                     locked allocation and is tied to your wallet. You cannot sell it or transfer it. It only settles into USDL when price
@@ -515,7 +516,7 @@
             </div>
 
             <div class="faq-item">
-                <h4>How do unlock checkpoints work?</h4>
+                <h4 id="checkpoints">How do unlock checkpoints work?</h4>
                 <p>
                     Each checkpoint does two things:
                     the <strong>trigger price</strong> is set by your entry price, and when that trigger is reached,
@@ -545,7 +546,7 @@
             </div>
 
             <div class="faq-item">
-                <h4>How many times do tokens unlock? Is there an end?</h4>
+                <h4 id="end">How many times do tokens unlock? Is there an end?</h4>
                 <p>
                     Unlocks continue until only dust remains. Every 55.55% price increase (&times;1.5555 multiplier) 
                     triggers another checkpoint where &frac13; of your <em>remaining</em> locked amount unlocks.
@@ -558,14 +559,14 @@
             </div>
 
             <div class="faq-item">
-                <h4>Can I trade my PBc?</h4>
+                <h4 id="trade">Can I trade my PBc?</h4>
                 <p>
                     No. PBc is non-transferable by design. You cannot sell, gift, or delegate it. Only the vault can move it during unlock settlement.
                 </p>
             </div>
 
             <div class="faq-item">
-                <h4>Can I check my unlock status?</h4>
+                <h4 id="status">Can I check my unlock status?</h4>
                 <p>
                     Yes. Use the <a href="Dapp.html" style="color: var(--primary-color);">PB Dapp</a>
                     to view your PBc balance, PBt positions, entry prices, current checkpoint, and next unlock threshold.
@@ -573,7 +574,7 @@
             </div>
 
             <div class="faq-item">
-                <h4>Can I get email updates when my position has a settlement?</h4>
+                <h4 id="updates">Can I get email updates when my position has a settlement?</h4>
                 <p>
                     Yes. The <a href="portfolio.html" style="color: var(--primary-color);">Portfolio</a> page can save wallet addresses and send automated email settlement alerts for the wallets you choose.
                 </p>
@@ -588,7 +589,7 @@
             
 
             <div class="faq-item">
-                <h4>What happens when my tokens unlock?</h4>
+                <h4 id="settlement">What happens when my tokens unlock?</h4>
                 <p>
                     Unlocks are settled through <a href="#hardcore-gas" style="color: var(--primary-color);"><strong>convergent netting</strong></a> inside each buy transaction. When the next buyer calls <code>buyPBDirect()</code>:
                 </p>
@@ -612,7 +613,7 @@
             <h2>Vault & Liquidity</h2>
 
             <div class="faq-item">
-                <h4>What does the vault do?</h4>
+                <h4 id="vault">What does the vault do?</h4>
                 <p>
                     The vault is an autonomous smart contract that:
                 </p>
@@ -625,7 +626,7 @@
             </div>
 
             <div class="faq-item">
-                <h4>Why does the vault add liquidity?</h4>
+                <h4 id="liquidity">Why does the vault add liquidity?</h4>
                 <p>
                     During the Distribution Phase, 36.9% of each buy's net USDL is paired with vault excess PB and added to the AMM pool. This serves two purposes:
                 </p>
@@ -636,7 +637,7 @@
             </div>
 
             <div class="faq-item">
-                <h4>Why can't I buy PB on PulseX directly?</h4>
+                <h4 id="pulsex">Why can't I buy PB on PulseX directly?</h4>
                 <p>
                     All PB purchases route through the vault's <code>buyPBDirect()</code> function, not a raw AMM swap. 
                     This is necessary for two reasons:
@@ -657,7 +658,7 @@
             </div>
 
             <div class="faq-item">
-                <h4>Can I sell PB directly on PulseX?</h4>
+                <h4 id="sell">Can I sell PB directly on PulseX?</h4>
                 <p>
                     Yes. PB is a standard ERC-20 token. You can sell (or transfer) your liquid PB on PulseX or any DEX 
                     at any time, no vault interaction required. The split and netting mechanics only apply to <em>buying</em>.
@@ -665,7 +666,7 @@
             </div>
 
             <div class="faq-item">
-                <h4>How much of the vault's supply is locked?</h4>
+                <h4 id="locked">How much of the vault's supply is locked?</h4>
                 <p>
                     <strong>At genesis, effectively all of it.</strong> The full 21 million PB starts under immutable vault control, not in any human wallet.
                     No person has a key to a private treasury or team allocation.
@@ -678,7 +679,7 @@
             </div>
 
             <div class="faq-item">
-                <h4>What's the initial AMM pool size?</h4>
+                <h4 id="amm">What's the initial AMM pool size?</h4>
                 <p>
                     The initial LP is seeded with presale proceeds (USDL) paired with vault PB at a launch price of 
                     <strong>0.05555 USDL per PB</strong>. The exact pool size depends on how much USDL the presale raises.
@@ -686,7 +687,7 @@
             </div>
 
             <div class="faq-item">
-                <h4>Is the vault transparent?</h4>
+                <h4 id="transparent">Is the vault transparent?</h4>
                 <p>
                     Completely. All vault operations are on-chain and auditable. You can see every unlock, every swap, 
                     every LP addition in real time using a blockchain explorer.
@@ -713,7 +714,7 @@
             </script>
 
             <div class="faq-item">
-                <h4>What if slippage is high when I sell?</h4>
+                <h4 id="slippage">What if slippage is high when I sell?</h4>
                 <p>
                     You control your slippage tolerance. On the AMM, you can set a minimum amount out to avoid excessive slips. 
                     For large sales, the vault's LP additions over time should reduce slippage.
@@ -721,7 +722,7 @@
             </div>
 
             <div class="faq-item">
-                <h4>Can I timelock my PBc to force-hold?</h4>
+                <h4 id="timelock">Can I timelock my PBc to force-hold?</h4>
                 <p>
                     <strong>No.</strong> PB is not a time-lock protocol, it is a <strong>value-lock protocol</strong>.
                     PBc is already force-held by the contract: it is non-transferable, only the vault can move it, and that only happens when a price checkpoint is reached.
@@ -740,7 +741,7 @@
             </div>
 
             <div class="faq-item">
-                <h4>What is VLock? (Voluntary Lock)</h4>
+                <h4 id="vlock">What is VLock? (Voluntary Lock)</h4>
                 <p>
                     The vault has a <code>voluntaryLock(pbAmount)</code> function that lets you <strong>send liquid PB back
                     into the vault</strong> in exchange for PBc + a new PBt position,  exactly as if you had just bought it.
@@ -774,7 +775,7 @@
             </div>
 
             <div class="faq-item">
-                <h4>How is PB better than Bitcoin?</h4>
+                <h4 id="better">How is PB better than Bitcoin?</h4>
                 <p>
                     Bitcoin is proven sound money but remains fundamentally illiquid. PB takes Bitcoin's fixed-supply principle 
                     and adds <strong>dynamic vault-driven liquidity expansion</strong>. As price rises, the vault automatically deepens 
@@ -783,7 +784,7 @@
             </div>
 
             <div class="faq-item">
-                <h4>How is PB better than HEX?</h4>
+                <h4 id="hex">How is PB better than HEX?</h4>
                 <p>
                     HEX introduced staking and time-locked vesting, but vesting schedules create <strong>predictable dump pressure</strong> 
                     when tokens "unlock on a calendar" regardless of price. PB eliminates both staking and time-based cliffs. Unlocks are 
@@ -797,7 +798,7 @@
             <h2>Security & Risks</h2>
 
             <div class="faq-item">
-                <h4>Are the contracts audited?</h4>
+                <h4 id="audited">Are the contracts audited?</h4>
                 <p>
                     Yes. All contracts have been audited. The 
                         <a href="Pic/Security_Audit_Review_Perpetual_Bitcoin%20(4-4-26).pdf" target="_blank" rel="noopener" style="color: var(--primary-color);">full audit report</a> 
@@ -806,14 +807,14 @@
             </div>
 
             <div class="faq-item">
-                <h4>Can the team pause or upgrade the contracts?</h4>
+                <h4 id="upgrade">Can the team pause or upgrade the contracts?</h4>
                 <p>
                     No. The contracts are intended to remain immutable after deployment, with no pause functions and no upgrade path. The operating assumption is simple: no admin switch, no governance override, and no patch path after deployment.
                 </p>
             </div>
 
             <div class="faq-item">
-                <h4>What if there's a bug?</h4>
+                <h4 id="bug">What if there's a bug?</h4>
                 <p>
                     Bugs are discovered during audits and fixed before deployment. After deployment, bugs cannot be "patched" because 
                     the code is immutable. This is a feature, not a bug.
@@ -821,7 +822,7 @@
             </div>
 
             <div class="faq-item">
-                <h4>What about regulatory risk?</h4>
+                <h4 id="regulatory">What about regulatory risk?</h4>
                 <p>
                     Crypto regulations vary by jurisdiction. In some countries, tokens may be classified as securities. 
                     <strong>Please consult legal counsel</strong> before investing.
@@ -829,7 +830,7 @@
             </div>
 
             <div class="faq-item">
-                <h4>What if I lose my private keys?</h4>
+                <h4 id="keys">What if I lose my private keys?</h4>
                 <p>
                     If you lose access to your wallet <strong>and</strong> haven't configured recovery or inheritance, 
                     your PBc and unlocked PB are permanently inaccessible.
@@ -843,7 +844,7 @@
             </div>
 
             <div class="faq-item">
-                <h4>What are the recovery and inheritance mechanisms?</h4>
+                <h4 id="recovery">What are the recovery and inheritance mechanisms?</h4>
                 <p>
                     PB includes dual-factor succession planning to protect against wallet loss or incapacitation:
                 </p>
@@ -882,7 +883,7 @@
             </div>
 
             <div class="faq-item">
-                <h4>Is there a risk that price never rises?</h4>
+                <h4 id="rises">Is there a risk that price never rises?</h4>
                 <p>
                     Yes. If demand doesn't materialize, price may stay flat or fall, preventing unlocks. This is the core risk 
                     of PB. Only buy if you believe in organic price appreciation.
@@ -891,10 +892,10 @@
         </section>
 
         <section class="faq-section">
-            <h2>What Do I Get? - Calculator</h2>
+            <h2>What Do I Get? - Simulator</h2>
 
             <div class="faq-item" id="calc-collapse">
-                <h4>Estimate your split and unlock ladder</h4>
+                <h4 id="ladder">Estimate your split and unlock ladder</h4>
                 <div>
                     <p style="color:#aaa;margin-bottom:1rem">Enter a dollar amount to see the estimated PB split, locked PBc, and unlock ladder. Prices come from the presale entry curve.</p>
 
@@ -1034,9 +1035,9 @@
         }
 
         function calcReset() {
-            document.getElementById('calc-usdl').value  = '555.5';
-            document.getElementById('calc-price').value = '0.0369';
-            document.getElementById('calc-tiers').value = '13';
+            document.getElementById('calc-usdl').value  = '100';
+            document.getElementById('calc-price').value = '0.13';
+            document.getElementById('calc-tiers').value = '5';
             calcUpdate();
         }
 
@@ -1044,10 +1045,185 @@
         </script>
 
         <section class="faq-section">
+            <h2>Invest vs Re-Invest - Simulator</h2>
+            <div class="faq-item" id="ri-simulator">
+                <h4 id="reinvest">See the Difference of Re-Investing</h4>
+                    <style>
+                        #ri-sim-root { color:#ddd; font-family:'Inter',Arial,sans-serif; background:transparent; }
+                        #ri-sim-root h1 { color:#F39004; margin-bottom:0.5em; font-size:1.2em; }
+                        #ri-sim-root .input-row { margin-bottom:1.2em; display:flex; flex-wrap:wrap; gap:0.6em; align-items:center; }
+                        #ri-sim-root label { color:#aaa; margin-right:0.4em; font-size:0.9em; }
+                        #ri-sim-root input[type=number] { background:transparent; color:#fff; border:1px solid rgba(255,165,0,0.3); border-radius:4px; padding:0.3em 0.6em; width:7em; font-size:0.9em; }
+                        #ri-sim-root input[type=number]:focus { outline:none; border-color:rgba(255,165,0,0.6); }
+                        #ri-sim-root button { background:#F39004; color:#000; border:none; border-radius:6px; padding:0.45em 1.1em; font-weight:bold; cursor:pointer; font-size:0.9em; }
+                        #ri-sim-root button:hover { background:#ffb733; }
+                        #ri-sim-root #ri-live-price-label { margin-left:1em; color:#888; font-weight:600; font-size:0.85em; }
+                        #ri-sim-root .sidebyside { display:flex; flex-direction:column; gap:1.2rem; }
+                        #ri-sim-root .sidebyside > div { width:100%; overflow-x:auto; }
+                        #ri-sim-root .sim-table { width:100%; border-collapse:collapse; margin-top:0.6rem; font-size:0.82em; background:transparent !important; }
+                        #ri-sim-root .sim-table th, #ri-sim-root .sim-table td { border:1px solid rgba(255,255,255,0.07) !important; padding:0.3em 0.45em !important; text-align:right; background:transparent !important; }
+                        #ri-sim-root .sim-table th:first-child, #ri-sim-root .sim-table td:first-child { text-align:left; }
+                        #ri-sim-root .sim-table th { color:#F39004 !important; border-bottom:1px solid rgba(255,165,0,0.2) !important; }
+                        #ri-sim-root .sim-table tr, #ri-sim-root .sim-table tr:hover { background:transparent !important; }
+                        #ri-sim-root .sim-table caption { color:#F39004; font-weight:700; font-size:1em; padding:0.4em 0; caption-side:top; text-align:left; border-bottom:1px solid rgba(255,165,0,0.15); background:transparent !important; }
+                        #ri-sim-root .sim-col-step  { color:#F39004; font-weight:bold; }
+                        #ri-sim-root .sim-col-price { color:#7fe7f5; }
+                        #ri-sim-root .sim-col-pb    { color:#CE93D8; }
+                        #ri-sim-root .sim-col-pbc   { color:#64B5F6; }
+                        #ri-sim-root .sim-col-sold  { color:#FF6B9D; }
+                        #ri-sim-root .sim-col-accum { color:#F39004; }
+                        #ri-sim-root .sim-col-reinv { color:#4CAF50; }
+                        #ri-sim-root .sim-col-new   { color:#FFD700; }
+                        #ri-sim-root .ri-note { color:#aaa; font-size:0.88em; margin-top:1.2em; line-height:1.6; }
+                        #ri-sim-root .ri-bleeder { display:flex; justify-content:center; margin-top:2em; margin-bottom:1em; }
+                        #ri-sim-root .ri-bleeder img { max-width:100%; height:auto; border-radius:10px; box-shadow:0 2px 12px #0008; }
+                    </style>
+                    <div id="ri-sim-root">
+                        <h1>Perpetual Bitcoin "Invest" VS "Re-invest" Simulator</h1>
+                        <div class="input-row">
+                            <label>Initial Investment ($):<input type="number" id="ri-init-invest" value="555" min="1" step="any"></label>
+                            <label>Steps (pricepoints):<input type="number" id="ri-steps" value="7" min="1" max="30"></label>
+                            <label>Initial PB Price ($):<input type="number" id="ri-init-price" value="" min="0.01" step="any" placeholder="auto"></label>
+                            <label>DCA IN per Step ($):<input type="number" id="ri-dca-step" value="0" min="0" step="any"></label>
+                            <button id="ri-refresh-btn">Simulate</button>
+                            <span id="ri-live-price-label">Fetching PB price…</span>
+                        </div>
+                        <div class="sidebyside">
+                            <div>
+                                <table class="sim-table" id="ri-table-v1">
+                                    <caption>V1: Let Position Bleed Out (No Reinvest)</caption>
+                                    <thead><tr>
+                                        <th>Step</th><th>PB Price</th><th>PB Sold</th><th>PBc Sold</th>
+                                        <th>$ Realized</th><th>$ DCA</th><th>$ Reinvested</th>
+                                        <th>PB Left</th><th>PBc Left</th><th>Accum. $</th>
+                                    </tr></thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                            <div>
+                                <table class="sim-table" id="ri-table-v2">
+                                    <caption>V2: Reinvest Each Step</caption>
+                                    <thead><tr>
+                                        <th>Step</th><th>PB Price</th><th>PB Sold</th><th>PBc Sold</th>
+                                        <th>$ Realized</th><th>$ DCA</th><th>$ Reinvested</th>
+                                        <th>PB Left</th><th>PBc Left</th><th>Accum. $</th>
+                                    </tr></thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="ri-note">
+                            <strong>Notes:</strong><br>
+                            – PB buy split: 3.69% PB liquid, 96.31% PBc locked.<br>
+                            – At each 55.55% price increase, 1/3 of PBc unlocks per step.<br>
+                            – V2 reinvests all proceeds at 1% higher price than the sell price.<br>
+                            – No protocol fees or slippage except for reinvest price.
+                        </div>
+                        <div class="ri-bleeder">
+                            <img src="Pic/Bleeder_believer.png" alt="Are you a Bleeder or a Believer?">
+                        </div>
+                    </div>
+                    <script>
+                    (function(){
+                        const simulatorCard = document.getElementById('ri-simulator');
+                        if (simulatorCard) {
+                            simulatorCard.querySelectorAll('details').forEach((detailsEl) => {
+                                while (detailsEl.firstChild) {
+                                    detailsEl.parentNode.insertBefore(detailsEl.firstChild, detailsEl);
+                                }
+                                detailsEl.remove();
+                            });
+                            simulatorCard.querySelectorAll('summary').forEach((summaryEl) => summaryEl.remove());
+                        }
+
+                        const PB_SPLIT = 0.0369;
+                        const PBC_SPLIT = 0.9631;
+                        const PBc_UNLOCK_RATIO = 1/3;
+                        const PRICE_STEP = 0.5555;
+                        const REINVEST_PRICE_BUMP = 0.01;
+
+                        async function fetchLivePBPrice() {
+                            try { const el = document.getElementById('tick-price'); if (el && el.textContent) { const m = el.textContent.replace(/[^\d.]/g,''); if(!isNaN(Number(m))&&Number(m)>0) return Number(m); } } catch(e){}
+                            try { const resp = await fetch('https://perpetualbitcoin.io/MN-api?method=price'); const data = await resp.json(); if (data && data.price) return Number(data.price); } catch(e){}
+                            return 0.13;
+                        }
+
+                        function fn(n,d=2) { if(!isFinite(n))return'-'; if(n===0)return'0'; if(n<0.0001)return n.toExponential(2); return Number(n).toLocaleString(undefined,{maximumFractionDigits:d}); }
+
+                        function simulateV1(initInvest, pbPrice, steps, dcaStep) {
+                            let rows=[], pb=initInvest*PB_SPLIT/pbPrice, pbc=initInvest*PBC_SPLIT/pbPrice, accumUSD=0, price=pbPrice;
+                            for(let i=0;i<steps;++i){
+                                let pbSold=0,pbcSold=0,usdRealized=0;
+                                if(i>0){ pbcSold=pbc*PBc_UNLOCK_RATIO; usdRealized=pbcSold*price; accumUSD+=usdRealized; pbc-=pbcSold; if(dcaStep>0){pb+=dcaStep*PB_SPLIT/price;pbc+=dcaStep*PBC_SPLIT/price;} }
+                                rows.push({step:i+1,price,pbSold,pbcSold,usdRealized,accumUSD,pbLeft:pb,pbcLeft:pbc});
+                                price*=(1+PRICE_STEP);
+                            }
+                            return rows;
+                        }
+
+                        function simulateV2(initInvest, pbPrice, steps, dcaStep) {
+                            let rows=[],positions=[{pb:initInvest*PB_SPLIT/pbPrice,pbc:initInvest*PBC_SPLIT/pbPrice}],accumUSD=0,price=pbPrice;
+                            for(let i=0;i<steps;++i){
+                                let pbSold=0,pbcSold=0,usdRealized=0,reinvestPrice=0;
+                                if(i>0){
+                                    let proceeds=0;
+                                    positions.forEach(pos=>{let s=pos.pbc*PBc_UNLOCK_RATIO;pbcSold+=s;proceeds+=s*price;pos.pbc-=s;});
+                                    usdRealized=proceeds; accumUSD+=usdRealized;
+                                    reinvestPrice=price*(1+REINVEST_PRICE_BUMP);
+                                    positions.push({pb:proceeds*PB_SPLIT/reinvestPrice,pbc:proceeds*PBC_SPLIT/reinvestPrice});
+                                    if(dcaStep>0) positions.push({pb:dcaStep*PB_SPLIT/price,pbc:dcaStep*PBC_SPLIT/price});
+                                }
+                                let totalPB=positions.reduce((s,p)=>s+p.pb,0), totalPBc=positions.reduce((s,p)=>s+p.pbc,0);
+                                rows.push({step:i+1,price,pbSold,pbcSold,usdRealized,accumUSD,reinvestPrice,newPB:totalPB,newPBc:totalPBc});
+                                price*=(1+PRICE_STEP);
+                            }
+                            return rows;
+                        }
+
+                        function renderV1(rows){
+                            const tbody=document.querySelector('#ri-table-v1 tbody'); tbody.innerHTML='';
+                            rows.forEach((r,i)=>{
+                                const dca=(i===0)?0:Number(document.getElementById('ri-dca-step').value)||0;
+                                tbody.innerHTML+=`<tr><td class="sim-col-step">${r.step}</td><td class="sim-col-price">$${fn(r.price,4)}</td><td class="sim-col-pb">${fn(r.pbSold,2)}</td><td class="sim-col-pbc">${fn(r.pbcSold,2)}</td><td class="sim-col-sold">$${fn(r.usdRealized,2)}</td><td>$${fn(dca,2)}</td><td class="sim-col-reinv">@$0</td><td class="sim-col-new">${fn(r.pbLeft,2)}</td><td class="sim-col-new">${fn(r.pbcLeft,2)}</td><td class="sim-col-accum">$${fn(r.accumUSD,2)}</td></tr>`;
+                            });
+                            if(rows.length>0){const l=rows[rows.length-1];const tv=l.accumUSD+l.pbLeft*l.price+l.pbcLeft*l.price;const ii=Number(document.getElementById('ri-init-invest').value)||0;const ds=Number(document.getElementById('ri-dca-step').value)||0;const st=Number(document.getElementById('ri-steps').value)||0;const ti=ii+ds*(st-1);tbody.innerHTML+=`<tr style="font-weight:bold;border-top:1px solid rgba(255,165,0,0.2)"><td colspan="10" style="text-align:left;color:#FFD700">Accumulated $${fn(l.accumUSD,2)} + ${fn(l.pbLeft,2)} PB + ${fn(l.pbcLeft,2)} PBc × $${fn(l.price,4)} = <span style="color:#4CAF50">TOTAL $${fn(tv,2)}</span> &nbsp; <span style="color:rgba(255,255,255,0.5)">(Invested: $${fn(ti,2)})</span></td></tr>`;}
+                        }
+
+                        function renderV2(rows){
+                            const tbody=document.querySelector('#ri-table-v2 tbody'); tbody.innerHTML='';
+                            rows.forEach((r,i)=>{
+                                const dca=(i===0)?0:Number(document.getElementById('ri-dca-step').value)||0;
+                                tbody.innerHTML+=`<tr><td class="sim-col-step">${r.step}</td><td class="sim-col-price">$${fn(r.price,4)}</td><td class="sim-col-pb">${fn(r.pbSold,2)}</td><td class="sim-col-pbc">${fn(r.pbcSold,2)}</td><td class="sim-col-sold">$${fn(r.usdRealized,2)}</td><td>$${fn(dca,2)}</td><td class="sim-col-reinv">@$${fn(r.reinvestPrice,4)}</td><td class="sim-col-new">${fn(r.newPB,2)}</td><td class="sim-col-new">${fn(r.newPBc,2)}</td><td class="sim-col-accum">$${fn(r.accumUSD,2)}</td></tr>`;
+                            });
+                            if(rows.length>0){const l=rows[rows.length-1];const tv=l.accumUSD+l.newPB*l.price+l.newPBc*l.price;const ii=Number(document.getElementById('ri-init-invest').value)||0;const ds=Number(document.getElementById('ri-dca-step').value)||0;const st=Number(document.getElementById('ri-steps').value)||0;const ti=ii+ds*(st-1);tbody.innerHTML+=`<tr style="font-weight:bold;border-top:1px solid rgba(255,165,0,0.2)"><td colspan="10" style="text-align:left;color:#FFD700">Accumulated $${fn(l.accumUSD,2)} + ${fn(l.newPB,2)} PB + ${fn(l.newPBc,2)} PBc × $${fn(l.price,4)} = <span style="color:#4CAF50">TOTAL $${fn(tv,2)}</span> &nbsp; <span style="color:rgba(255,255,255,0.5)">(Invested: $${fn(ti,2)})</span></td></tr>`;}
+                        }
+
+                        async function runSimulation(){
+                            const lbl=document.getElementById('ri-live-price-label');
+                            lbl.textContent='Fetching PB price…';
+                            let pbPrice=await fetchLivePBPrice();
+                            const userPrice=Number(document.getElementById('ri-init-price').value);
+                            if(userPrice>0){pbPrice=userPrice;lbl.textContent=`Manual price: $${pbPrice.toFixed(6)}`;}
+                            else{lbl.textContent=`Live PB price: $${pbPrice.toFixed(6)}`;}
+                            const initInvest=Number(document.getElementById('ri-init-invest').value)||555;
+                            const steps=Number(document.getElementById('ri-steps').value)||7;
+                            const dcaStep=Number(document.getElementById('ri-dca-step').value)||0;
+                            renderV1(simulateV1(initInvest,pbPrice,steps,dcaStep));
+                            renderV2(simulateV2(initInvest,pbPrice,steps,dcaStep));
+                        }
+
+                        document.getElementById('ri-refresh-btn').addEventListener('click', runSimulation);
+                        runSimulation();
+                    })();
+                    </script>
+            </div>
+        </section>
+
+        <section class="faq-section">
             <h2>Technical Details &amp; Integration</h2>
 
             <div class="faq-item" id="hardcore-backing">
-                <h4>How does the vault ensure 1:1 backing for all PBc tokens?</h4>
+                <h4 id="backing">How does the vault ensure 1:1 backing for all PBc tokens?</h4>
                 <p>
                     The core rule is simple: <strong>outstanding PBc can never exceed the PB held by the vault.</strong>
                     In other words, the backing condition is always <code>vaultPBBalance &ge; totalOutstandingPBc</code>.
@@ -1070,7 +1246,7 @@
             </div>
 
             <div class="faq-item" id="hardcore-gas">
-                <h4>Who pays for the gas when automatic unlocks happen?</h4>
+                <h4 id="gas">Who pays for the gas when automatic unlocks happen?</h4>
                 <p>
                     PB uses <strong>convergent netting</strong>, so every call to <code>buyPBDirect()</code> automatically settles
                     eligible unlocks for other users. The buyer pays the gas for the entire transaction. The easiest way to think about it is
@@ -1146,14 +1322,14 @@
             </div>
 
             <div class="faq-item">
-                <h4>What standard is PBc built on?</h4>
+                <h4 id="standard">What standard is PBc built on?</h4>
                 <p>
                     PBc is a non-transferable ERC-20 token. Each PBc balance is tied to your wallet and tracked alongside PBt entry prices, allowing precise checkpoint and redemption logic.
                 </p>
             </div>
 
             <div class="faq-item" id="hardcore-price">
-                <h4>How is price determined for checkpoints?</h4>
+                <h4 id="price">How is price determined for checkpoints?</h4>
                 <p>
                     Price is derived from the on-chain AMM spot price of the PB/USDL canonical pair via <code>getReserves()</code>. 
                     No external oracles. No off-chain data feeds. Pure on-chain logic. (on PulseX only) The 96.31% lock ratio makes spot-price 
@@ -1162,7 +1338,7 @@
             </div>
 
             <div class="faq-item" id="hardcore-manipulation">
-                <h4>How does PB protect against price manipulation?</h4>
+                <h4 id="manipulation">How does PB protect against price manipulation?</h4>
                 <p>
                     PB's main defense is the <strong>96.31% lock ratio</strong>. Any attacker trying to move price with a large buy gets only 3.69% liquid PB immediately, while the other 96.31% is locked as PBc under the same rules as everyone else.
                 </p>
@@ -1180,7 +1356,7 @@
             </div>
 
             <div class="faq-item">
-                <h4>Can I integrate PB into my own app, bot, or frontend?</h4>
+                <h4 id="integrate">Can I integrate PB into my own app, bot, or frontend?</h4>
                 <p>
                     Yes. PB can be integrated into wallets, dashboards, bots, portfolio tools, and custom frontends.
                     Once deployed, the contract address and ABI will be public.
@@ -1204,7 +1380,7 @@
             </div>
 
             <div class="faq-item">
-                <h4>Is the source code open?</h4>
+                <h4 id="source">Is the source code open?</h4>
                 <p>
                     Yes. After mainnet launch, the contracts will be publicly readable and auditable by anyone.
                     They will be visible on PulseChain Scan and available for independent review.
@@ -1216,7 +1392,7 @@
             <h2>Investment & Strategy</h2>
 
             <div class="faq-item">
-                <h4>Should I buy early blocks or late blocks?</h4>
+                <h4 id="early">Should I buy early blocks or late blocks?</h4>
                 <p>
                     Early blocks (#1-100) have lower entry prices on the curve, so lower 1.5555&times; unlock thresholds. 
                     Purchase price is fixed per block, but entry prices still affect unlock timing. All blocks follow identical rules no special treatment.
@@ -1224,7 +1400,7 @@
             </div>
 
             <div class="faq-item">
-                <h4>What's a good strategy for large buyers?</h4>
+                <h4 id="strategy">What's a good strategy for large buyers?</h4>
                 <p>
                     The main reason to split any larger allocation is to build a <strong>ladder</strong> instead of relying on one single entry.
                 </p>
@@ -1244,7 +1420,7 @@
 
             <div class="faq-item">
 
-                <h4>What if I want to pool liquidity?</h4>
+                <h4 id="pool">What if I want to pool liquidity?</h4>
                 <p>
                     You're free to do so. Any liquid PB can be paired with other assets and added to liquidity pools. 
                     The protocol doesn't restrict this. Just be aware: only liquid PB can be used for LP,  locked PBc 
@@ -1254,7 +1430,7 @@
             </div>
 
             <div class="faq-item">
-                <h4>Is Perpetual Bitcoin designed as a DCA out?</h4>
+                <h4 id="dca">Is Perpetual Bitcoin designed as a DCA out?</h4>
                 <p>
                     <strong>Yes, but automated, on-chain, and you never have to decide when to sell.</strong>
                 </p>
@@ -1287,7 +1463,7 @@
         <section class="faq-section" id="official-addresses">
             <h2>Verification &amp; Trust</h2>
             <div class="faq-item">
-                <h4>What is live right now, and what should I treat as canonical?</h4>
+                <h4 id="canonical">What is live right now, and what should I treat as canonical?</h4>
                 <p>
                     Use this section as the short due-diligence checkpoint.
                 </p>
@@ -1304,7 +1480,7 @@
             </div>
 
             <div class="faq-item">
-                <h4>What should I verify first before trusting PB?</h4>
+                <h4 id="verify">What should I verify first before trusting PB?</h4>
                 <ul>
                     <li>The official addresses shown <a href="#official-addresses" style="color: var(--primary-color); text-decoration: underline;">here</a> match the contracts users are actually pointed to.</li>
                     <li>The immutability claims match the real deployment architecture.</li>
@@ -1316,7 +1492,7 @@
             </div>
 
             <div class="faq-item">
-                <h4>Is PB decentralized?</h4>
+                <h4 id="decentralized">Is PB decentralized?</h4>
                 <p>
                     Yes. The core decentralization claim is at the <strong>protocol level</strong>: no admin keys, no governance, no upgrade path, no pause, no freeze, and no discretionary supply changes after deployment.
                 </p>
@@ -1335,7 +1511,7 @@
             </div>
 
             <div class="faq-item">
-                <h4>What rules should remain true if PB is still really PB?</h4>
+                <h4 id="rules">What rules should remain true if PB is still really PB?</h4>
                 <ul>
                     <li><strong>Fixed supply:</strong> PB supply stays fixed after genesis, with no discretionary inflation.</li>
                     <li><strong>Separated position state:</strong> liquid PB, locked PBc, and PBt tracking remain distinct and are not blurred by the UI.</li>
