@@ -18,6 +18,7 @@
         showStatus,
         showQuoteStatus,
         showTransactionStatus,
+        fetchHintsGithubFallback,
     } = window.PBTestDapp;
 
     function create(app) {
@@ -972,8 +973,15 @@
             try {
                 resp = await fetch(`${INDEXER_URL}/unlock-ids?usdl=${usdlWei.toString()}&limit=500&strict=true`);
             } catch (indexerErr) {
-                console.warn('Strict unlock selection failed:', indexerErr.message);
-                throw new Error(`Indexer unavailable for safe netting selection: ${indexerErr.message}`);
+                console.warn('Indexer unreachable, trying GitHub hints fallback:', indexerErr.message);
+                showStatus('buy-status', '⚠️ Indexer unreachable — using GitHub hint snapshot as fallback...', 'warning');
+                try {
+                    const fallback = await fetchHintsGithubFallback(usdlWei);
+                    showStatus('buy-status', `📦 GitHub fallback: ${fallback.unlockIds.length} hint(s) loaded`, 'warning');
+                    return fallback;
+                } catch (fbErr) {
+                    throw new Error(`Indexer and GitHub fallback both unavailable: ${fbErr.message}`);
+                }
             }
 
             let data = {};

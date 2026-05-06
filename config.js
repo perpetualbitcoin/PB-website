@@ -114,7 +114,11 @@ const DEPLOY_BLOCKS = NETWORK === "mainnet" ? DEPLOY_BLOCKS_MAINNET : DEPLOY_BLO
 const VAULT_DEPLOY_BLOCK = (DEPLOY_BLOCKS && DEPLOY_BLOCKS.Vault) || 0;
 
 // ── Site distribution links ─────────────────
-const IPFS_CID = "QmcM6x9YeThszEH2beHQMybJVr8h2gD95paQutyZfceEBR";
+const IPFS_CID = "QmSx7g8R4YugQ5Gg2NfeSwp3pp9Mfs3354dFmbEzQN1rUf";
 const GITHUB_DOWNLOAD = "https://github.com/perpetualbitcoin/PB-website/archive/refs/heads/main.zip";
+
+// ── Hints backup (GitHub Actions rebuild, independent of server) ─────────
+const HINTS_GITHUB_URL = "https://raw.githubusercontent.com/perpetualbitcoin/PB-hints/main/hints-latest.json.gz";
+const HINTS_JSDELIVR_URL = "https://cdn.jsdelivr.net/gh/perpetualbitcoin/PB-hints@main/hints-latest.json.gz";
 
 console.log(`✅ Config loaded [${NETWORK}] chainId:${ACTIVE_NETWORK.chainId}`);

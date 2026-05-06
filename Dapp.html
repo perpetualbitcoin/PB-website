@@ -722,6 +722,10 @@
                     <div class="form-group" style="margin-bottom:0;min-width:0;">
                         <label for="switch-test-expected-usdl" style="color:#7a7a7a;">Expected USDL</label>
                         <input type="text" id="switch-test-expected-usdl" class="input-field" value="-" readonly style="background:#000000;border:1px solid rgba(1, 228, 1, 0.6);color:#7a7a7a;box-shadow:none;cursor:default;" />
+                        <div style="display:flex;align-items:center;gap:8px;margin-top:5px;">
+                            <div id="switch-est-pb" style="font-size:1.1rem;font-weight:bold;color:#4CAF50;">-</div>
+                            <div style="font-size:0.8rem;color:#aaa;">(<span id="switch-est-liquid" style="color:#4CAF50;">-</span> + <span id="switch-est-locked" style="color:#ff9800;">-</span>)</div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -940,9 +944,10 @@
 
             function resetSwitchExpectedUsdl() {
                 const expectedInput = document.getElementById('switch-test-expected-usdl');
-                if (!expectedInput) return;
-                expectedInput.value = '-';
-                expectedInput.style.color = '#7a7a7a';
+                if (expectedInput) { expectedInput.value = '-'; expectedInput.style.color = '#7a7a7a'; }
+                document.getElementById('switch-est-pb').innerText = '-';
+                document.getElementById('switch-est-liquid').innerText = '-';
+                document.getElementById('switch-est-locked').innerText = '-';
             }
 
             async function onWalletConnect(address) {
@@ -1156,23 +1161,71 @@
 
             try {
                 const pool = await contractLayer.getPoolSnapshot();
+                const usdlWeiBig = BigInt(String(expectedUsdlWei));
+
+                // Fetch hints: try server DB first, fall back to GitHub snapshot
+                let sim = null;
+                try {
+                    let rows = null;
+                    try {
+                        const resp = await fetch(`${INDEXER_URL}/unlock-ids?usdl=${usdlWeiBig.toString()}&limit=500&strict=true`);
+                        if (resp.ok) {
+                            const data = await resp.json();
+                            if (Array.isArray(data.unlockIds) && data.unlockIds.length > 0) {
+                                // Server returns IDs only — we need rows with pbcLocked for simulation.
+                                // Use GitHub snapshot to get the full rows, filtered to these IDs.
+                                const ghHints = await window.PBTestDapp.fetchHintsGithubFallback(usdlWeiBig);
+                                const idSet = new Set(data.unlockIds.map(Number));
+                                rows = (ghHints.rows || []).filter(r => idSet.has(r.pbtId));
+                            }
+                        }
+                    } catch (_) {}
+                    // If server failed or returned nothing, use GitHub snapshot directly
+                    if (!rows) {
+                        const ghHints = await window.PBTestDapp.fetchHintsGithubFallback(usdlWeiBig);
+                        rows = ghHints.rows || [];
+                    }
+                    if (rows.length > 0) {
+                        sim = window.PBTestDapp.simulateNettingQuick(
+                            usdlWeiBig, pool.reservePB, pool.reserveUSDL, rows
+                        );
+                    }
+                } catch (_) {}
+
                 const price = Number(pool?.price || 0);
                 const expectedUsdl = Number(ethers.formatEther(String(expectedUsdlWei)));
-                if (!Number.isFinite(price) || price <= 0 || !Number.isFinite(expectedUsdl) || expectedUsdl <= 0) {
-                    body.switchDerived = null;
-                    return body;
-                }
 
-                const totalPb = expectedUsdl / price;
-                const liquidPb = totalPb * 0.0369;
-                const lockedPbc = totalPb * 0.9631;
-                body.switchDerived = {
-                    pbPrice: price,
-                    expectedUsdl,
-                    totalPb,
-                    liquidPb,
-                    lockedPbc,
-                };
+                if (sim && sim.totalPB > 0n) {
+                    const totalPB = Number(ethers.formatEther(sim.totalPB.toString()));
+                    const liquidPb = totalPB * 0.0369;
+                    const lockedPbc = totalPB - liquidPb;
+                    const avgPrice = Number(ethers.formatEther(sim.avgPrice.toString()));
+                    body.switchDerived = {
+                        pbPrice: price,
+                        expectedUsdl,
+                        totalPb: totalPB,
+                        liquidPb,
+                        lockedPbc,
+                        nettedCount: sim.nettedCount,
+                        avgPrice,
+                        simulated: true,
+                    };
+                } else if (Number.isFinite(price) && price > 0 && Number.isFinite(expectedUsdl) && expectedUsdl > 0) {
+                    // Fallback: spot price estimate (no hints available)
+                    const totalPb = expectedUsdl / price;
+                    body.switchDerived = {
+                        pbPrice: price,
+                        expectedUsdl,
+                        totalPb,
+                        liquidPb: totalPb * 0.0369,
+                        lockedPbc: totalPb * 0.9631,
+                        nettedCount: null,
+                        avgPrice: price,
+                        simulated: false,
+                    };
+                } else {
+                    body.switchDerived = null;
+                }
             } catch (err) {
                 body.switchDerived = null;
             }
@@ -1289,9 +1342,13 @@
                 predictionLines.push(`<div class="terminal-line"><span class="terminal-prefix">&gt;</span><span class="terminal-key">Fee On Output:</span> ${switchTerminalInline(String(zapperBuild.feeOnOutput ?? '-'))}</div>`);
                 predictionLines.push(`<div class="terminal-line"><span class="terminal-prefix">&gt;</span><span class="terminal-key">Switch Quote:</span> ${switchTerminalInline(`${switchQuote.fromToken || '-'} -> ${switchQuote.toToken || '-'}`)}</div>`);
                 if (derived) {
-                    predictionLines.push(`<div class="terminal-line"><span class="terminal-prefix">&gt;</span><span class="terminal-key">Est. PB Total:</span> ${switchTerminalInline(`${formatNumber(derived.totalPb, 4)} PB`)}</div>`);
-                    predictionLines.push(`<div class="terminal-line"><span class="terminal-prefix">&gt;</span><span class="terminal-key">Split:</span> ${switchTerminalInline(`${formatNumber(derived.liquidPb, 4)} PB + ${formatNumber(derived.lockedPbc, 4)} PBc`)}</div>`);
-                    predictionLines.push(`<div class="terminal-line"><span class="terminal-prefix">&gt;</span><span class="terminal-key">PB Price Used:</span> ${switchTerminalInline(formatPrice(derived.pbPrice))}</div>`);
+                    const nettingLabel = derived.nettedCount != null
+                        ? `Netting (${derived.nettedCount}) trigger${derived.nettedCount !== 1 ? 's' : ''} + AMM Buy`
+                        : 'Est. (spot price, no hints)';
+                    predictionLines.push(`<div class="terminal-line"><span class="terminal-prefix">&gt;</span><span class="terminal-key">Netting:</span> ${switchTerminalInline(nettingLabel)}</div>`);
+                    predictionLines.push(`<div class="terminal-line"><span class="terminal-prefix">&gt;</span><span class="terminal-key">Est. PB Total:</span> ${switchTerminalInline(`~${formatNumber(derived.totalPb, 2)} PB`)}</div>`);
+                    predictionLines.push(`<div class="terminal-line"><span class="terminal-prefix">&gt;</span><span class="terminal-key">Split:</span> ${switchTerminalInline(`${formatNumber(derived.liquidPb, 2)} PB + ${formatNumber(derived.lockedPbc, 2)} PBc`)}</div>`);
+                    predictionLines.push(`<div class="terminal-line"><span class="terminal-prefix">&gt;</span><span class="terminal-key">Est. Avg Price:</span> ${switchTerminalInline(formatPrice(derived.avgPrice))}</div>`);
                 }
                 predictionLines.push(`<div class="terminal-line"><span class="terminal-prefix">&gt;</span><span class="terminal-key">Unlock IDs:</span> ${switchTerminalInline((build.unlockSelection?.unlockIds || []).join(', ') || 'None')}</div>`);
                 predictionLines.push('<div class="terminal-line"><span class="terminal-prefix">#</span><span class="terminal-muted">switch path</span></div>');
@@ -1416,6 +1473,12 @@
                     ['Est. PB', body?.switchDerived ? `${formatNumber(body.switchDerived.totalPb, 4)} PB` : 'Unavailable'],
                 ]);
                 setSwitchExpectedUsdl(formatTokenFromWei(body?.zapperBuild?.expectedUSDL || '0', 6, 'USDL'), 'ready');
+                if (body?.switchDerived) {
+                    const d = body.switchDerived;
+                    document.getElementById('switch-est-pb').innerText = '~' + formatNumber(d.totalPb, 2);
+                    document.getElementById('switch-est-liquid').innerText = formatNumber(d.liquidPb, 2) + ' PB';
+                    document.getElementById('switch-est-locked').innerText = formatNumber(d.lockedPbc, 2) + ' PBc';
+                }
                 renderSwitchTerminal();
                 setSwitchStatus('Switch test preview ready. Inspect the terminal before signing.', 'success');
                 return body;

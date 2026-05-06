@@ -483,6 +483,146 @@
 
     window.addPulseMainnet = addPulseMainnet;
     window.addPulseTestnet = addPulseTestnet;
+
+    // ── GitHub hints fallback ────────────────────────────────────────────────
+    // Used when the indexer is unreachable. Downloads the pre-sorted snapshot,
+    // decompresses it, and returns a compatible response object.
+    // The full sorted list is safe to pass to the vault — the contract ignores
+    // hints that aren't yet eligible. Capped at 500 to match normal hint limit.
+    async function fetchHintsGithubFallback(usdlWei) {
+        const urls = [
+            (typeof HINTS_GITHUB_URL !== 'undefined' && HINTS_GITHUB_URL) || 'https://raw.githubusercontent.com/perpetualbitcoin/PB-hints/main/hints-latest.json.gz',
+            (typeof HINTS_JSDELIVR_URL !== 'undefined' && HINTS_JSDELIVR_URL) || 'https://cdn.jsdelivr.net/gh/perpetualbitcoin/PB-hints@main/hints-latest.json.gz',
+        ];
+        let lastErr;
+        for (const url of urls) {
+            try {
+                const resp = await fetch(url);
+                if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+                const buf = await resp.arrayBuffer();
+                const ds = new DecompressionStream('gzip');
+                const writer = ds.writable.getWriter();
+                writer.write(new Uint8Array(buf));
+                writer.close();
+                const reader = ds.readable.getReader();
+                const chunks = [];
+                let done = false;
+                while (!done) {
+                    const { value, done: d } = await reader.read();
+                    if (value) chunks.push(value);
+                    done = d;
+                }
+                const text = new TextDecoder().decode(
+                    chunks.reduce((acc, c) => {
+                        const merged = new Uint8Array(acc.length + c.length);
+                        merged.set(acc);
+                        merged.set(c, acc.length);
+                        return merged;
+                    }, new Uint8Array(0))
+                );
+                const { rows } = JSON.parse(text);
+                if (!Array.isArray(rows)) throw new Error('No rows in hint snapshot');
+
+                // Filter to only hints reachable by this buy amount.
+                // Fetch live reserves, compute the max price this usdlWei can push to,
+                // then keep only rows whose nextTriggerPrice <= that max price.
+                let filtered = rows;
+                if (usdlWei && usdlWei > 0n) {
+                    try {
+                        const provider = new ethers.providers.JsonRpcProvider(RPC_URL);
+                        const pair = new ethers.Contract(PULSEX_PAIR, PAIR_ABI, provider);
+                        const [r0, r1] = await pair.getReserves();
+                        // PB/USDL pair: token0 order depends on address sort
+                        // Use reservePB and reserveUSDL via getAmountOut to find post-buy price
+                        const reservePB = BigInt(r0.toString());
+                        const reserveUSDL = BigInt(r1.toString());
+                        const pbOut = getAmountOut(usdlWei, reserveUSDL, reservePB);
+                        // Post-swap spot price — same formula as computeEstimatedMaxPrice
+                        const newReservePB = reservePB - pbOut;
+                        const newReserveUSDL = reserveUSDL + usdlWei;
+                        const maxPrice = newReservePB > 0n
+                            ? (newReserveUSDL * (10n ** 18n)) / newReservePB
+                            : (reserveUSDL * (10n ** 18n)) / reservePB;
+                        filtered = rows.filter(r => BigInt(r.nextTriggerPrice) <= maxPrice);
+                    } catch (_) {
+                        // reserves unavailable — fall back to full list capped at 500
+                    }
+                }
+
+                const capped = filtered.slice(0, 500);
+                return {
+                    unlockIds: capped.map(r => r.pbtId),
+                    rows: capped,
+                    coreCount: capped.length,
+                    overflowCount: 0,
+                    hasPartial: false,
+                    truncated: false,
+                    source: 'github-fallback',
+                };
+            } catch (e) {
+                lastErr = e;
+            }
+        }
+        throw new Error(`GitHub hints fallback failed: ${lastErr?.message}`);
+    }
+
+    // ── Quick netting simulation ─────────────────────────────────────────────
+    // Runs the core netting loop against hint rows (from GitHub snapshot or live).
+    // rows: [{nextTriggerPrice, pbcLocked}] sorted by nextTriggerPrice asc.
+    // Returns {nettedCount, nettedPBc, ammPBOut, totalPB, avgPrice} all BigInt
+    // except nettedCount (number). Skips LP contribution and post-AMM unlocks.
+    function simulateNettingQuick(usdlWei, reservePB, reserveUSDL, rows) {
+        const TRANCHE_FRAC = 3n;
+        const DUST = 15n;
+        let vPB = reservePB;
+        let vUSDL = reserveUSDL;
+        let budget = usdlWei;
+        let nettedCount = 0;
+        let nettedPBc = 0n;
+        let totalNettedSettlement = 0n; // only settlement USDL paid to netting, not vBuy
+
+        for (let i = 0; i < rows.length; i++) {
+            const triggerPrice = BigInt(rows[i].nextTriggerPrice || rows[i].liveTrigger || 0);
+            const pbcLocked = BigInt(rows[i].pbcLocked || rows[i].liveRemaining || 0);
+            if (pbcLocked <= 0n) continue;
+
+            const vBuy = computeUSDLForPrice(vPB, vUSDL, triggerPrice);
+            const tranche = pbcLocked < DUST ? pbcLocked : pbcLocked / TRANCHE_FRAC;
+            const settlement = (tranche * triggerPrice) / (10n ** 18n);
+
+            if (budget < vBuy || (budget - vBuy) < settlement) {
+                if (budget >= vBuy) {
+                    if (vBuy > 0n) {
+                        const pb = getAmountOut(vBuy, vUSDL, vPB);
+                        vUSDL += vBuy; vPB -= pb; budget -= vBuy;
+                    }
+                    const partial = settlement > 0n ? (tranche * budget) / settlement : 0n;
+                    nettedPBc += partial;
+                    totalNettedSettlement += budget; // partial settlement
+                    nettedCount += 1;
+                    budget = 0n;
+                }
+                break;
+            }
+
+            budget -= (vBuy + settlement);
+            totalNettedSettlement += settlement; // only track settlement, vBuy stays in AMM
+            if (vBuy > 0n) {
+                const pb = getAmountOut(vBuy, vUSDL, vPB);
+                vUSDL += vBuy; vPB -= pb;
+            }
+            nettedPBc += tranche;
+            nettedCount += 1;
+        }
+
+        // AMM receives everything except netting settlements (vBuy amounts are also AMM buys)
+        const ammBuyAmount = usdlWei - totalNettedSettlement;
+        const ammPBOut = ammBuyAmount > 0n ? getAmountOut(ammBuyAmount, vUSDL, vPB) : 0n;
+        const totalPB = nettedPBc + ammPBOut;
+        const avgPrice = totalPB > 0n ? (usdlWei * (10n ** 18n)) / totalPB : 0n;
+        return { nettedCount, nettedPBc, ammPBOut, totalPB, avgPrice };
+    }
+
     window.PBTestDapp = {
         ACTIVE_NETWORK_KEY,
         CHAIN_ID,
@@ -524,6 +664,8 @@
         showStatus,
         showQuoteStatus,
         showTransactionStatus,
-        createOperationTerminal
+        createOperationTerminal,
+        fetchHintsGithubFallback,
+        simulateNettingQuick,
     };
 })();
