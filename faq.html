@@ -1553,11 +1553,27 @@
                     It also applies to <strong>execution visibility</strong>. The <a href="Dapp.html" style="color: var(--primary-color); text-decoration: underline;">Dapp</a> exposes the Buy / Sell Trust Terminal so users can inspect the route they are taking instead of relying on opaque frontend wording.
                 </p>
                 <p>
-                    And it applies to <strong>frontend redundancy</strong>. If you want a decentralized or independently preserved copy of the site, use the published IPFS copy or the downloadable site package when available.
+                    And it applies to <strong>frontend redundancy</strong>. If you want a DECENTRALIZED or independently preserved copy of the site, use the published IPFS copy or the downloadable site package when available.
                     <a id="faq-verify-ipfs-link" href="#" style="color: var(--primary-color); text-decoration: underline; display: none;">Open IPFS copy</a>
                     <span id="faq-verify-separator" style="display: none; color: #888;"> | </span>
                     <a id="faq-verify-download-link" href="#" style="color: var(--primary-color); text-decoration: underline; display: none;">Download site package</a>
                 </p>
+                <p style="font-size:0.82rem;color:#888;word-break:break-all;line-height:1.7;margin-top:-0.25rem;" id="faq-ipfs-cid-block" style="display:none;">
+                </p>
+                <script>
+                    (function(){
+                        const el = document.getElementById('faq-ipfs-cid-block');
+                        if (!el) return;
+                        const v0 = (typeof IPFS_CID !== 'undefined' && IPFS_CID) ? IPFS_CID : null;
+                        const v1 = (typeof IPFS_CID_V1 !== 'undefined' && IPFS_CID_V1) ? IPFS_CID_V1 : null;
+                        if (!v0 && !v1) return;
+                        el.style.display = '';
+                        el.innerHTML =
+                            (v0 ? '<strong style="color:#aaa;">CIDv0:</strong> <span style="color:#ccc;">' + v0 + '</span><br>' : '') +
+                            (v1 ? '<strong style="color:#aaa;">CIDv1:</strong> <span style="color:#ccc;">' + v1 + '</span><br>' : '') +
+                            (v0 ? '<span style="color:#666;">These are the same content. You can verify: <code style="color:#999;font-size:0.78rem;">ipfs cid format -v 1 -b base32 ' + v0 + '</code></span>' : '');
+                    })();
+                </script>
                 <p>
                     The real check is whether all three layers still line up: the published addresses, the frontend behavior, and the on-chain contracts.
                 </p>

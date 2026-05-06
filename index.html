@@ -103,6 +103,8 @@
             <script>
               if(typeof IPFS_CID!=='undefined' && IPFS_CID){
                 document.getElementById('ipfs-link').href='https://ipfs.io/ipfs/'+IPFS_CID+'/site/';
+                const v1 = (typeof IPFS_CID_V1 !== 'undefined' && IPFS_CID_V1) ? IPFS_CID_V1 : null;
+                document.getElementById('ipfs-link').title='Browse on IPFS\nCIDv0: '+IPFS_CID+(v1?'\nCIDv1: '+v1:'')+'\nVerify: ipfs cid format -v 1 -b base32 '+IPFS_CID;
               }
               if(typeof GITHUB_DOWNLOAD!=='undefined' && GITHUB_DOWNLOAD){
                 document.getElementById('download-site-btn').href=GITHUB_DOWNLOAD;
@@ -129,12 +131,12 @@
         <h2>What Is Perpetual Bitcoin?</h2>
         <div class="distribution-container">
             <div class="distribution-table">
-                <p style="color:#ccc;font-size:1.25rem;line-height:1.7;text-align:center;padding:1.5rem;">
-                    Perpetual Bitcoin is a <strong>finished, immutable, permissionless protocol</strong> with <strong>automated DCA-out</strong> built in.<br>
-                    21 million fixed supply. No admin keys. No governance. No freeze. No blacklist.<br>
-                    Buys route through the Vault so the protocol rules are enforced. Sells remain free on the AMM.<br>
-                    When price rises 55.55%, one-third of the remaining locked position becomes eligible to settle into USDL.<br> 
-                    <strong style="color:#F39004;">You will take profit at each eligible milestone while still retaining remaining exposure</strong>.<br>
+                <p style="color:#f3ede4;font-size:1.25rem;line-height:1.7;text-align:center;padding:1.5rem;">
+                    <span style="color:#F39004;font-size:1.2em;"><strong>Perpetual Bitcoin is a finished, immutable, price-triggered DCA-OUT protocol</strong> on <strong>PulseChain.</strong></span><br>
+                    21 million fixed supply. No admin keys. No governance. No freeze. No blacklist. No Off-switch.<br>
+                    All buys route through the Vault so the protocol rules are enforced. Sells remain free on the AMM.<br>
+                    When price rises 55.55% from the initial purchase price, 1/3 of the remaining locked position will be sold into USDL.<br>
+                    <strong style="color:#F39004;">So you will take profit at each eligible milestone automatically, while still retaining remaining exposure</strong>.<br>
                     No calendar cliffs. No manager discretion. The same rule applies at each eligible milestone.
                 </p>
             </div>
@@ -177,24 +179,18 @@
         <h2>Not Another Token. A Constitution.</h2>
         <div class="distribution-container">
             <div class="distribution-table">
-                <table>
-                    <tr>
-                        <th>Perpetual Bitcoin Promise</th>
-                        <th>What You Actually Get</th>
-                    </tr>
-                    <tr>
-                        <td>Rules stay fixed after deployment</td>
-                        <td>Immutable code path. No admin keys. No upgradeability after deployment.</td>
-                    </tr>
-                    <tr>
-                        <td>No one can dump on you early, NO VC's</td>
-                        <td>Locked positions are non‑transferable.</td>
-                    </tr>
-                    <tr>
-                        <td>No cliff‑based surprises</td>
-                        <td>Unlocks depend on market demand, not time.</td>
-                    </tr>
-                </table>
+
+                <figure class="callout-figure">
+                    <img
+                        src="Pic/PB%20Values.png"
+                        alt="Perpetual Bitcoin values set in stone: immutable rules, fixed supply, no inflation, no blacklist, no off-switch, no admin keys, no VCs, no rugs, and no governance."
+                        title="Perpetual Bitcoin Constitution: immutable, fixed-supply, no-admin, no-governance values set in stone"
+                        loading="lazy"
+                        decoding="async"
+                        width="1536"
+                        height="1024"
+                    />
+                </figure>
             </div>
         </div>
     </section>
