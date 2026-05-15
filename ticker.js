@@ -57,9 +57,8 @@
     ];
     var VAULT_ABI = [
         'function totalUSDLDistributed() view returns (uint256)',
-    ];
-    var VAULT_VIEWS_ABI = [
-        'function totalOutstandingPBc() view returns (uint256)',
+        'function vaultPBBalance() view returns (uint256)',
+        'function vaultPBcBalance() view returns (uint256)',
     ];
 
     // ── ethers v5/v6 compat ──
@@ -99,14 +98,13 @@
             var rpc = makeProvider();
             var pairC  = new ethers.Contract(TICKER_ADDRESSES.PB_USDL_PAIR, PAIR_ABI, rpc);
             var vaultC = new ethers.Contract(TICKER_ADDRESSES.Vault, VAULT_ABI, rpc);
-            var vaultViewsC = new ethers.Contract(TICKER_ADDRESSES.VaultViews, VAULT_VIEWS_ABI, rpc);
 
             var results = await Promise.all([
                 pairC.getReserves(), pairC.token0(),
-                vaultC.totalUSDLDistributed(), vaultViewsC.totalOutstandingPBc()
+                vaultC.totalUSDLDistributed(), vaultC.vaultPBBalance(), vaultC.vaultPBcBalance()
             ]);
             var reserves = results[0], token0 = results[1],
-                totalUSDLDist = results[2], totalOutPBc = results[3];
+                totalUSDLDist = results[2], vaultPB = results[3], vaultPBc = results[4];
 
             var pbRes, usdlRes;
             if (token0.toLowerCase() === TICKER_ADDRESSES.PB.toLowerCase()) {
@@ -120,9 +118,11 @@
             var price    = usdlRes / pbRes;
             var poolVal  = usdlRes * 2;
             var mc       = 21000000 * price;
-            var lockedPBc = Number(fmtEther(totalOutPBc));
-            var liquidPB  = lockedPBc * (3.69 / 96.31);
-            var mcUsers   = Math.max((liquidPB + lockedPBc - pbRes) * price, 0);
+            var vaultPBNum = Number(fmtEther(vaultPB));
+            var vaultPBcNum = Number(fmtEther(vaultPBc));
+            var maxSellPB = Math.max(21000000 - vaultPBNum - pbRes, 0);
+            var userPBc = Math.max(21000000 - vaultPBcNum, 0);
+            var mcUsers   = (maxSellPB + userPBc) * price;
             var dist      = Number(fmtEther(totalUSDLDist));
             var gainPct   = ((price - (90000 / 1620000)) / (90000 / 1620000)) * 100;
             var gainStr   = (gainPct >= 0 ? '+' : '') + gainPct.toFixed(2) + '%';

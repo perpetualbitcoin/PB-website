@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FAQ - Perpetual Bitcoin | How PB Works</title>
+    <title>PB FAQ - Perpetual Bitcoin | Everything You Need to Know about Perpetual Bitcoin</title>
     <meta name="description" content="Frequently asked questions about Perpetual Bitcoin. Learn how PB works, presale mechanics, price-driven unlocks, vault rules, verification paths, and protocol risks." />
     <meta name="keywords" content="Perpetual Bitcoin FAQ, PB FAQ, how PB works, PBc unlock, presale FAQ, PulseChain DeFi, vault mechanics, convergent netting" />
     <meta name="robots" content="index, follow" />
@@ -12,7 +12,7 @@
     <!-- Open Graph -->
     <meta property="og:type" content="article" />
     <meta property="og:url" content="https://perpetualbitcoin.io/faq.html" />
-    <meta property="og:title" content="FAQ - Perpetual Bitcoin | How PB Works" />
+    <meta property="og:title" content="PB FAQ - Perpetual Bitcoin | Everything You Need to Know about Perpetual Bitcoin" />
     <meta property="og:description" content="Questions, edge cases, and operational details for Perpetual Bitcoin: presale, unlocks, vault rules, verification, and security." />
     <meta property="og:image" content="https://perpetualbitcoin.io/Pic/PB_logo.jpg" />
     <meta property="og:site_name" content="Perpetual Bitcoin" />
@@ -547,13 +547,6 @@
                 </p>
             </div>
 
-            <div class="faq-item">
-                <h4 id="entry">How is my entry price determined?</h4>
-                <p>
-                    Each block has an entry price on a fixed curve. Block #1 = 0.0369 USDL/PB, Block #555 = 0.05352 USDL/PB. 
-                    Linear interpolation fills in between. Early blocks = lower entry price = lower unlock thresholds. Purchase price remains fixed at 555.5 USDL per block.
-                </p>
-            </div>
           </section>
 
         <section class="faq-section">
@@ -752,12 +745,12 @@
                     const wrap = document.getElementById('vault-explorer-link-wrap');
                     if (!wrap) return;
                     try {
-                        const hasMainnet = typeof NETWORKS !== 'undefined' && typeof ADDRESSES_MAINNET !== 'undefined';
-                        const explorer = hasMainnet && NETWORKS.mainnet ? NETWORKS.mainnet.explorer : '';
+                        const hasMainnet = typeof ADDRESSES_MAINNET !== 'undefined';
                         const vaultAddress = hasMainnet && ADDRESSES_MAINNET ? ADDRESSES_MAINNET.Vault : '';
+                        const PINATA_SCAN = 'https://scan.mypinata.cloud/ipfs/bafybeienxyoyrhn5tswclvd3gdjy5mtkkwmu37aqtml6onbf7xnb3o22pe/#/address/';
 
-                        if (explorer && vaultAddress) {
-                            const href = explorer.replace(/\/$/, '') + '/address/' + vaultAddress;
+                        if (vaultAddress) {
+                            const href = PINATA_SCAN + vaultAddress;
                             wrap.innerHTML = '<a href="' + href + '" target="_blank" rel="noopener" style="color: var(--primary-color);">View mainnet Vault on explorer</a>';
                         } else {
                             wrap.innerHTML = '<span style="color: #aaa;">Mainnet Vault: Pending publication</span>';
@@ -967,7 +960,7 @@
                         </div>
                         <div style="flex:1;min-width:120px">
                             <label style="display:block;color:#F39004;font-weight:600;margin-bottom:0.3rem;font-size:0.85rem">Tiers to Show</label>
-                            <input id="calc-tiers" type="number" min="1" max="100" step="1" value="13"
+                            <input id="calc-tiers" type="number" min="1" max="100" step="1" value="5"
                                    style="width:100%;padding:0.6rem;background:#1a1a2e;border:1px solid rgba(255,165,0,0.3);color:#fff;border-radius:6px;font-size:1rem"
                                    oninput="calcUpdate()">
                         </div>
@@ -1012,10 +1005,25 @@
             return v.toExponential(4);
         }
 
+
+        // --- Sync entry price with Invest vs Re-Invest simulator ---
+        function syncEntryPriceFromReinvest() {
+            const riInitPrice = document.getElementById('ri-init-price');
+            const calcPrice = document.getElementById('calc-price');
+            if (riInitPrice && calcPrice) {
+                const val = parseFloat(riInitPrice.value);
+                if (!isNaN(val) && val > 0) {
+                    calcPrice.value = val;
+                }
+            }
+        }
+
         function calcUpdate() {
+            // If called from ri-init-price, sync value
+            syncEntryPriceFromReinvest();
             const usdl  = parseFloat(document.getElementById('calc-usdl').value) || 0;
             const price = parseFloat(document.getElementById('calc-price').value) || 0;
-            const tiers = Math.max(1, Math.min(100, parseInt(document.getElementById('calc-tiers').value) || 13));
+            const tiers = Math.max(1, Math.min(100, parseInt(document.getElementById('calc-tiers').value) || 5));
             if (usdl <= 0 || price <= 0) return;
 
             const totalPB  = usdl / price;
@@ -1089,12 +1097,40 @@
 
         function calcReset() {
             document.getElementById('calc-usdl').value  = '100';
-            document.getElementById('calc-price').value = '0.13';
+            setDefaultEntryPrice();
             document.getElementById('calc-tiers').value = '5';
             calcUpdate();
         }
 
-        calcUpdate();
+        // --- Set default entry price to current PB price on load (same logic as Invest vs Re-Invest) ---
+        async function setDefaultEntryPrice() {
+            const calcPrice = document.getElementById('calc-price');
+            if (!calcPrice) return;
+            // Try to get live price from ticker or API, fallback to 0.13
+            let price = 0.13;
+            try {
+                const el = document.getElementById('tick-price');
+                if (el && el.textContent) {
+                    const m = el.textContent.replace(/[^\d.]/g,'');
+                    if(!isNaN(Number(m))&&Number(m)>0) price = Number(m);
+                }
+            } catch(e){}
+            if (price === 0.13) {
+                try {
+                    const resp = await fetch('https://perpetualbitcoin.io/MN-api?method=price');
+                    const data = await resp.json();
+                    if (data && data.price) price = Number(data.price);
+                } catch(e){}
+            }
+            calcPrice.value = price;
+            calcUpdate();
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', setDefaultEntryPrice);
+        } else {
+            setDefaultEntryPrice();
+        }
         </script>
 
         <section class="faq-section">

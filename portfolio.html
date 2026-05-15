@@ -115,6 +115,42 @@
             content: '−';
         }
 
+        .portfolio-collapsible {
+            width: 100%;
+        }
+
+        .portfolio-collapsible > summary {
+            list-style: none;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+            user-select: none;
+        }
+
+        .portfolio-collapsible > summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .portfolio-collapsible > summary::after {
+            content: '+';
+            color: #F39004;
+            font-weight: 900;
+            font-size: 1.25rem;
+            line-height: 1;
+            flex: 0 0 auto;
+        }
+
+        .portfolio-collapsible[open] > summary::after {
+            content: '−';
+        }
+
+        .portfolio-collapsible > summary .section-title {
+            margin: 0;
+        }
+
         .alert-wallet-picker {
             margin: 0;
         }
@@ -531,50 +567,55 @@
 
         <!-- RESULTS TABLE -->
         <section class="card" id="totals-section" style="display: none;">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
-                <h3 class="section-title" style="margin:0;">💰 Portfolio</h3>
-                <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end;">
-                    <div style="font-size:0.9rem;color:#aaa;padding:8px 12px;border:1px solid rgba(243,144,4,0.18);border-radius:999px;background:rgba(243,144,4,0.08);">PB+PBc Value: <span id="grand-holdings-value" style="color:#4CAF50;font-weight:700;">-</span></div>
-                    <div style="font-size:0.9rem;color:#aaa;">PB Price: <span id="grand-price" style="color:#F39004;font-weight:700;">-</span></div>
+            <details class="portfolio-collapsible" open>
+                <summary>
+                    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;width:100%;">
+                        <h3 class="section-title" style="margin:0;">💰 Portfolio</h3>
+                        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end;">
+                            <div style="font-size:0.9rem;color:#aaa;padding:8px 12px;border:1px solid rgba(243,144,4,0.18);border-radius:999px;background:rgba(243,144,4,0.08);">PB+PBc Value: <span id="grand-holdings-value" style="color:#4CAF50;font-weight:700;">-</span></div>
+                            <div style="font-size:0.9rem;color:#aaa;">PB Price: <span id="grand-price" style="color:#F39004;font-weight:700;">-</span></div>
+                        </div>
+                    </div>
+                </summary>
+                <div class="portfolio-table-wrap" style="overflow-x:auto;">
+                    <table id="portfolio-table" style="width:100%;border-collapse:collapse;font-size:0.9rem;table-layout:fixed;">
+                        <colgroup>
+                            <col style="width:130px;">
+                            <col style="width:105px;">
+                            <col style="width:105px;">
+                            <col style="width:95px;">
+                            <col style="width:95px;">
+                            <col style="width:110px;">
+                            <col style="width:50px;">
+                            <col style="width:30px;">
+                        </colgroup>
+                        <thead>
+                            <tr style="border-bottom:2px solid #F39004;">
+                                <th style="padding:10px 8px;text-align:left;color:#F39004;white-space:nowrap;cursor:pointer;user-select:none;" onclick="sortTable('addr')">Address <span id="sort-addr" style="font-size:0.7rem;"></span></th>
+                                <th style="padding:10px 8px;text-align:right;color:#F39004;white-space:nowrap;cursor:pointer;user-select:none;" onclick="sortTable('in')">$ IN <span id="sort-in" style="font-size:0.7rem;"></span></th>
+                                <th style="padding:10px 8px;text-align:right;color:#F39004;white-space:nowrap;cursor:pointer;user-select:none;" onclick="sortTable('paid')">$ Paid <span id="sort-paid" style="font-size:0.7rem;"></span></th>
+                                <th style="padding:10px 8px;text-align:right;color:#F39004;white-space:nowrap;cursor:pointer;user-select:none;" onclick="sortTable('pb')">PB <span id="sort-pb" style="font-size:0.7rem;"></span></th>
+                                <th style="padding:10px 8px;text-align:right;color:#F39004;white-space:nowrap;cursor:pointer;user-select:none;" onclick="sortTable('pbc')">PBc <span id="sort-pbc" style="font-size:0.7rem;"></span></th>
+                                <th style="padding:10px 8px;text-align:right;color:#F39004;white-space:nowrap;cursor:pointer;user-select:none;" onclick="sortTable('val')">Total $ <span id="sort-val" style="font-size:0.7rem;"></span></th>
+                                <th style="padding:10px 8px;text-align:center;color:#F39004;white-space:nowrap;cursor:pointer;user-select:none;" onclick="sortTable('t')"># T <span id="sort-t" style="font-size:0.7rem;"></span></th>
+                                <th style="padding:10px 4px;text-align:center;color:#F39004;"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="portfolio-tbody"></tbody>
+                        <tfoot id="portfolio-tfoot" style="border-top:2px solid #F39004;"></tfoot>
+                    </table>
                 </div>
-            </div>
-            <div class="portfolio-table-wrap" style="overflow-x:auto;">
-                <table id="portfolio-table" style="width:100%;border-collapse:collapse;font-size:0.9rem;table-layout:fixed;">
-                    <colgroup>
-                        <col style="width:130px;">
-                        <col style="width:105px;">
-                        <col style="width:105px;">
-                        <col style="width:95px;">
-                        <col style="width:95px;">
-                        <col style="width:110px;">
-                        <col style="width:50px;">
-                        <col style="width:30px;">
-                    </colgroup>
-                    <thead>
-                        <tr style="border-bottom:2px solid #F39004;">
-                            <th style="padding:10px 8px;text-align:left;color:#F39004;white-space:nowrap;cursor:pointer;user-select:none;" onclick="sortTable('addr')">Address <span id="sort-addr" style="font-size:0.7rem;"></span></th>
-                            <th style="padding:10px 8px;text-align:right;color:#F39004;white-space:nowrap;cursor:pointer;user-select:none;" onclick="sortTable('in')">$ IN <span id="sort-in" style="font-size:0.7rem;"></span></th>
-                            <th style="padding:10px 8px;text-align:right;color:#F39004;white-space:nowrap;cursor:pointer;user-select:none;" onclick="sortTable('paid')">$ Paid <span id="sort-paid" style="font-size:0.7rem;"></span></th>
-                            <th style="padding:10px 8px;text-align:right;color:#F39004;white-space:nowrap;cursor:pointer;user-select:none;" onclick="sortTable('pb')">PB <span id="sort-pb" style="font-size:0.7rem;"></span></th>
-                            <th style="padding:10px 8px;text-align:right;color:#F39004;white-space:nowrap;cursor:pointer;user-select:none;" onclick="sortTable('pbc')">PBc <span id="sort-pbc" style="font-size:0.7rem;"></span></th>
-                            <th style="padding:10px 8px;text-align:right;color:#F39004;white-space:nowrap;cursor:pointer;user-select:none;" onclick="sortTable('val')">Total $ <span id="sort-val" style="font-size:0.7rem;"></span></th>
-                            <th style="padding:10px 8px;text-align:center;color:#F39004;white-space:nowrap;cursor:pointer;user-select:none;" onclick="sortTable('t')"># T <span id="sort-t" style="font-size:0.7rem;"></span></th>
-                            <th style="padding:10px 4px;text-align:center;color:#F39004;"></th>
-                        </tr>
-                    </thead>
-                    <tbody id="portfolio-tbody"></tbody>
-                    <tfoot id="portfolio-tfoot" style="border-top:2px solid #F39004;"></tfoot>
-                </table>
-            </div>
-            <div id="portfolio-mobile-list" class="portfolio-mobile-list"></div>
+                <div id="portfolio-mobile-list" class="portfolio-mobile-list"></div>
+            </details>
         </section>
 
         <!-- EXPANDED POSITION DETAILS -->
         <div id="wallet-results"></div>
 
         <section class="card" id="reporting-section" style="display:none;">
-            <h3 class="section-title">Statement / Export Preview - UNDER CONSTRUCTION</h3>
-            <div class="report-panel">
+            <details class="portfolio-collapsible">
+                <summary><h3 class="section-title">Statement / Export Preview - UNDER CONSTRUCTION</h3></summary>
+                <div class="report-panel">
                 <p class="report-panel__intro">This is a separate reporting layer under the live portfolio view so you can evaluate it first. It reads from the wallets already loaded above, leaves the main portfolio table untouched, and is aimed at recordkeeping rather than tax advice.</p>
 
                 <div class="report-controls-grid">
@@ -612,7 +653,8 @@
                 <div id="report-position-summary"></div>
                 <div id="report-activity-ledger"></div>
                 <div id="report-note" class="report-note"></div>
-            </div>
+                </div>
+            </details>
         </section>
 
     </div>

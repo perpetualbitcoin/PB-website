@@ -822,6 +822,66 @@
                 <div class="hero-buttons docs-link-row">
                     <button id="dev-lock" class="btn btn-secondary" type="button">Lock Page</button>
                 </div>
+                <!-- === NEW CONTRACTS ADDED BELOW === -->
+                <section class="presale-section dev-contracts">
+                    <h3>4. New Contracts (2026)</h3>
+
+                    <details id="contract-pbswitchzapper">
+                        <summary><span><strong>PBSwitchZapper.sol</strong> • Switch/Router Zapper</span></summary>
+                        <div class="dev-contracts-body">
+                            <p>Allows users to zap into PB via SwitchRouter, supporting native, USDL, or ERC20 input, with fee handling and refund logic. Handles all route validation and Vault buy flow. Fully immutable references.</p>
+                            <h4>External / public</h4>
+                            <ul>
+                                <li><code>constructor(address switchRouter, address vault, address usdl, address wpls, address switchPartnerAddress)</code></li>
+                                <li><code>zapIntoPB(address inputToken, uint256 amountIn, ISwitchRouter.RouteAllocation[] calldata routes, uint256 minUSDLFromSwitch, uint256 switchFeeBps, bool feeOnOutput, uint256 minPBOut, address recipient, uint256[] calldata unlockIds, uint256 deadline)</code></li>
+                                <li><code>rescueTokens(address token, address to, uint256 amount)</code></li>
+                                <li><code>rescueNative(address to, uint256 amount)</code></li>
+                                <li><code>pause()</code></li>
+                                <li><code>unpause()</code></li>
+                            </ul>
+                            <h4>Getters / state surface</h4>
+                            <ul>
+                                <li><code>SWITCH_ROUTER</code>, <code>VAULT</code>, <code>USDL</code>, <code>WPLS</code>, <code>SWITCH_PARTNER_ADDRESS</code></li>
+                                <li><code>MAX_SWITCH_FEE_BPS</code>, <code>NATIVE_PLS</code></li>
+                            </ul>
+                            <h4>Events</h4>
+                            <ul>
+                                <li><code>TokensRescued(address indexed token, address indexed to, uint256 amount)</code></li>
+                                <li><code>NativeRescued(address indexed to, uint256 amount)</code></li>
+                                <li><code>ZappedIntoPB(address indexed caller, address indexed inputToken, address indexed recipient, uint256 inputAmount, uint256 usdlReceived, uint256 usdlLeftover, uint256 pbtId, bool usedSwitch)</code></li>
+                            </ul>
+                        </div>
+                    </details>
+
+                    <details id="contract-v1migrationiou">
+                        <summary><span><strong>V1MigrationIOU.sol</strong> • Presale Migration Helper</span></summary>
+                        <div class="dev-contracts-body">
+                            <p>Handles migration of legacy presale blocks to the new protocol. Allows batch loading, finalization, and provides view helpers for LaunchConverter. Not an ERC721.</p>
+                            <h4>External / public</h4>
+                            <ul>
+                                <li><code>constructor(address _deployer)</code></li>
+                                <li><code>batchLoad(address[] calldata holders, uint256[] calldata buyPrices, uint256[] calldata _pbAmounts, uint256[] calldata _blockNums)</code></li>
+                                <li><code>finalizeLoad()</code></li>
+                                <li><code>setLaunchConverter(address _lc)</code></li>
+                                <li><code>getPresaleData()</code></li>
+                                <li><code>getPBPerBlock(uint256 blockNum)</code></li>
+                                <li><code>markConverted(uint256 blockNum)</code></li>
+                                <li><code>ownerOf(uint256 tokenId)</code></li>
+                                <li><code>getPosition(uint256 blockNum)</code></li>
+                                <li><code>getBlockNumAt(uint256 index)</code></li>
+                                <li><code>getPositionCount()</code></li>
+                            </ul>
+                            <h4>Getters / state surface</h4>
+                            <ul>
+                                <li><code>deployer</code>, <code>LAUNCH_CONVERTER</code>, <code>dataFinalized</code>, <code>totalPositions</code></li>
+                            </ul>
+                            <h4>Events</h4>
+                            <ul>
+                                <li>None (uses revert errors for state changes)</li>
+                            </ul>
+                        </div>
+                    </details>
+                </section>
             </section>
         </div>
     </div>

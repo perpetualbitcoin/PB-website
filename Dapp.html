@@ -642,7 +642,7 @@
             </div>
 
             <!-- ── Hero metric cards ── -->
-            <div class="proto-hero-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px;">
+            <div class="proto-hero-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 16px;">
                 <div style="padding: 16px 14px; background: linear-gradient(135deg, rgba(255,215,0,0.12), rgba(243,144,4,0.08)); border: 1px solid rgba(255,215,0,0.25); border-radius: 10px; text-align: center;">
                     <div style="font-size: 0.7rem; color: #aaa; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">Market Cap</div>
                     <div id="diag-market-cap" style="font-size: 1.3rem; font-weight: 700; color: #FFD700;">-</div>
@@ -661,6 +661,16 @@
                     <div style="font-size: 0.7rem; color: #aaa; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">Gain/Loss Since Deploy</div>
                     <div id="diag-gain-loss" style="font-size: 1.3rem; font-weight: 700;">-</div>
                 </div>
+                <div style="padding: 16px 14px; background: linear-gradient(135deg, rgba(244,67,54,0.12), rgba(244,67,54,0.06)); border: 1px solid rgba(244,67,54,0.25); border-radius: 10px; text-align: center;">
+                    <div style="font-size: 0.7rem; color: #aaa; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">Max SELL PB</div>
+                    <div id="diag-max-sell-pb" style="font-size: 1.3rem; font-weight: 700; color: #ff8a80;">-</div>
+                    <div id="diag-max-sell-pb-calc" style="font-size: 0.7rem; color: #ccc; margin-top: 4px;"></div>
+                </div>
+                <div style="padding: 16px 14px; background: linear-gradient(135deg, rgba(255,215,0,0.12), rgba(255,193,7,0.06)); border: 1px solid rgba(255,215,0,0.25); border-radius: 10px; text-align: center;">
+                    <div style="font-size: 0.7rem; color: #aaa; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">IF ALL Sold $</div>
+                    <div id="diag-max-sell-usdl" style="font-size: 1.3rem; font-weight: 700; color: #FFD700;">-</div>
+                    <div id="diag-max-sell-usdl-calc" style="font-size: 0.7rem; color: #ccc; margin-top: 4px;"></div>
+                </div>
             </div>
 
             <!-- ── Detail grid ── -->
@@ -672,7 +682,7 @@
                 <div style="padding: 10px; background: rgba(0,0,0,0.2); border-radius: 6px;"><span style="color: #aaa;">Total Users Perpetual Bitcoin:</span> <span id="diag-total-user-pb" style="color: #4CAF50;">-</span></div>
                 <div style="padding: 10px; background: rgba(0,0,0,0.2); border-radius: 6px;"><span style="color: #aaa;">Users Supply held:</span> <span id="diag-supply-cap" style="color: #F39004;">-</span></div>
                 <div style="padding: 10px; background: rgba(0,0,0,0.2); border-radius: 6px;"><span style="color: #aaa;">User held Breakdown:</span> <span id="diag-total-user-pb-breakdown" style="color: #888;">-</span></div>
-                <div style="padding: 10px; background: rgba(0,0,0,0.2); border-radius: 6px;"><span style="color: #aaa;">PB in LP:</span> <span id="diag-pb-in-lp" style="color: #FF6B9D;">-</span></div>
+                <div style="padding: 10px; background: rgba(0,0,0,0.2); border-radius: 6px;"><span style="color: #aaa;">LP:</span> <span id="diag-pb-in-lp" style="color: #FF6B9D;">-</span></div>
                 <div style="padding: 10px; background: rgba(0,0,0,0.2); border-radius: 6px;"><span style="color: #aaa;">MC Held by Users:</span> <span id="diag-market-cap-users" style="color: #4CAF50; font-weight: 600;">-</span><div style="font-size: 0.8rem; color: #88dd88; margin-top: 4px;" id="diag-market-cap-users-calc"></div></div>
             </div>
         </section>
@@ -1052,6 +1062,7 @@
             TPBt,
             formatNumber,
             formatPrice,
+            getAmountOut,
         } = window.PBTestDapp;
 
         let web3, readProvider, account, signer;
@@ -1646,7 +1657,7 @@
             try {
                 const activeReadProvider = readProvider || web3;
                 if (!activeReadProvider) return;
-                const { pbReserve, usdlReserve, price, poolValue } = await contractLayer.getPoolSnapshot();
+                const { reservePB, reserveUSDL, pbReserve, usdlReserve, price, poolValue } = await contractLayer.getPoolSnapshot();
 
                 document.getElementById('live-price').innerText = formatPrice(price);
                 document.getElementById('pool-value').innerText = formatNumber(poolValue, 0);
@@ -1664,15 +1675,31 @@
                     const vaultPBcBalance = await vaultContract.vaultPBcBalance();
                     const isDistribution = await vaultContract.isDistributionPhase();
                     const totalUSDLDist = await vaultContract.totalUSDLDistributed();
-                    const totalOutstandingPBc = await vaultViewsContract.totalOutstandingPBc();
-                    const totalLockedPBc = Number(ethers.formatEther(totalOutstandingPBc));
-                    const splitRatio = 3.69 / 96.31;
-                    const totalLiquidPB = totalLockedPBc * splitRatio;
-                    const totalUserPB = totalLiquidPB + totalLockedPBc;
-                    const supplyUsed = (totalUserPB / 21000000 * 100).toFixed(2);
                     const marketCap = 21000000 * price;
-                    const lpPBAmount = pbReserve;
-                    const marketCapUsers = (totalUserPB - lpPBAmount) * price;
+                    const vaultPBWei = BigInt(vaultBalance.toString());
+                    const vaultPBcWei = BigInt(vaultPBcBalance.toString());
+                    const pbSupplyWei = ethers.parseEther('21000000');
+                    let maxSellPBWei = pbSupplyWei - vaultPBWei - reservePB;
+                    if (maxSellPBWei < 0n) maxSellPBWei = 0n;
+                    let userPBcWei = pbSupplyWei - vaultPBcWei;
+                    if (userPBcWei < 0n) userPBcWei = 0n;
+                    const userHeldWei = maxSellPBWei + userPBcWei;
+                    const maxSellUSDLWei = maxSellPBWei > 0n && reservePB > 0n && reserveUSDL > 0n
+                        ? getAmountOut(maxSellPBWei, reservePB, reserveUSDL)
+                        : 0n;
+                    const maxSellPB = Number(ethers.formatEther(maxSellPBWei));
+                    const userPBc = Number(ethers.formatEther(userPBcWei));
+                    const totalUserPB = Number(ethers.formatEther(userHeldWei));
+                    const supplyUsed = (totalUserPB / 21000000 * 100).toFixed(2);
+                    const marketCapUsers = totalUserPB * price;
+                    const maxSellUSDL = Number(ethers.formatEther(maxSellUSDLWei));
+                    const maxSellAvgPrice = maxSellPB > 0 ? maxSellUSDL / maxSellPB : 0;
+                    const postSellReservePB = reservePB + maxSellPBWei;
+                    const postSellReserveUSDL = reserveUSDL - maxSellUSDLWei;
+                    const postSellSpotPrice = postSellReservePB > 0n
+                        ? Number(ethers.formatEther((postSellReserveUSDL * (10n ** 18n)) / postSellReservePB))
+                        : 0;
+                    const postSellDropPct = price > 0 ? Math.max(((price - postSellSpotPrice) / price) * 100, 0) : 0;
                     const deployPrice = 90000 / 1620000;
                     const gainLossPct = ((price - deployPrice) / deployPrice) * 100;
 
@@ -1682,15 +1709,19 @@
                     document.getElementById('diag-phase').innerText = isDistribution ? 'Distribution Phase' : 'Final Phase';
                     document.getElementById('diag-accumulated-tusdl').innerText = '$' + formatNumber(ethers.formatEther(totalUSDLDist), 2);
                     document.getElementById('diag-total-user-pb').innerText = formatNumber(totalUserPB, 0);
-                    document.getElementById('diag-total-user-pb-breakdown').innerText = `${formatNumber(totalLiquidPB, 0)} PB + ${formatNumber(totalLockedPBc, 0)} PBc`;
+                    document.getElementById('diag-total-user-pb-breakdown').innerText = `${formatNumber(maxSellPB, 0)} liquid PB + ${formatNumber(userPBc, 0)} PBc`;
                     document.getElementById('diag-supply-cap').innerText = `${supplyUsed}% of 21M`;
                     document.getElementById('diag-market-cap').innerText = '$' + formatNumber(marketCap, 0);
                     document.getElementById('diag-market-cap-calc').innerText = `${formatNumber(21000000, 0)} PB × ${formatPrice(price)} = $${formatNumber(marketCap, 2)}`;
                     const priceHero = document.getElementById('diag-pb-price-hero');
                     if (priceHero) priceHero.innerText = formatPrice(price);
-                    document.getElementById('diag-pb-in-lp').innerText = formatNumber(pbReserve, 0) + ' PB';
+                    document.getElementById('diag-pb-in-lp').innerText = `$${formatNumber(poolValue, 0)} - ${formatNumber(pbReserve, 0)} PB`;
+                    document.getElementById('diag-max-sell-pb').innerText = formatNumber(maxSellPB, 0) + ' PB';
+                    document.getElementById('diag-max-sell-pb-calc').innerText = `21M - ${formatNumber(ethers.formatEther(vaultBalance), 0)} vault PB - ${formatNumber(pbReserve, 0)} LP PB`;
+                    document.getElementById('diag-max-sell-usdl').innerText = formatPrice(postSellSpotPrice);
+                    document.getElementById('diag-max-sell-usdl-calc').innerText = `-${postSellDropPct.toFixed(2)}% from now | USDL out $${formatNumber(maxSellUSDL, 0)} | Avg ${formatPrice(maxSellAvgPrice)}`;
                     document.getElementById('diag-market-cap-users').innerText = '$' + formatNumber(marketCapUsers, 0);
-                    document.getElementById('diag-market-cap-users-calc').innerText = `(${formatNumber(totalLiquidPB - (lpPBAmount * 0.0369 / (1 - 0.0369)), 0)} PB + ${formatNumber(totalLockedPBc - (lpPBAmount * 0.9631 / (1 - 0.0369)), 0)} PBc) × ${formatPrice(price)} = $${formatNumber(marketCapUsers, 2)}`;
+                    document.getElementById('diag-market-cap-users-calc').innerText = `(${formatNumber(maxSellPB, 0)} PB + ${formatNumber(userPBc, 0)} PBc) × ${formatPrice(price)} = $${formatNumber(marketCapUsers, 2)}`;
                     const glEl = document.getElementById('diag-gain-loss');
                     glEl.innerText = (gainLossPct >= 0 ? '+' : '') + gainLossPct.toFixed(2) + '%';
                     glEl.style.color = gainLossPct >= 0 ? '#4CAF50' : '#F44336';
