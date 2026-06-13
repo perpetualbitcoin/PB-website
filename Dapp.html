@@ -661,15 +661,26 @@
                     <div style="font-size: 0.7rem; color: #aaa; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">Gain/Loss Since Deploy</div>
                     <div id="diag-gain-loss" style="font-size: 1.3rem; font-weight: 700;">-</div>
                 </div>
+                <div style="padding: 16px 14px; background: linear-gradient(135deg, rgba(100,181,246,0.12), rgba(100,181,246,0.06)); border: 1px solid rgba(100,181,246,0.25); border-radius: 10px; text-align: center;">
+                    <div style="font-size: 0.7rem; color: #aaa; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">Real Value In/Out (24h)</div>
+                    <div id="diag-net-flow-24h" style="font-size: 1.3rem; font-weight: 700; color: #aaa;">...</div>
+                    <div style="font-size: 0.7rem; color: #888; margin-top: 4px;">Net USDL buy−sell pressure</div>
+                </div>
+                <div style="padding: 16px 14px; background: linear-gradient(135deg, rgba(100,181,246,0.12), rgba(100,181,246,0.06)); border: 1px solid rgba(100,181,246,0.25); border-radius: 10px; text-align: center;">
+                    <div style="font-size: 0.7rem; color: #aaa; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">Real Value In/Out (All Time)</div>
+                    <div id="diag-net-flow-all" style="font-size: 1.3rem; font-weight: 700; color: #aaa;">...</div>
+                    <div style="font-size: 0.7rem; color: #888; margin-top: 4px;">Net $$$ IN since launch</div>
+                </div>
                 <div style="padding: 16px 14px; background: linear-gradient(135deg, rgba(244,67,54,0.12), rgba(244,67,54,0.06)); border: 1px solid rgba(244,67,54,0.25); border-radius: 10px; text-align: center;">
-                    <div style="font-size: 0.7rem; color: #aaa; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">Max SELL PB</div>
+                    <div style="font-size: 0.7rem; color: #aaa; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">MAXIMUM $PB holders can SELL</div>
                     <div id="diag-max-sell-pb" style="font-size: 1.3rem; font-weight: 700; color: #ff8a80;">-</div>
                     <div id="diag-max-sell-pb-calc" style="font-size: 0.7rem; color: #ccc; margin-top: 4px;"></div>
                 </div>
                 <div style="padding: 16px 14px; background: linear-gradient(135deg, rgba(255,215,0,0.12), rgba(255,193,7,0.06)); border: 1px solid rgba(255,215,0,0.25); border-radius: 10px; text-align: center;">
-                    <div style="font-size: 0.7rem; color: #aaa; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">IF ALL Sold $</div>
+                    <div style="font-size: 0.7rem; color: #ff4444; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">WORST CASE SCENARIO: EVERYONE SELLS EVERY $PB</div>
                     <div id="diag-max-sell-usdl" style="font-size: 1.3rem; font-weight: 700; color: #FFD700;">-</div>
                     <div id="diag-max-sell-usdl-calc" style="font-size: 0.7rem; color: #ccc; margin-top: 4px;"></div>
+                    <div id="diag-lp-current" style="font-size: 0.7rem; color: #4CAF50; margin-top: 4px;"></div>
                 </div>
             </div>
 
@@ -1720,6 +1731,13 @@
                     document.getElementById('diag-max-sell-pb-calc').innerText = `21M - ${formatNumber(ethers.formatEther(vaultBalance), 0)} vault PB - ${formatNumber(pbReserve, 0)} LP PB`;
                     document.getElementById('diag-max-sell-usdl').innerText = formatPrice(postSellSpotPrice);
                     document.getElementById('diag-max-sell-usdl-calc').innerText = `-${postSellDropPct.toFixed(2)}% from now | USDL out $${formatNumber(maxSellUSDL, 0)} | Avg ${formatPrice(maxSellAvgPrice)}`;
+                    const lpCurrentEl = document.getElementById('diag-lp-current');
+                    if (lpCurrentEl) {
+                        const postSellUSDL = Number(ethers.formatEther(postSellReserveUSDL));
+                        const postSellPB   = Number(ethers.formatEther(postSellReservePB));
+                        const postSellPoolValue = postSellUSDL * 2;
+                        lpCurrentEl.innerText = `LP $$ Value after DUMP: $${formatNumber(postSellPoolValue, 0)} total ($${formatNumber(postSellUSDL, 0)} USDL + ${formatNumber(postSellPB, 0)} PB)`;
+                    }
                     document.getElementById('diag-market-cap-users').innerText = '$' + formatNumber(marketCapUsers, 0);
                     document.getElementById('diag-market-cap-users-calc').innerText = `(${formatNumber(maxSellPB, 0)} PB + ${formatNumber(userPBc, 0)} PBc) × ${formatPrice(price)} = $${formatNumber(marketCapUsers, 2)}`;
                     const glEl = document.getElementById('diag-gain-loss');
@@ -1788,11 +1806,128 @@
         const addLPToWallet = walletBootstrap.addLPToWallet;
 
         // ================================================================
+        // NET FLOW METRICS — Query DB via API for accurate 24h USDL flows
+        //
+        // The API aggregates USDL inflow from:
+        //   - Swap events (63.1% of buys through AMM)
+        //   - UnlockNetted/settlement payments (direct netting — never hits AMM)
+        // 
+        // This is more accurate than historical on-chain log scanning because:
+        //   1. DB uses accurate block timestamps (not 27k-block assumptions)
+        //   2. Includes all netting settlements (which AMM alone misses)
+        //   3. Cached result is faster + consistent across ticker + DApp
+        // ================================================================
+        async function loadNetFlowMetrics() {
+            const el24h = document.getElementById('diag-net-flow-24h');
+            const elAll = document.getElementById('diag-net-flow-all');
+            if (!el24h || !elAll) return;
+            el24h.innerText = '...';
+            elAll.innerText = '...';
+
+            function formatEtherCompat(value) {
+                return ethers.formatEther ? ethers.formatEther(value) : ethers.utils.formatEther(value);
+            }
+
+            function renderNetFlow(el, value, tickerId) {
+                const sign = value >= 0;
+                const txt  = (sign ? '+$' : '-$') + formatNumber(Math.abs(value), 2);
+                const col  = sign ? '#4CAF50' : '#F44336';
+                el.innerText = txt;
+                el.style.color = col;
+                if (tickerId) {
+                    const tEl = document.getElementById(tickerId);
+                    if (tEl) { tEl.innerText = txt; tEl.style.color = col; }
+                    document.querySelectorAll('.' + tickerId + '-dup').forEach(function(d) { d.innerText = txt; d.style.color = col; });
+                }
+            }
+
+            async function fetchOnchainFallback24hIn() {
+                const ProviderCtor = ethers.JsonRpcProvider || (ethers.providers && ethers.providers.JsonRpcProvider);
+                const InterfaceCtor = ethers.Interface || (ethers.utils && ethers.utils.Interface);
+                const idFn = ethers.id || (ethers.utils && ethers.utils.id);
+                if (!ProviderCtor || !InterfaceCtor || !idFn) throw new Error('ethers provider/interface unavailable');
+
+                const provider = new ProviderCtor(window.PBTestDapp.RPC_URL, window.PBTestDapp.CHAIN_ID);
+                const vaultAddr = window.PBTestDapp.TVault;
+                const latest = await provider.getBlockNumber();
+                const fromBlock = Math.max(latest - 28800, 26240809); // PulseChain ~24h
+                const CHUNK = 5000;
+
+                const sig = 'BuyWithNetting(address,address,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256)';
+                const topic = idFn(sig);
+                const iface = new InterfaceCtor([
+                    'event BuyWithNetting(address indexed buyer,address indexed recipient,uint256 indexed pbtId,uint256 usdlIn,uint256 totalPBOut,uint256 nettedPB,uint256 ammPB,uint256 lpPB,uint256 lpUSDL,uint256 unlocksNetted)'
+                ]);
+
+                let inSum = 0n;
+                for (let s = fromBlock; s <= latest; s += CHUNK) {
+                    const e = Math.min(s + CHUNK - 1, latest);
+                    const logs = await provider.getLogs({ address: vaultAddr, topics: [topic], fromBlock: s, toBlock: e });
+                    for (const log of logs) {
+                        const parsed = iface.parseLog(log);
+                        if (!parsed) continue;
+                        inSum += BigInt(parsed.args.usdlIn.toString());
+                    }
+                }
+
+                return Number(formatEtherCompat(inSum.toString()));
+            }
+
+            try {
+                // Fetch 24h net flow from indexer API (DB-backed, real timestamp-based 24h)
+                const apiBase = window.PBTestDapp.API_URL || 'https://perpetualbitcoin.io/MN-api';
+                const response = await fetch(`${apiBase}/net-flow-24h`, { 
+                    method: 'GET',
+                    headers: { 'Accept': 'application/json' }
+                });
+                const responseAll = await fetch(`${apiBase}/net-flow-alltime`, {
+                    method: 'GET',
+                    headers: { 'Accept': 'application/json' }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    const num = Number(data.usdlInFormatted || formatEtherCompat(data.usdlIn || '0'));
+                    renderNetFlow(el24h, Number.isFinite(num) ? num : 0, 'tick-flow-24h');
+                } else {
+                    const fallback = await fetchOnchainFallback24hIn();
+                    renderNetFlow(el24h, Number.isFinite(fallback) ? fallback : 0, 'tick-flow-24h');
+                }
+
+                if (responseAll.ok) {
+                    const dataAll = await responseAll.json();
+                    const numAll = Number(dataAll.usdlInFormatted || formatEtherCompat(dataAll.usdlIn || '0'));
+                    renderNetFlow(elAll, Number.isFinite(numAll) ? numAll : 0, 'tick-flow-all');
+                } else {
+                    elAll.innerText = 'N/A';
+                    elAll.style.color = '#aaa';
+                }
+
+            } catch (e) {
+                console.warn('Net flow API unavailable, using on-chain fallback:', e);
+                try {
+                    const fallback = await fetchOnchainFallback24hIn();
+                    renderNetFlow(el24h, Number.isFinite(fallback) ? fallback : 0, 'tick-flow-24h');
+                    if (elAll.innerText === '...') {
+                        elAll.innerText = 'N/A';
+                        elAll.style.color = '#aaa';
+                    }
+                } catch (fallbackErr) {
+                    console.error('Net flow metrics fallback error:', fallbackErr);
+                    if (el24h.innerText === '...') el24h.innerText = 'err';
+                    if (elAll.innerText  === '...') elAll.innerText  = 'N/A';
+                }
+            }
+        }
+
+
+        // ================================================================
         // START
         // ================================================================
         window.addEventListener('DOMContentLoaded', () => {
             init();
             initSwitchTestCard();
+            loadNetFlowMetrics();
         });
     </script>
     <script>window.gtranslateSettings = {"default_language":"en","native_language_names":true,"detect_browser_language":true,"languages":["en","zh-CN","fr","de","hi","es","pt","nl","el"],"wrapper_selector":".gtranslate_wrapper","flag_style":"3d","alt_flags":{"en":"usa"}}</script>

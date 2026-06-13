@@ -1,0 +1,1726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PB Insider View</title>
+    <meta name="theme-color" content="#F39004" />
+    <link rel="icon" href="Pic/favicon.ico" type="image/x-icon" />
+    <link rel="stylesheet" href="styles.css" />
+    <script src="https://cdn.jsdelivr.net/npm/ethers@6/dist/ethers.umd.js"></script>
+    <script>
+        try {
+            window.localStorage.setItem('pbPreferredNetwork', 'mainnet');
+        } catch (err) {
+            console.warn('Unable to force mainnet preference:', err);
+        }
+    </script>
+    <script src="config.js"></script>
+    <script src="dapp-core.js"></script>
+    <style>
+        :root {
+            --insider-bg-1: #090909;
+            --insider-bg-2: #101010;
+            --insider-panel: rgba(19, 19, 19, 0.96);
+            --insider-panel-2: rgba(28, 28, 28, 0.96);
+            --insider-line: rgba(243, 144, 4, 0.16);
+            --insider-line-strong: rgba(243, 144, 4, 0.32);
+            --insider-accent: #F39004;
+            --insider-accent-2: #FFD166;
+            --insider-success: #4CAF50;
+            --insider-error: #FF6B6B;
+            --insider-muted: rgba(255, 255, 255, 0.68);
+            --insider-shadow: 0 24px 70px rgba(0, 0, 0, 0.42);
+        }
+
+        body.insider-body {
+            margin: 0;
+            min-height: 100vh;
+            background:
+                radial-gradient(circle at top left, rgba(243, 144, 4, 0.16), transparent 28%),
+                radial-gradient(circle at top right, rgba(255, 209, 102, 0.11), transparent 26%),
+                linear-gradient(180deg, var(--insider-bg-1) 0%, var(--insider-bg-2) 100%);
+            color: #fff;
+        }
+
+        .insider-shell {
+            width: min(1540px, calc(100vw - 28px));
+            margin: 20px auto 32px;
+            display: grid;
+            gap: 18px;
+        }
+
+        .insider-card {
+            background: linear-gradient(180deg, var(--insider-panel), var(--insider-panel-2));
+            border: 1px solid var(--insider-line);
+            border-radius: 24px;
+            box-shadow: var(--insider-shadow);
+        }
+
+        .insider-hero {
+            padding: 26px 28px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .insider-hero::after {
+            content: "";
+            position: absolute;
+            inset: auto -50px -70px auto;
+            width: 260px;
+            height: 260px;
+            background: radial-gradient(circle, rgba(243, 144, 4, 0.18), transparent 70%);
+            pointer-events: none;
+        }
+
+        .insider-kicker {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 7px 12px;
+            border-radius: 999px;
+            border: 1px solid rgba(243, 144, 4, 0.22);
+            background: rgba(243, 144, 4, 0.08);
+            color: var(--insider-accent-2);
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .insider-title-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 18px;
+            margin-top: 14px;
+        }
+
+        .insider-title-block h1 {
+            margin: 0;
+            font-size: clamp(1.7rem, 2.8vw, 2.5rem);
+            line-height: 1.08;
+        }
+
+        .insider-title-block p {
+            margin: 12px 0 0;
+            max-width: 920px;
+            color: var(--insider-muted);
+            line-height: 1.58;
+        }
+
+        .insider-actions {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 10px;
+            min-width: 320px;
+        }
+
+        .insider-btn {
+            appearance: none;
+            border: 1px solid rgba(243, 144, 4, 0.34);
+            border-radius: 14px;
+            background: linear-gradient(180deg, rgba(243, 144, 4, 0.18), rgba(243, 144, 4, 0.1));
+            color: #fff;
+            padding: 12px 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.16s ease, border-color 0.16s ease, background 0.16s ease;
+        }
+
+        .insider-btn:hover:not(:disabled) {
+            transform: translateY(-1px);
+            border-color: rgba(243, 144, 4, 0.5);
+            background: linear-gradient(180deg, rgba(243, 144, 4, 0.24), rgba(243, 144, 4, 0.14));
+        }
+
+        .insider-btn:disabled {
+            opacity: 0.65;
+            cursor: progress;
+        }
+
+        .status-pill,
+        .meta-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--insider-muted);
+            font-size: 0.85rem;
+        }
+
+        .status-pill.is-loading {
+            color: var(--insider-accent-2);
+            border-color: rgba(243, 144, 4, 0.24);
+        }
+
+        .status-pill.is-success {
+            color: #b8efba;
+            border-color: rgba(76, 175, 80, 0.28);
+        }
+
+        .status-pill.is-error {
+            color: #ffc1c1;
+            border-color: rgba(255, 107, 107, 0.28);
+        }
+
+        .insider-meta-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 18px;
+        }
+
+        .insider-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+        }
+
+        .insider-stat {
+            padding: 18px;
+            border-radius: 20px;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02));
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .insider-stat-label {
+            color: var(--insider-muted);
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 9px;
+        }
+
+        .insider-stat-value {
+            font-size: 1.24rem;
+            font-weight: 700;
+            line-height: 1.25;
+        }
+
+        .insider-stat-sub {
+            margin-top: 8px;
+            color: var(--insider-muted);
+            font-size: 0.84rem;
+        }
+
+        .insider-panel {
+            padding: 22px 22px 18px;
+        }
+
+        .insider-panel-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 14px;
+            margin-bottom: 14px;
+        }
+
+        .insider-panel-head h2 {
+            margin: 0;
+            font-size: 1.2rem;
+        }
+
+        .insider-panel-head p {
+            margin: 8px 0 0;
+            color: var(--insider-muted);
+            line-height: 1.5;
+        }
+
+        .error-banner {
+            display: none;
+            margin-bottom: 14px;
+            padding: 12px 14px;
+            border-radius: 14px;
+            border: 1px solid rgba(255, 107, 107, 0.32);
+            background: rgba(255, 107, 107, 0.12);
+            color: #ffd0d0;
+        }
+
+        .error-banner.is-visible {
+            display: block;
+        }
+
+        .insider-table-shell {
+            overflow: auto;
+            border-radius: 18px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(0, 0, 0, 0.14);
+        }
+
+        .insider-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 940px;
+        }
+
+        .insider-table thead th {
+            position: sticky;
+            top: 0;
+            z-index: 1;
+            background: rgba(15, 15, 15, 0.98);
+            color: var(--insider-muted);
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+            text-align: left;
+            padding: 0;
+            border-bottom: 1px solid rgba(243, 144, 4, 0.16);
+        }
+
+        .sort-btn {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 14px;
+            border: 0;
+            background: transparent;
+            color: inherit;
+            text-align: left;
+            text-transform: inherit;
+            letter-spacing: inherit;
+            font: inherit;
+            cursor: pointer;
+        }
+
+        .sort-btn:hover {
+            background: rgba(243, 144, 4, 0.06);
+        }
+
+        .sort-btn.is-active {
+            color: #fff;
+        }
+
+        .sort-indicator {
+            min-width: 18px;
+            text-align: right;
+            color: var(--insider-accent-2);
+            font-size: 0.84rem;
+        }
+
+        .insider-table tbody td {
+            padding: 13px 14px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            vertical-align: middle;
+        }
+
+        .insider-table tbody tr:hover {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .insider-table tbody tr.is-head {
+            background: linear-gradient(90deg, rgba(243, 144, 4, 0.12), rgba(243, 144, 4, 0.03));
+        }
+
+        .insider-table .mono {
+            font-family: var(--font-data);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .insider-table .muted {
+            color: var(--insider-muted);
+        }
+
+        .addr-cell {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .addr-text {
+            color: #fff;
+            font-family: var(--font-data);
+            font-size: 0.94rem;
+            word-break: break-all;
+        }
+
+        .copy-btn {
+            appearance: none;
+            border: 1px solid rgba(243, 144, 4, 0.24);
+            background: rgba(243, 144, 4, 0.08);
+            color: #fff;
+            border-radius: 999px;
+            padding: 6px 10px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .copy-btn:hover:not(:disabled) {
+            border-color: rgba(243, 144, 4, 0.45);
+        }
+
+        .copy-btn.is-copied {
+            border-color: rgba(76, 175, 80, 0.34);
+            background: rgba(76, 175, 80, 0.14);
+        }
+
+        .copy-btn:disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
+        }
+
+        .addr-loading {
+            color: var(--insider-muted);
+            font-size: 0.88rem;
+        }
+
+        .addr-loading.is-error {
+            color: #ffc1c1;
+        }
+
+        .empty-row td {
+            text-align: center;
+            color: var(--insider-muted);
+            padding: 22px 16px;
+        }
+
+        .insider-lookup-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .insider-input {
+            min-width: 180px;
+            flex: 0 1 220px;
+            padding: 12px 14px;
+            border-radius: 14px;
+            border: 1px solid rgba(243, 144, 4, 0.22);
+            background: rgba(0, 0, 0, 0.22);
+            color: #fff;
+            font: inherit;
+        }
+
+        .insider-input:focus {
+            outline: none;
+            border-color: rgba(243, 144, 4, 0.44);
+            box-shadow: 0 0 0 3px rgba(243, 144, 4, 0.12);
+        }
+
+        .tracker-result-empty {
+            padding: 16px 18px;
+            border-radius: 16px;
+            border: 1px dashed rgba(243, 144, 4, 0.18);
+            background: rgba(255, 255, 255, 0.02);
+            color: var(--insider-muted);
+        }
+
+        .tracker-result-card {
+            padding: 18px;
+            border-radius: 20px;
+            border: 1px solid rgba(243, 144, 4, 0.2);
+            background: linear-gradient(180deg, rgba(243, 144, 4, 0.08), rgba(7, 7, 7, 0.3));
+        }
+
+        .tracker-result-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 14px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+
+        .tracker-result-title {
+            font-size: 1.18rem;
+            font-weight: 800;
+            color: var(--insider-accent);
+        }
+
+        .tracker-result-state {
+            color: var(--insider-accent);
+            font-weight: 700;
+        }
+
+        .tracker-result-state.is-ready {
+            color: var(--insider-success);
+        }
+
+        .tracker-summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+            gap: 10px;
+            margin-bottom: 16px;
+            align-items: stretch;
+        }
+
+        .tracker-summary-item {
+            padding: 12px;
+            border-radius: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .tracker-summary-item--wide {
+            grid-column: span 2;
+        }
+
+        .tracker-summary-label {
+            margin-bottom: 7px;
+            color: var(--insider-muted);
+            font-size: 0.76rem;
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+        }
+
+        .tracker-summary-value {
+            font-size: 1.02rem;
+            font-weight: 700;
+            line-height: 1.32;
+        }
+
+        .tracker-summary-text {
+            color: #ddd;
+            font-family: var(--font-data);
+            font-size: 0.82rem;
+            line-height: 1.5;
+            overflow-wrap: anywhere;
+        }
+
+        .tracker-history-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin: 2px 0 10px;
+            color: var(--insider-muted);
+            font-size: 0.84rem;
+        }
+
+        .tracker-history-shell {
+            margin-top: 6px;
+        }
+
+        .tracker-history-table {
+            min-width: 780px;
+        }
+
+        .tracker-progress-meter {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tracker-progress-meter__rail {
+            display: inline-block;
+            width: 110px;
+            height: 4px;
+            border-radius: 999px;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        .tracker-progress-meter__fill {
+            display: block;
+            height: 100%;
+            border-radius: inherit;
+        }
+
+        @media (max-width: 980px) {
+            .insider-title-row,
+            .insider-panel-head {
+                flex-direction: column;
+            }
+
+            .insider-actions {
+                justify-content: flex-start;
+                min-width: 0;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .insider-shell {
+                width: min(100vw - 16px, 1540px);
+                margin: 12px auto 22px;
+            }
+
+            .insider-hero,
+            .insider-panel {
+                padding: 18px;
+            }
+
+            .insider-stats {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .insider-input {
+                flex-basis: 100%;
+            }
+
+            .tracker-summary-item--wide {
+                grid-column: span 1;
+            }
+        }
+    </style>
+</head>
+<body class="insider-body">
+    <main class="insider-shell">
+        <section class="insider-card insider-hero">
+            <div class="insider-kicker">Mainnet 369 Live Queue</div>
+            <div class="insider-title-row">
+                <div class="insider-title-block">
+                    <h1>PB Insider View</h1>
+                    <p>
+                        Live table of the current mainnet unlock queue. Queue rows and payout amounts are fetched directly from the remote DB on every load or manual refresh. The payout-address column is hydrated live from the vault because the public queue endpoint does not expose that field.
+                    </p>
+                </div>
+                <div class="insider-actions">
+                    <button id="refresh-btn" class="insider-btn" type="button">Refresh Live State</button>
+                    <div id="refresh-status" class="status-pill">Idle</div>
+                </div>
+            </div>
+            <div class="insider-meta-row">
+                <div class="meta-pill">DB: <strong>MN-api/netting-positions</strong></div>
+                <div class="meta-pill">Address source: <strong>Vault.pbtRegistry(id)</strong></div>
+                <div class="meta-pill">RPC: <strong id="rpc-label">-</strong></div>
+                <div class="meta-pill">Last refresh: <strong id="last-refresh">-</strong></div>
+                <div id="sort-state" class="meta-pill">Sort: <strong>Queue asc</strong></div>
+            </div>
+        </section>
+
+        <section class="insider-stats">
+            <div class="insider-card insider-stat">
+                <div class="insider-stat-label">Current PB Price</div>
+                <div id="stat-current-price" class="insider-stat-value">-</div>
+                <div class="insider-stat-sub">Live from queue response</div>
+            </div>
+            <div class="insider-card insider-stat">
+                <div class="insider-stat-label">Active Queue Rows</div>
+                <div id="stat-row-count" class="insider-stat-value">-</div>
+                <div class="insider-stat-sub">Current system-wide rows</div>
+            </div>
+            <div class="insider-card insider-stat">
+                <div class="insider-stat-label">Queue Head</div>
+                <div id="stat-head" class="insider-stat-value">-</div>
+                <div id="stat-head-sub" class="insider-stat-sub">-</div>
+            </div>
+            <div class="insider-card insider-stat">
+                <div class="insider-stat-label">Total Next Payouts</div>
+                <div id="stat-total-payout" class="insider-stat-value">-</div>
+                <div class="insider-stat-sub">Sum of next USDL payouts</div>
+            </div>
+            <div class="insider-card insider-stat">
+                <div class="insider-stat-label">Address Hydration</div>
+                <div id="stat-hydration" class="insider-stat-value">-</div>
+                <div id="stat-hydration-sub" class="insider-stat-sub">Waiting for refresh</div>
+            </div>
+            <div class="insider-card insider-stat">
+                <div class="insider-stat-label">$ Needed to Next Trigger</div>
+                <div id="stat-needed" class="insider-stat-value">-</div>
+                <div id="stat-needed-sub" class="insider-stat-sub">USDL buy pressure required</div>
+            </div>
+            <div class="insider-card insider-stat">
+                <div class="insider-stat-label">AMM Buy to 1.5555x Current Price</div>
+                <div id="stat-1555x" class="insider-stat-value">-</div>
+                <div id="stat-1555x-sub" class="insider-stat-sub">Pure AMM, no netting</div>
+            </div>
+        </section>
+
+        <section class="insider-card insider-panel">
+            <div class="insider-panel-head">
+                <div>
+                    <h2>PBt Tracker Lookup</h2>
+                    <p>Single-tracker deep dive moved here from the portfolio page. Load one PBt to inspect holder, payout address, remaining PBc, and unlock history.</p>
+                </div>
+                <div class="meta-pill">Vault + indexed netting</div>
+            </div>
+            <div class="insider-lookup-controls">
+                <input id="lookup-pbt-input" class="insider-input" type="number" placeholder="PBt ID, e.g. 122" min="1" step="1" />
+                <button id="lookup-pbt-btn" class="insider-btn" type="button">Load PBt</button>
+                <div id="lookup-pbt-status" class="status-pill">Idle</div>
+            </div>
+            <div id="lookup-pbt-result" class="tracker-result-empty">Enter a PBt ID to inspect a single tracker.</div>
+        </section>
+
+        <section class="insider-card insider-panel">
+            <div class="insider-panel-head">
+                <div>
+                    <h2>Whole System State</h2>
+                    <p>Each row shows the next trigger for an active PBt position: trigger price, next payout amount, and payout address with copy support.</p>
+                </div>
+                <div class="meta-pill">Click any column header to sort</div>
+            </div>
+            <div id="error-banner" class="error-banner"></div>
+            <div class="insider-table-shell">
+                <table class="insider-table">
+                    <thead>
+                        <tr>
+                            <th><button class="sort-btn is-active" type="button" data-sort-key="queueOrder"><span>Queue</span><span class="sort-indicator">▲</span></button></th>
+                            <th><button class="sort-btn" type="button" data-sort-key="id"><span>PBt ID</span><span class="sort-indicator">↕</span></button></th>
+                            <th><button class="sort-btn" type="button" data-sort-key="triggerPrice"><span>Trigger Price</span><span class="sort-indicator">↕</span></button></th>
+                            <th><button class="sort-btn" type="button" data-sort-key="nextTriggerUSDL"><span>Payout Amount</span><span class="sort-indicator">↕</span></button></th>
+                            <th><button class="sort-btn" type="button" data-sort-key="payoutAddress"><span>Payout Address</span><span class="sort-indicator">↕</span></button></th>
+                        </tr>
+                    </thead>
+                    <tbody id="queue-body">
+                        <tr class="empty-row">
+                            <td colspan="5">Waiting for first live refresh...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        (function () {
+            const QUEUE_BUDGET = '999999999999999999999999999999999999';
+            const VAULT_ABI = [
+                'function pbtRegistry(uint256 pbtId) view returns (uint256 buyPrice, uint256 pbAmount, uint256 pbcLocked, uint256 nextUnlockIndex, uint256 nextTriggerPrice, uint256 mintBlock, address holder, address payoutAddress)',
+                'event UnlockTriggered(uint256 indexed pbtId, uint256 unlockIndex, uint256 pbUnlocked, uint256 usdlProceeds, address payoutAddress, uint256 newTriggerPrice, uint256 remainingPBcLocked)',
+                'event UnlockNetted(uint256 indexed pbtId, uint256 unlockIndex, uint256 pbcSettled, uint256 usdlPaid, address payoutAddress, uint256 triggerPrice, uint256 newTriggerPrice, uint256 remainingPBcLocked)'
+            ];
+            const VAULT_VIEWS_ABI = [
+                'function getPositionUnlockStatus(uint256 pbtId) view returns (uint256 index, uint256 nextPrice, bool eligible, uint256 pbcRemaining)'
+            ];
+            const PAIR_ABI = [
+                'function getReserves() view returns (uint112 reserve0, uint112 reserve1, uint32)',
+                'function token0() view returns (address)'
+            ];
+            const ERC20_TRANSFER_TOPIC = ethers.id('Transfer(address,address,uint256)');
+            const erc20TransferInterface = new ethers.Interface([
+                'event Transfer(address indexed from, address indexed to, uint256 value)'
+            ]);
+            const blockTimestampCache = new Map();
+            const payoutReceiptCache = new Map();
+
+            const state = {
+                rows: [],
+                currentPrice: 0n,
+                estimatedMaxPrice: 0n,
+                pbReserve: 0,
+                usdlReserve: 0,
+                lastRefresh: null,
+                loading: false,
+                requestId: 0,
+                hydratedCount: 0,
+                hydrationErrors: 0,
+                sortKey: 'queueOrder',
+                sortDirection: 'asc',
+                provider: null,
+                vault: null,
+                pair: null,
+                vaultViews: null,
+                lookupLoading: false,
+                lookupRequestId: 0,
+            };
+
+            const queueBody = document.getElementById('queue-body');
+            const refreshButton = document.getElementById('refresh-btn');
+            const refreshStatus = document.getElementById('refresh-status');
+            const lastRefresh = document.getElementById('last-refresh');
+            const errorBanner = document.getElementById('error-banner');
+            const rpcLabel = document.getElementById('rpc-label');
+            const sortState = document.getElementById('sort-state');
+            const headerButtons = Array.from(document.querySelectorAll('.sort-btn'));
+            const lookupInput = document.getElementById('lookup-pbt-input');
+            const lookupButton = document.getElementById('lookup-pbt-btn');
+            const lookupStatus = document.getElementById('lookup-pbt-status');
+            const lookupResult = document.getElementById('lookup-pbt-result');
+
+            const SORT_LABELS = {
+                queueOrder: 'Queue',
+                id: 'PBt ID',
+                triggerPrice: 'Trigger Price',
+                nextTriggerUSDL: 'Payout Amount',
+                payoutAddress: 'Payout Address',
+            };
+
+            function escapeHtml(value) {
+                return String(value ?? '')
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#39;');
+            }
+
+            function shortAddress(address) {
+                const value = String(address || '');
+                if (value.length < 12) return value || '-';
+                return value.slice(0, 6) + '...' + value.slice(-4);
+            }
+
+            function formatDecimal(value, decimals) {
+                const numeric = Number(value);
+                if (!Number.isFinite(numeric)) return String(value);
+                return PBTestDapp.formatNumber(numeric, decimals);
+            }
+
+            function formatPriceWei(value) {
+                if (value == null || value <= 0n) return '$0';
+                return PBTestDapp.formatPrice(ethers.formatEther(value));
+            }
+
+            function formatUsdWei(value) {
+                if (value == null || value <= 0n) return '$0';
+                return '$' + formatDecimal(ethers.formatEther(value), 2);
+            }
+
+            function formatPriceNumber(value, decimals = 5) {
+                const numeric = Number(value);
+                if (!Number.isFinite(numeric) || numeric <= 0) return '$0';
+                return '$' + formatDecimal(numeric, decimals);
+            }
+
+            function formatPbNumber(value) {
+                return formatDecimal(value, 0);
+            }
+
+            function formatTimestamp(date) {
+                if (!(date instanceof Date) || Number.isNaN(date.getTime())) return '-';
+                return date.toLocaleString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: false,
+                });
+            }
+
+            function getProvider() {
+                if (!state.provider) {
+                    state.provider = new ethers.JsonRpcProvider(ACTIVE_NETWORK.rpc);
+                }
+                return state.provider;
+            }
+
+            function getVault() {
+                if (!state.vault) {
+                    state.vault = new ethers.Contract(ADDRESSES.Vault, VAULT_ABI, getProvider());
+                }
+                return state.vault;
+            }
+
+            function getVaultViews() {
+                if (!state.vaultViews) {
+                    state.vaultViews = new ethers.Contract(ADDRESSES.VaultViews, VAULT_VIEWS_ABI, getProvider());
+                }
+                return state.vaultViews;
+            }
+
+            function getPair() {
+                if (!state.pair) {
+                    state.pair = new ethers.Contract(ADDRESSES.PB_USDL_PAIR, PAIR_ABI, getProvider());
+                }
+                return state.pair;
+            }
+
+            function setStatus(message, tone) {
+                refreshStatus.textContent = message;
+                refreshStatus.className = 'status-pill';
+                if (tone === 'loading') refreshStatus.classList.add('is-loading');
+                if (tone === 'success') refreshStatus.classList.add('is-success');
+                if (tone === 'error') refreshStatus.classList.add('is-error');
+            }
+
+            function setError(message) {
+                errorBanner.textContent = message;
+                errorBanner.classList.add('is-visible');
+            }
+
+            function clearError() {
+                errorBanner.textContent = '';
+                errorBanner.classList.remove('is-visible');
+            }
+
+            function sumField(rows, key) {
+                return rows.reduce((accumulator, row) => accumulator + (row[key] || 0n), 0n);
+            }
+
+            function localTriggerPrice(buyPrice, unlockIndex) {
+                let price = buyPrice;
+                for (let index = 0; index <= unlockIndex; index++) {
+                    price *= 1.5555;
+                }
+                return price;
+            }
+
+            function getInitialLockedPBcFromWei(pbAmountWei) {
+                const liquidPBWei = (pbAmountWei * 369n) / 10000n;
+                return pbAmountWei - liquidPBWei;
+            }
+
+            function getUnlockHistoryForPosition(initialLockedPBcNum, nextUnlockIdx, buyPriceNum, eventMap) {
+                let usdlPaid = 0;
+                let remaining = initialLockedPBcNum;
+                const history = [];
+
+                for (let unlockIndex = 0; unlockIndex < nextUnlockIdx; unlockIndex++) {
+                    const tranchePbcAmount = remaining / 3;
+                    if (eventMap[unlockIndex]) {
+                        usdlPaid += eventMap[unlockIndex].proceeds;
+                        remaining -= tranchePbcAmount;
+                        history.push({
+                            unlockIndex,
+                            pbcAmount: tranchePbcAmount,
+                            loggedPbcAmount: eventMap[unlockIndex].pbcAmount,
+                            proceeds: eventMap[unlockIndex].proceeds,
+                            loggedProceeds: eventMap[unlockIndex].loggedProceeds ?? eventMap[unlockIndex].proceeds,
+                            extraProceeds: eventMap[unlockIndex].extraProceeds || 0,
+                            executionPrice: eventMap[unlockIndex].executionPrice,
+                            timestamp: eventMap[unlockIndex].timestamp || null,
+                            txHash: eventMap[unlockIndex].txHash || '',
+                            estimated: false,
+                            txAdjusted: Boolean(eventMap[unlockIndex].txAdjusted),
+                            source: eventMap[unlockIndex].source || 'on-chain',
+                        });
+                    } else {
+                        const pbcSold = tranchePbcAmount;
+                        const proceeds = pbcSold * localTriggerPrice(buyPriceNum, unlockIndex);
+                        usdlPaid += proceeds;
+                        remaining -= pbcSold;
+                        history.push({
+                            unlockIndex,
+                            pbcAmount: pbcSold,
+                            proceeds,
+                            executionPrice: pbcSold > 0 ? proceeds / pbcSold : 0,
+                            timestamp: null,
+                            txHash: '',
+                            estimated: true,
+                            txAdjusted: false,
+                            source: 'estimated',
+                        });
+                    }
+                }
+
+                return { usdlPaid, history };
+            }
+
+            async function getBlockTimestamp(blockNumber) {
+                const normalized = Number(blockNumber);
+                if (!Number.isFinite(normalized) || normalized <= 0) return null;
+                if (blockTimestampCache.has(normalized)) {
+                    return blockTimestampCache.get(normalized);
+                }
+
+                try {
+                    const block = await getProvider().getBlock(normalized);
+                    const timestamp = block && block.timestamp ? Number(block.timestamp) : null;
+                    blockTimestampCache.set(normalized, timestamp);
+                    return timestamp;
+                } catch (error) {
+                    console.warn('Block lookup failed for', normalized, error.message);
+                    blockTimestampCache.set(normalized, null);
+                    return null;
+                }
+            }
+
+            function getParsedEventName(parsed) {
+                return parsed?.name || parsed?.fragment?.name || '';
+            }
+
+            function getLogIndexValue(log) {
+                const raw = log?.logIndex ?? log?.index;
+                if (raw === undefined || raw === null) return null;
+                const value = Number(raw);
+                return Number.isFinite(value) ? value : null;
+            }
+
+            function getTxHashValue(log) {
+                return log?.transactionHash || log?.hash || '';
+            }
+
+            async function getReceiptPayoutAdjustments(txHash) {
+                if (!txHash) return new Map();
+                if (payoutReceiptCache.has(txHash)) return payoutReceiptCache.get(txHash);
+
+                const adjustments = new Map();
+                try {
+                    const receipt = await getProvider().getTransactionReceipt(txHash);
+                    if (!receipt) {
+                        payoutReceiptCache.set(txHash, adjustments);
+                        return adjustments;
+                    }
+
+                    const unlockRows = [];
+                    const vault = getVault();
+                    for (const log of receipt.logs) {
+                        if (String(log.address).toLowerCase() !== String(ADDRESSES.Vault).toLowerCase()) continue;
+                        try {
+                            const parsed = vault.interface.parseLog(log);
+                            if (getParsedEventName(parsed) !== 'UnlockNetted') continue;
+                            const logIndex = getLogIndexValue(log);
+                            if (!Number.isFinite(logIndex)) continue;
+                            unlockRows.push({
+                                logIndex,
+                                payoutAddress: String(parsed.args[4]).toLowerCase(),
+                            });
+                        } catch {
+                            continue;
+                        }
+                    }
+
+                    const outgoingTransfers = receipt.logs
+                        .filter((log) => String(log.address).toLowerCase() === String(ADDRESSES.USDL).toLowerCase() && log.topics[0] === ERC20_TRANSFER_TOPIC)
+                        .map((log) => {
+                            try {
+                                const parsed = erc20TransferInterface.parseLog(log);
+                                const logIndex = getLogIndexValue(log);
+                                if (!Number.isFinite(logIndex)) return null;
+                                return {
+                                    logIndex,
+                                    from: String(parsed.args.from).toLowerCase(),
+                                    to: String(parsed.args.to).toLowerCase(),
+                                    value: Number(ethers.formatEther(parsed.args.value)),
+                                    matched: false,
+                                };
+                            } catch {
+                                return null;
+                            }
+                        })
+                        .filter(Boolean)
+                        .filter((transfer) => transfer.from === String(ADDRESSES.Vault).toLowerCase());
+
+                    const sortedUnlockRows = unlockRows.sort((left, right) => left.logIndex - right.logIndex);
+                    for (const row of sortedUnlockRows) {
+                        for (let index = outgoingTransfers.length - 1; index >= 0; index--) {
+                            const transfer = outgoingTransfers[index];
+                            if (transfer.matched) continue;
+                            if (transfer.to !== row.payoutAddress) continue;
+                            if (transfer.logIndex >= row.logIndex) continue;
+                            transfer.matched = true;
+                            break;
+                        }
+                    }
+
+                    for (const row of sortedUnlockRows) {
+                        const nextSameAddressRow = sortedUnlockRows.find((next) => next.logIndex > row.logIndex && next.payoutAddress === row.payoutAddress);
+                        const upperBound = nextSameAddressRow ? nextSameAddressRow.logIndex : Number.POSITIVE_INFINITY;
+                        const extraValue = outgoingTransfers
+                            .filter((transfer) => !transfer.matched && transfer.to === row.payoutAddress && transfer.logIndex > row.logIndex && transfer.logIndex < upperBound)
+                            .reduce((sum, transfer) => sum + transfer.value, 0);
+                        adjustments.set(row.logIndex, extraValue);
+                    }
+                } catch (error) {
+                    console.warn('Receipt payout adjustment failed for tx', txHash, error.message);
+                }
+
+                payoutReceiptCache.set(txHash, adjustments);
+                return adjustments;
+            }
+
+            async function applySplitPayoutAdjustments(eventMap) {
+                const rows = [];
+                Object.values(eventMap || {}).forEach((positionRows) => {
+                    Object.values(positionRows || {}).forEach((row) => {
+                        if (!row || row.kind !== 'netted' || !row.txHash || !Number.isFinite(row.logIndex) || !row.payoutAddress) return;
+                        rows.push(row);
+                    });
+                });
+
+                const txHashes = [...new Set(rows.map((row) => row.txHash))];
+                await Promise.all(txHashes.map((txHash) => getReceiptPayoutAdjustments(txHash)));
+
+                for (const row of rows) {
+                    const adjustments = payoutReceiptCache.get(row.txHash);
+                    const extraProceeds = adjustments?.get(Number(row.logIndex)) || 0;
+                    row.extraProceeds = extraProceeds;
+                    row.loggedProceeds = row.loggedProceeds ?? row.proceeds ?? 0;
+                    row.proceeds = row.loggedProceeds + extraProceeds;
+                    row.txAdjusted = extraProceeds > 0;
+                }
+
+                return eventMap;
+            }
+
+            async function fetchBuyNettingForPbt(pbtId) {
+                try {
+                    const apiBase = ACTIVE_NETWORK.apiBase.replace(/\/$/, '');
+                    const response = await fetch(`${apiBase}/buy-netting?affectedPbtId=${encodeURIComponent(pbtId)}`);
+                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                    return await response.json();
+                } catch (error) {
+                    console.warn('Buy-netting fetch failed for PBt', pbtId, error.message);
+                    return { count: 0, buys: [] };
+                }
+            }
+
+            function mergeIndexedNettingIntoEventMap(eventMap, nettingData, pbtId) {
+                const merged = { ...(eventMap || {}) };
+                const buys = Array.isArray(nettingData?.buys) ? nettingData.buys : [];
+
+                for (const buy of buys) {
+                    for (const link of (buy.links || [])) {
+                        if (Number(link.affectedPbtId) !== Number(pbtId)) continue;
+                        const unlockIndex = Number(link.unlockIndex);
+                        const previous = merged[unlockIndex] || {};
+                        const pbcAmount = Number.isFinite(previous?.pbcAmount)
+                            ? previous.pbcAmount
+                            : Number(ethers.formatEther(link.pbcSettled ?? link.pbAmount ?? 0));
+                        const loggedProceeds = Number.isFinite(previous?.loggedProceeds)
+                            ? previous.loggedProceeds
+                            : Number(ethers.formatEther(link.usdlAmount ?? 0));
+                        const extraProceeds = Number.isFinite(previous?.extraProceeds) ? previous.extraProceeds : 0;
+                        const executionPrice = Number.isFinite(previous?.executionPrice)
+                            ? previous.executionPrice
+                            : Number(ethers.formatEther(link.settlementPrice ?? 0));
+                        const logIndex = Number.isFinite(previous?.logIndex)
+                            ? previous.logIndex
+                            : Number(link.logIndex);
+                        merged[unlockIndex] = {
+                            pbcAmount,
+                            proceeds: loggedProceeds + extraProceeds,
+                            loggedProceeds,
+                            extraProceeds,
+                            executionPrice,
+                            blockNumber: Number.isFinite(previous?.blockNumber) ? previous.blockNumber : (Number(buy.blockNumber) || null),
+                            timestamp: Number.isFinite(previous?.timestamp) ? previous.timestamp : (Number(buy.timestamp) || null),
+                            txHash: previous?.txHash || buy.txHash || '',
+                            logIndex,
+                            payoutAddress: link.payoutAddress || previous?.payoutAddress || '',
+                            kind: 'netted',
+                            txAdjusted: Boolean(previous?.txAdjusted),
+                            source: 'db/netted',
+                        };
+                    }
+                }
+
+                return merged;
+            }
+
+            async function getCurrentPairPrice() {
+                const pair = getPair();
+                const [reserves, token0] = await Promise.all([
+                    pair.getReserves(),
+                    pair.token0(),
+                ]);
+
+                let pbReserve;
+                let usdlReserve;
+                if (token0.toLowerCase() === ADDRESSES.PB.toLowerCase()) {
+                    pbReserve = Number(ethers.formatEther(reserves[0]));
+                    usdlReserve = Number(ethers.formatEther(reserves[1]));
+                } else {
+                    pbReserve = Number(ethers.formatEther(reserves[1]));
+                    usdlReserve = Number(ethers.formatEther(reserves[0]));
+                }
+
+                return usdlReserve / pbReserve;
+            }
+
+            async function fetchPbtEvents(pbtId) {
+                const eventMap = {};
+                try {
+                    const vault = getVault();
+                    const fromBlock = (typeof VAULT_DEPLOY_BLOCK !== 'undefined' && VAULT_DEPLOY_BLOCK) || 0;
+                    const [triggeredEvents, nettedEvents] = await Promise.all([
+                        vault.queryFilter(vault.filters.UnlockTriggered(pbtId), fromBlock),
+                        vault.queryFilter(vault.filters.UnlockNetted(pbtId), fromBlock),
+                    ]);
+                    const events = [...triggeredEvents, ...nettedEvents];
+                    const blockNumbers = [...new Set(events.map((event) => Number(event.blockNumber)).filter((blockNumber) => blockNumber > 0))];
+                    await Promise.all(blockNumbers.map((blockNumber) => getBlockTimestamp(blockNumber)));
+
+                    for (const event of triggeredEvents) {
+                        try {
+                            const unlockIndex = Number(event.args[1]);
+                            const pbUnlocked = Number(ethers.formatEther(event.args[2]));
+                            const usdlProceeds = Number(ethers.formatEther(event.args[3]));
+                            eventMap[unlockIndex] = {
+                                pbcAmount: pbUnlocked,
+                                proceeds: usdlProceeds,
+                                loggedProceeds: usdlProceeds,
+                                extraProceeds: 0,
+                                executionPrice: pbUnlocked > 0 ? usdlProceeds / pbUnlocked : 0,
+                                blockNumber: Number(event.blockNumber),
+                                timestamp: blockTimestampCache.get(Number(event.blockNumber)) || null,
+                                txHash: getTxHashValue(event),
+                                logIndex: getLogIndexValue(event),
+                                payoutAddress: String(event.args[4] || ''),
+                                kind: 'triggered',
+                                txAdjusted: false,
+                                source: 'on-chain',
+                            };
+                        } catch {
+                            continue;
+                        }
+                    }
+
+                    for (const event of nettedEvents) {
+                        try {
+                            const unlockIndex = Number(event.args[1]);
+                            const pbcSettled = Number(ethers.formatEther(event.args[2]));
+                            const usdlPaid = Number(ethers.formatEther(event.args[3]));
+                            const triggerPrice = Number(ethers.formatEther(event.args[5]));
+                            eventMap[unlockIndex] = {
+                                pbcAmount: pbcSettled,
+                                proceeds: usdlPaid,
+                                loggedProceeds: usdlPaid,
+                                extraProceeds: 0,
+                                executionPrice: triggerPrice,
+                                blockNumber: Number(event.blockNumber),
+                                timestamp: blockTimestampCache.get(Number(event.blockNumber)) || null,
+                                txHash: getTxHashValue(event),
+                                logIndex: getLogIndexValue(event),
+                                payoutAddress: String(event.args[4] || ''),
+                                kind: 'netted',
+                                txAdjusted: false,
+                                source: 'on-chain/netted',
+                            };
+                        } catch {
+                            continue;
+                        }
+                    }
+                } catch (error) {
+                    console.warn('PBt event fetch failed for', pbtId, error.message);
+                }
+
+                return eventMap;
+            }
+
+            function compareValues(left, right) {
+                if (typeof left === 'bigint' || typeof right === 'bigint') {
+                    const leftValue = typeof left === 'bigint' ? left : BigInt(left || 0);
+                    const rightValue = typeof right === 'bigint' ? right : BigInt(right || 0);
+                    if (leftValue < rightValue) return -1;
+                    if (leftValue > rightValue) return 1;
+                    return 0;
+                }
+
+                if (typeof left === 'number' || typeof right === 'number') {
+                    const leftValue = Number(left || 0);
+                    const rightValue = Number(right || 0);
+                    if (leftValue < rightValue) return -1;
+                    if (leftValue > rightValue) return 1;
+                    return 0;
+                }
+
+                const leftValue = String(left || '').toLowerCase();
+                const rightValue = String(right || '').toLowerCase();
+                return leftValue.localeCompare(rightValue);
+            }
+
+            function getSortedRows() {
+                const rows = state.rows.slice();
+                rows.sort((left, right) => {
+                    const result = compareValues(left[state.sortKey], right[state.sortKey]);
+                    if (result !== 0) {
+                        return state.sortDirection === 'asc' ? result : -result;
+                    }
+                    return left.queueOrder - right.queueOrder;
+                });
+                return rows;
+            }
+
+            function renderSortState() {
+                const label = SORT_LABELS[state.sortKey] || state.sortKey;
+                if (sortState) {
+                    sortState.innerHTML = 'Sort: <strong>' + escapeHtml(label + ' ' + state.sortDirection) + '</strong>';
+                }
+
+                headerButtons.forEach((button) => {
+                    const isActive = button.dataset.sortKey === state.sortKey;
+                    button.classList.toggle('is-active', isActive);
+                    const indicator = button.querySelector('.sort-indicator');
+                    if (indicator) {
+                        indicator.textContent = isActive
+                            ? (state.sortDirection === 'asc' ? '▲' : '▼')
+                            : '↕';
+                    }
+                });
+            }
+
+            function setSort(sortKey) {
+                if (!sortKey) return;
+                if (state.sortKey === sortKey) {
+                    state.sortDirection = state.sortDirection === 'asc' ? 'desc' : 'asc';
+                } else {
+                    state.sortKey = sortKey;
+                    state.sortDirection = 'asc';
+                }
+                render();
+            }
+
+            function renderStats() {
+                const head = state.rows[0] || null;
+                const currentPriceEl = document.getElementById('stat-current-price');
+                const rowCountEl = document.getElementById('stat-row-count');
+                const headEl = document.getElementById('stat-head');
+                const headSubEl = document.getElementById('stat-head-sub');
+                const totalPayoutEl = document.getElementById('stat-total-payout');
+                const hydrationEl = document.getElementById('stat-hydration');
+                const hydrationSubEl = document.getElementById('stat-hydration-sub');
+                const neededEl = document.getElementById('stat-needed');
+                const neededSubEl = document.getElementById('stat-needed-sub');
+                const amm1555El = document.getElementById('stat-1555x');
+                const amm1555SubEl = document.getElementById('stat-1555x-sub');
+
+                currentPriceEl.textContent = formatPriceWei(state.currentPrice);
+                rowCountEl.textContent = String(state.rows.length || 0);
+                headEl.textContent = head ? '#' + head.id + ' @ ' + formatPriceWei(head.triggerPrice) : '-';
+                if (head && state.currentPrice > 0n && head.triggerPrice > state.currentPrice) {
+                    headSubEl.textContent = 'Gap to head: ' + formatPriceWei(head.triggerPrice - state.currentPrice);
+                } else if (head) {
+                    headSubEl.textContent = 'Estimated max: ' + formatPriceWei(state.estimatedMaxPrice);
+                } else {
+                    headSubEl.textContent = '-';
+                }
+                totalPayoutEl.textContent = formatUsdWei(sumField(state.rows, 'nextTriggerUSDL'));
+                hydrationEl.textContent = state.rows.length
+                    ? state.hydratedCount + ' / ' + state.rows.length
+                    : '-';
+                hydrationSubEl.textContent = state.rows.length
+                    ? state.hydrationErrors
+                        ? state.hydrationErrors + ' address reads failed; refresh retries them.'
+                        : 'Addresses filled from live vault reads.'
+                    : 'Waiting for refresh';
+                if (head && state.usdlReserve > 0 && state.pbReserve > 0) {
+                    const targetPrice = Number(ethers.formatEther(head.triggerPrice));
+                    const k = state.usdlReserve * state.pbReserve;
+                    const usdlNeeded = Math.sqrt(k * targetPrice) - state.usdlReserve;
+                    if (usdlNeeded > 0) {
+                        neededEl.textContent = '$' + usdlNeeded.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                        neededSubEl.textContent = 'To push price to ' + formatPriceWei(head.triggerPrice);
+                    } else {
+                        neededEl.textContent = 'At trigger';
+                        neededSubEl.textContent = 'Price already at or past trigger';
+                    }
+                } else {
+                    neededEl.textContent = '-';
+                    neededSubEl.textContent = 'USDL buy pressure required';
+                }
+                if (state.usdlReserve > 0 && state.pbReserve > 0 && state.currentPrice > 0n) {
+                    const currentPriceFloat = Number(ethers.formatEther(state.currentPrice));
+                    const target1555 = currentPriceFloat * 1.5555;
+                    const k = state.usdlReserve * state.pbReserve;
+                    const amm1555 = Math.sqrt(k * target1555) - state.usdlReserve;
+                    if (amm1555 > 0) {
+                        amm1555El.textContent = '$' + amm1555.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                        amm1555SubEl.textContent = 'Target: $' + target1555.toFixed(6) + ' per PB';
+                    } else {
+                        amm1555El.textContent = 'At target';
+                        amm1555SubEl.textContent = 'Price already at or above 1.5555x';
+                    }
+                } else {
+                    amm1555El.textContent = '-';
+                    amm1555SubEl.textContent = 'Pure AMM, no netting';
+                }
+            }
+
+            function renderTable() {
+                if (!state.rows.length) {
+                    queueBody.innerHTML = '<tr class="empty-row"><td colspan="5">' + (state.loading ? 'Fetching live queue from remote DB...' : 'No active rows returned.') + '</td></tr>';
+                    return;
+                }
+
+                queueBody.innerHTML = getSortedRows().map((row) => {
+                    let payoutCell = '<span class="addr-loading">Loading live vault read...</span>';
+
+                    if (row.payoutStatus === 'ready' && row.payoutAddress) {
+                        const safeAddress = escapeHtml(row.payoutAddress);
+                        payoutCell = ''
+                            + '<div class="addr-cell">'
+                            + '<span class="addr-text mono" title="' + safeAddress + '">' + safeAddress + '</span>'
+                            + '<button class="copy-btn" type="button" data-address="' + safeAddress + '">Copy</button>'
+                            + '</div>';
+                    } else if (row.payoutStatus === 'error') {
+                        payoutCell = '<div class="addr-cell"><span class="addr-loading is-error">Address read failed</span><button class="copy-btn" type="button" disabled>Copy</button></div>';
+                    }
+
+                    return ''
+                        + '<tr class="' + (row.queueOrder === 1 ? 'is-head' : '') + '">'
+                        + '<td class="mono muted">' + row.queueOrder + '</td>'
+                        + '<td class="mono">#' + row.id + '</td>'
+                        + '<td class="mono">' + escapeHtml(formatPriceWei(row.triggerPrice)) + '</td>'
+                        + '<td class="mono">' + escapeHtml(formatUsdWei(row.nextTriggerUSDL)) + '</td>'
+                        + '<td>' + payoutCell + '</td>'
+                        + '</tr>';
+                }).join('');
+            }
+
+            function render() {
+                refreshButton.disabled = state.loading;
+                refreshButton.textContent = state.loading ? 'Refreshing...' : 'Refresh Live State';
+                lastRefresh.textContent = formatTimestamp(state.lastRefresh);
+                renderSortState();
+                renderStats();
+                renderTable();
+            }
+
+            function setLookupStatus(message, tone) {
+                if (!lookupStatus) return;
+                lookupStatus.textContent = message;
+                lookupStatus.className = 'status-pill';
+                if (tone === 'loading') lookupStatus.classList.add('is-loading');
+                if (tone === 'success') lookupStatus.classList.add('is-success');
+                if (tone === 'error') lookupStatus.classList.add('is-error');
+            }
+
+            function setLookupLoading(isLoading) {
+                state.lookupLoading = isLoading;
+                if (!lookupButton) return;
+                lookupButton.disabled = isLoading;
+                lookupButton.textContent = isLoading ? 'Loading...' : 'Load PBt';
+            }
+
+            function renderLookupEmpty(message) {
+                if (!lookupResult) return;
+                lookupResult.innerHTML = '<div class="tracker-result-empty">' + escapeHtml(message) + '</div>';
+            }
+
+            function buildProgressMeter(percent, color) {
+                const normalized = Math.max(0, Math.min(Math.round(Number(percent) || 0), 100));
+                const fillColor = color || (normalized >= 50 ? 'var(--insider-success)' : 'var(--insider-accent)');
+                return ''
+                    + '<span class="tracker-progress-meter">'
+                    + '<span class="tracker-progress-meter__rail"><span class="tracker-progress-meter__fill" style="width:' + normalized + '%;background:' + fillColor + ';"></span></span>'
+                    + '<span class="muted">' + normalized + '%</span>'
+                    + '</span>';
+            }
+
+            function renderPbtLookupCard(model) {
+                if (!lookupResult) return;
+
+                const historyRows = model.history.length === 0
+                    ? '<tr class="empty-row"><td colspan="6">No unlock data available yet.</td></tr>'
+                    : model.history.map((row) => {
+                        const rowTextColor = row.upcoming ? 'var(--insider-accent)' : row.estimated ? 'var(--insider-muted)' : 'var(--insider-success)';
+                        const sourceLabel = row.upcoming ? 'next' : row.txAdjusted ? 'tx-adjusted' : row.source === 'db/netted' ? 'db/netted' : row.estimated ? 'est.' : 'on-chain';
+                        const tierExecPrice = row.executionPrice || 0;
+                        const tierPct = tierExecPrice > 0 ? Math.min((model.currentPrice / tierExecPrice) * 100, 100) : 0;
+                        const tierBarColor = row.upcoming ? (tierPct >= 50 ? 'var(--insider-success)' : 'var(--insider-accent)') : 'var(--insider-success)';
+                        return ''
+                            + '<tr style="color:' + rowTextColor + ';">'
+                            + '<td class="mono">T' + escapeHtml(String(row.unlockIndex + 1)) + '</td>'
+                            + '<td>' + (row.upcoming ? buildProgressMeter(tierPct, tierBarColor) : buildProgressMeter(100, 'var(--insider-success)')) + '</td>'
+                            + '<td class="mono" style="text-align:right;color:' + rowTextColor + ';">' + escapeHtml(formatPbNumber(row.pbcAmount)) + '</td>'
+                            + '<td class="mono" style="text-align:right;color:' + rowTextColor + ';">' + escapeHtml('$' + formatDecimal(row.proceeds, 2)) + (row.txAdjusted ? '<div class="muted" style="font-size:0.72rem;">tx-adjusted</div>' : '') + '</td>'
+                            + '<td class="mono" style="text-align:right;color:' + rowTextColor + ';">' + escapeHtml(formatPriceNumber(row.executionPrice, 5)) + '</td>'
+                            + '<td style="text-align:center;color:' + rowTextColor + ';">' + escapeHtml(sourceLabel) + '</td>'
+                            + '</tr>';
+                    }).join('');
+
+                lookupResult.innerHTML = ''
+                    + '<div class="tracker-result-card">'
+                    + '<div class="tracker-result-head">'
+                    + '<div class="tracker-result-title">PBt #' + escapeHtml(String(model.pbtId)) + '</div>'
+                    + '<div class="tracker-result-state' + (model.eligible ? ' is-ready' : '') + '">' + (model.eligible ? 'READY TO UNLOCK' : buildProgressMeter(model.progressPct)) + '</div>'
+                    + '</div>'
+                    + '<div class="tracker-summary-grid">'
+                    + '<div class="tracker-summary-item tracker-summary-item--wide"><div class="tracker-summary-label">Holder</div><div class="tracker-summary-text">' + escapeHtml(model.holder) + '</div></div>'
+                    + '<div class="tracker-summary-item tracker-summary-item--wide"><div class="tracker-summary-label">Payout Address</div><div class="tracker-summary-text">' + escapeHtml(model.payoutAddress) + '</div></div>'
+                    + '<div class="tracker-summary-item"><div class="tracker-summary-label">Initial Investment</div><div class="tracker-summary-value" style="color:var(--insider-success);">' + escapeHtml(formatPriceNumber(model.initialInvestment, 2)) + '</div></div>'
+                    + '<div class="tracker-summary-item"><div class="tracker-summary-label">Entry Price</div><div class="tracker-summary-value">' + escapeHtml(formatPriceNumber(model.buyPrice, 5)) + '</div></div>'
+                    + '<div class="tracker-summary-item"><div class="tracker-summary-label">Mint Block</div><div class="tracker-summary-value mono">' + escapeHtml(String(model.mintBlock)) + '</div></div>'
+                    + '<div class="tracker-summary-item"><div class="tracker-summary-label">Total PB</div><div class="tracker-summary-value">' + escapeHtml(formatPbNumber(model.pbAmount)) + '</div></div>'
+                    + '<div class="tracker-summary-item"><div class="tracker-summary-label">Remaining PBc</div><div class="tracker-summary-value" style="color:var(--insider-accent);">' + escapeHtml(formatPbNumber(model.pbcRemaining)) + '</div></div>'
+                    + '<div class="tracker-summary-item"><div class="tracker-summary-label">Settled PBc</div><div class="tracker-summary-value" style="color:var(--insider-success);">' + escapeHtml(formatPbNumber(model.settledPBc)) + '</div></div>'
+                    + '<div class="tracker-summary-item"><div class="tracker-summary-label">USDL Paid So Far</div><div class="tracker-summary-value" style="color:var(--insider-success);">' + escapeHtml(formatPriceNumber(model.usdlPaid, 2)) + '</div></div>'
+                    + '<div class="tracker-summary-item"><div class="tracker-summary-label">Next Unlock Index</div><div class="tracker-summary-value mono">' + escapeHtml(String(model.nextUnlockIdx)) + '</div></div>'
+                    + '<div class="tracker-summary-item"><div class="tracker-summary-label">Next Trigger</div><div class="tracker-summary-value" style="color:var(--insider-accent);">' + escapeHtml(formatPriceNumber(model.nextTrigger, 5)) + '</div></div>'
+                    + '<div class="tracker-summary-item"><div class="tracker-summary-label">Current PBc Value</div><div class="tracker-summary-value" style="color:var(--insider-success);">' + escapeHtml(formatPriceNumber(model.currentValue, 2)) + '</div></div>'
+                    + '</div>'
+                    + '<div class="tracker-history-head"><span>Unlock history</span><span>Historical rows plus next 2 projected tranches</span></div>'
+                    + '<div class="insider-table-shell tracker-history-shell">'
+                    + '<table class="insider-table tracker-history-table">'
+                    + '<thead><tr><th>Unlock</th><th>Progress</th><th>PB Settled</th><th>USDL Paid</th><th>Exec Price</th><th>Source</th></tr></thead>'
+                    + '<tbody>' + historyRows + '</tbody>'
+                    + '</table>'
+                    + '</div>'
+                    + '</div>';
+            }
+
+            async function loadPbtLookup() {
+                const raw = (lookupInput?.value || '').trim();
+                if (!raw || !/^\d+$/.test(raw) || Number(raw) <= 0) {
+                    setLookupStatus('Enter a valid PBt ID.', 'error');
+                    renderLookupEmpty('Enter a valid PBt ID to inspect a tracker.');
+                    return;
+                }
+
+                const requestId = ++state.lookupRequestId;
+                const pbtId = Number(raw);
+                setLookupLoading(true);
+                setLookupStatus('Loading PBt #' + pbtId + '...', 'loading');
+                renderLookupEmpty('Loading tracker #' + pbtId + '...');
+
+                try {
+                    const [currentPrice, registry, unlockStatus, onChainEvents, indexedNetting] = await Promise.all([
+                        getCurrentPairPrice(),
+                        getVault().pbtRegistry(pbtId),
+                        getVaultViews().getPositionUnlockStatus(pbtId),
+                        fetchPbtEvents(pbtId),
+                        fetchBuyNettingForPbt(pbtId),
+                    ]);
+
+                    if (requestId !== state.lookupRequestId) return;
+
+                    const holder = String(registry.holder || '');
+                    if (!holder || /^0x0{40}$/i.test(holder)) {
+                        setLookupStatus('PBt #' + pbtId + ' was not found on mainnet.', 'error');
+                        renderLookupEmpty('PBt #' + pbtId + ' was not found on mainnet.');
+                        return;
+                    }
+
+                    const buyPriceNum = Number(ethers.formatEther(registry.buyPrice));
+                    const pbAmountNum = Number(ethers.formatEther(registry.pbAmount));
+                    const initialLockedPBcNum = Number(ethers.formatEther(getInitialLockedPBcFromWei(registry.pbAmount)));
+                    const nextTriggerNum = Number(ethers.formatEther(registry.nextTriggerPrice));
+                    const nextUnlockIdx = Number(registry.nextUnlockIndex);
+                    const eligible = Boolean(unlockStatus[2]);
+                    const pbcRemainingNum = Number(ethers.formatEther(unlockStatus[3]));
+                    const mergedEventMap = mergeIndexedNettingIntoEventMap(onChainEvents, indexedNetting, pbtId);
+                    await applySplitPayoutAdjustments({ [pbtId]: mergedEventMap });
+
+                    if (requestId !== state.lookupRequestId) return;
+
+                    const unlockHistory = getUnlockHistoryForPosition(initialLockedPBcNum, nextUnlockIdx, buyPriceNum, mergedEventMap);
+                    const currentValue = pbcRemainingNum * currentPrice;
+                    const progressPct = nextTriggerNum > 0 ? Math.min((currentPrice / nextTriggerNum) * 100, 100) : 0;
+                    const settledPBc = initialLockedPBcNum - pbcRemainingNum;
+                    const initialInvestment = buyPriceNum * pbAmountNum;
+
+                    let projectedRemaining = pbcRemainingNum;
+                    const futureUnlockRows = [];
+                    for (let futureIdx = nextUnlockIdx; futureIdx < nextUnlockIdx + 2; futureIdx++) {
+                        const projectedPbcAmount = projectedRemaining / 3;
+                        const projectedExecPrice = localTriggerPrice(buyPriceNum, futureIdx);
+                        const projectedProceeds = projectedPbcAmount * projectedExecPrice;
+                        futureUnlockRows.push({
+                            unlockIndex: futureIdx,
+                            pbcAmount: projectedPbcAmount,
+                            proceeds: projectedProceeds,
+                            executionPrice: projectedExecPrice,
+                            estimated: true,
+                            upcoming: true,
+                            txAdjusted: false,
+                            source: 'estimated',
+                        });
+                        projectedRemaining -= projectedPbcAmount;
+                    }
+
+                    renderPbtLookupCard({
+                        pbtId,
+                        eligible,
+                        progressPct,
+                        holder,
+                        payoutAddress: String(registry.payoutAddress || ''),
+                        initialInvestment,
+                        buyPrice: buyPriceNum,
+                        mintBlock: registry.mintBlock.toString(),
+                        pbAmount: pbAmountNum,
+                        pbcRemaining: pbcRemainingNum,
+                        settledPBc,
+                        usdlPaid: unlockHistory.usdlPaid,
+                        nextUnlockIdx,
+                        nextTrigger: nextTriggerNum,
+                        currentValue,
+                        currentPrice,
+                        history: unlockHistory.history.concat(futureUnlockRows),
+                    });
+
+                    setLookupStatus('Loaded PBt #' + pbtId, 'success');
+                } catch (error) {
+                    if (requestId !== state.lookupRequestId) return;
+                    console.error('PBt lookup error:', error);
+                    setLookupStatus('Lookup failed', 'error');
+                    renderLookupEmpty('Error: ' + (error?.message || String(error)));
+                } finally {
+                    if (requestId === state.lookupRequestId) {
+                        setLookupLoading(false);
+                    }
+                }
+            }
+
+            function normalizeRows(payload) {
+                const rows = Array.isArray(payload?.positions) ? payload.positions : [];
+                return rows
+                    .map((row) => ({
+                        id: Number(row.id),
+                        triggerPrice: BigInt(row.triggerPrice || '0'),
+                        nextTriggerUSDL: BigInt(row.nextTriggerUSDL || '0'),
+                        nextTriggerPBc: BigInt(row.nextTriggerPBc || '0'),
+                        pbcLocked: BigInt(row.pbcLocked || '0'),
+                        payoutAddress: '',
+                        payoutStatus: 'pending',
+                    }))
+                    .sort((left, right) => {
+                        if (left.triggerPrice < right.triggerPrice) return -1;
+                        if (left.triggerPrice > right.triggerPrice) return 1;
+                        return left.id - right.id;
+                    })
+                    .map((row, index) => ({ ...row, queueOrder: index + 1 }));
+            }
+
+            async function hydratePayoutAddresses(requestId) {
+                if (!state.rows.length) return;
+
+                const vault = getVault();
+                const chunkSize = 16;
+                const total = state.rows.length;
+
+                for (let start = 0; start < total; start += chunkSize) {
+                    if (requestId !== state.requestId) return;
+
+                    const chunk = state.rows.slice(start, start + chunkSize);
+                    const results = await Promise.allSettled(chunk.map((row) => vault.pbtRegistry(row.id)));
+
+                    if (requestId !== state.requestId) return;
+
+                    results.forEach((result, offset) => {
+                        const row = chunk[offset];
+                        if (!row) return;
+
+                        if (result.status === 'fulfilled') {
+                            const value = result.value;
+                            const payoutAddress = String(value.payoutAddress || value[7] || '');
+                            if (payoutAddress && ethers.isAddress(payoutAddress)) {
+                                row.payoutAddress = payoutAddress;
+                                row.payoutStatus = 'ready';
+                                state.hydratedCount += 1;
+                            } else {
+                                row.payoutStatus = 'error';
+                                state.hydrationErrors += 1;
+                            }
+                        } else {
+                            row.payoutStatus = 'error';
+                            state.hydrationErrors += 1;
+                        }
+                    });
+
+                    setStatus('Loaded DB rows. Hydrating payout addresses ' + Math.min(start + chunk.length, total) + '/' + total + '...', 'loading');
+                    render();
+                }
+            }
+
+            async function refreshLiveState() {
+                const requestId = ++state.requestId;
+                state.loading = true;
+                state.hydratedCount = 0;
+                state.hydrationErrors = 0;
+                clearError();
+                setStatus('Checking remote DB...', 'loading');
+                render();
+
+                try {
+                    const url = ACTIVE_NETWORK.apiBase.replace(/\/$/, '') + '/netting-positions?usdl=' + QUEUE_BUDGET;
+                    const response = await fetch(url, { cache: 'no-store' });
+                    if (!response.ok) {
+                        throw new Error('Remote DB request failed with HTTP ' + response.status + '.');
+                    }
+
+                    const payload = await response.json();
+                    if (requestId !== state.requestId) return;
+
+                    state.rows = normalizeRows(payload);
+                    state.currentPrice = BigInt(payload.currentPrice || '0');
+                    state.estimatedMaxPrice = BigInt(payload.estimatedMaxPrice || '0');
+                    state.lastRefresh = new Date();
+
+                    // Fetch LP reserves for $ needed calc
+                    try {
+                        const pair = getPair();
+                        const [reserves, token0] = await Promise.all([pair.getReserves(), pair.token0()]);
+                        if (token0.toLowerCase() === ADDRESSES.PB.toLowerCase()) {
+                            state.pbReserve = Number(ethers.formatEther(reserves[0]));
+                            state.usdlReserve = Number(ethers.formatEther(reserves[1]));
+                        } else {
+                            state.pbReserve = Number(ethers.formatEther(reserves[1]));
+                            state.usdlReserve = Number(ethers.formatEther(reserves[0]));
+                        }
+                    } catch (e) {
+                        console.warn('Failed to fetch LP reserves:', e);
+                    }
+
+                    if (!state.rows.length) {
+                        setStatus('Remote DB returned zero active rows.', 'success');
+                        render();
+                        return;
+                    }
+
+                    setStatus('Loaded ' + state.rows.length + ' DB rows. Hydrating payout addresses...', 'loading');
+                    render();
+                    await hydratePayoutAddresses(requestId);
+
+                    if (requestId !== state.requestId) return;
+
+                    const successMessage = state.hydrationErrors
+                        ? 'Loaded ' + state.rows.length + ' DB rows. ' + state.hydrationErrors + ' address reads failed.'
+                        : 'Loaded ' + state.rows.length + ' DB rows and all payout addresses.';
+                    setStatus(successMessage, state.hydrationErrors ? 'error' : 'success');
+                } catch (error) {
+                    if (requestId !== state.requestId) return;
+                    setError(error?.message || String(error));
+                    setStatus('Refresh failed', 'error');
+                } finally {
+                    if (requestId === state.requestId) {
+                        state.loading = false;
+                        render();
+                    }
+                }
+            }
+
+            async function copyText(text, button) {
+                if (!text) return;
+
+                if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+                    await navigator.clipboard.writeText(text);
+                } else {
+                    const area = document.createElement('textarea');
+                    area.value = text;
+                    area.setAttribute('readonly', 'readonly');
+                    area.style.position = 'fixed';
+                    area.style.opacity = '0';
+                    document.body.appendChild(area);
+                    area.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(area);
+                }
+
+                const original = button.textContent;
+                button.textContent = 'Copied';
+                button.classList.add('is-copied');
+                window.setTimeout(() => {
+                    button.textContent = original;
+                    button.classList.remove('is-copied');
+                }, 1100);
+            }
+
+            refreshButton.addEventListener('click', refreshLiveState);
+
+            headerButtons.forEach((button) => {
+                button.addEventListener('click', () => {
+                    setSort(button.dataset.sortKey || '');
+                });
+            });
+
+            queueBody.addEventListener('click', async (event) => {
+                const button = event.target.closest('button[data-address]');
+                if (!button) return;
+                const address = button.getAttribute('data-address');
+                try {
+                    await copyText(address, button);
+                } catch (error) {
+                    setError('Copy failed: ' + (error?.message || String(error)));
+                    setStatus('Copy failed', 'error');
+                }
+            });
+
+            lookupButton.addEventListener('click', loadPbtLookup);
+            lookupInput.addEventListener('keydown', (event) => {
+                if (event.key !== 'Enter') return;
+                event.preventDefault();
+                loadPbtLookup();
+            });
+
+            rpcLabel.textContent = ACTIVE_NETWORK.rpc.replace(/^https?:\/\//, '');
+            render();
+            refreshLiveState();
+        })();
+    </script>
+</body>
+</html>

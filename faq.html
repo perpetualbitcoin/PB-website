@@ -355,11 +355,16 @@
                         Write down your seed phrase and store it somewhere safe, no one can recover it for you.
                     </li>
                     <li>
-                        <strong>Get PLS (PulseChain's native token) into your wallet.</strong><br>
-                        You need a small amount of PLS to pay for gas (transaction fees). The easiest way is to buy PLS directly from any currency using
+                        <strong>Get funds onto PulseChain + keep some PLS for gas.</strong><br>
+                        <strong>Step 2.a (new to crypto / fiat on-ramp):</strong>
+                        Buy PLS directly from fiat using
                         <a href="https://app.rampnow.io/order/quote?orderType=buy&srcCurrency=USD&srcChain=fiat&dstCurrency=PLS&dstChain=pulse-chain&paymentMode=ach&apiKey=pk_live_zXuMmMzFAbfnMPQnwfEaMkabwPfKsVsg&srcAmount=100&walletUid=&walletAddressTag=" target="_blank" rel="noopener" style="color: var(--primary-color);">RampNow</a>
-                        , it lets you go straight from fiat (USD, EUR, etc.) to PLS in one step with no intermediate exchange needed.
-                        Enter your PulseChain wallet address on the RampNow form and the PLS will arrive directly (RampNow uses KYC).
+                        . Enter your PulseChain wallet address and the PLS arrives directly (RampNow uses KYC).
+                        <br><br>
+                        <strong>Step 2.b (already in crypto):</strong>
+                        Bridge assets from Base, Ethereum, BSC, Arbitrum, Solana, Polygon, OP Mainnet, Unichain, or INC to PulseChain via
+                        <a href="https://libertyswap.finance/" target="_blank" rel="noopener" style="color: var(--primary-color);">LibertySwap</a>.
+                        After bridging, keep a little PLS unswapped for transaction fees.
                     </li>
                     <li>
                         <strong>Get USDL.</strong><br>
@@ -376,6 +381,12 @@
                         Enter the USDL amount you want to invest and confirm the transaction.
                         The vault will allocate your PB: 3.69% arrives as liquid PB immediately, and 96.31% is locked as PBc in a new PBt position.
                         Your unlock schedule starts at that moment, no further action needed.
+                        <br><br>
+                        <strong>Important: The only place you can buy PB is via the Dapp.</strong>
+                        By contract design, the only valid buys route is through the official Dapp, which calls the Vault's <code>buyPBDirect()</code> flow.
+                        That flow is what creates the full position state (liquid PB + locked PBc + PBt tracker with price-based unlock schedule).
+                        You can still sell liquid PB on PulseX at any time, without protocol restrictions.
+                            This ensures everyone follows the same rules, with no backdoors.
                     </li>
                 </ol>
                 <p style="margin-top:0.8rem">
@@ -399,6 +410,10 @@
                     When market price reaches your specific <a href="#hardcore-price" style="color: var(--primary-color);">checkpoints</a>, 
                     &frac13; of your remaining locked position is automatically settled into USDL. No roadmap, no promises, just deterministic on-chain rules.
                     If you want the shortest guided intro first, start with the <a href="PBManifesto.html" style="color: var(--primary-color); text-decoration: underline;">PB Manifesto</a>.
+                </p>
+                <p>
+                    Want the full mechanics walkthrough? Watch the
+                    <a href="https://youtu.be/8I_r2tILr6w" target="_blank" rel="noopener" style="color: var(--primary-color); text-decoration: underline;">Perpetual Bitcoin Buy Inner Workings - DEEP DIVE (YouTube)</a>.
                 </p>
                 <ul>
                     <li>NO admin keys</li>
@@ -642,6 +657,10 @@
                 <h4 id="settlement">What happens when my tokens unlock?</h4>
                 <p>
                     Unlocks are settled through <a href="#hardcore-gas" style="color: var(--primary-color);"><strong>convergent netting</strong></a> inside each buy transaction. When the next buyer calls <code>buyPBDirect()</code>:
+                </p>
+                <p style="margin-top:0.6rem;">
+                    Prefer a visual step-by-step of this exact flow?
+                    <a href="https://youtu.be/8I_r2tILr6w" target="_blank" rel="noopener" style="color: var(--primary-color); text-decoration: underline;">Watch the deep dive video</a>.
                 </p>
                 <ul>
                     <li>Vault scans positions whose trigger price &le; post-buy price (sequential scan, up to 500 per tx)</li>
@@ -1526,6 +1545,10 @@
                 <h4 id="dca">Is Perpetual Bitcoin designed as a DCA out?</h4>
                 <p>
                     <strong>Yes, but automated, on-chain, and you never have to decide when to sell.</strong>
+                </p>
+                <p>
+                    For the full DCA-out mechanics with real examples, watch the
+                    <a href="https://youtu.be/8I_r2tILr6w" target="_blank" rel="noopener" style="color: var(--primary-color); text-decoration: underline;">DEEP DIVE video</a>.
                 </p>
                 <p>
                     Traditional DCA out means you manually sell a portion of your holdings at regular intervals, 
