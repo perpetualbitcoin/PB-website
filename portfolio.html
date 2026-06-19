@@ -61,6 +61,12 @@
             font-feature-settings: "tnum" 1, "lnum" 1;
         }
 
+        @keyframes pb-spin {
+            from { transform: rotate(0deg); }
+            to   { transform: rotate(360deg); }
+        }
+        #portfolio-refresh-btn.spinning { animation: pb-spin 0.7s linear infinite; }
+
         .portfolio-saved-addresses {
             margin-top: 8px;
         }
@@ -574,19 +580,22 @@
                         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end;">
                             <div style="font-size:0.9rem;color:#aaa;padding:8px 12px;border:1px solid rgba(243,144,4,0.18);border-radius:999px;background:rgba(243,144,4,0.08);">PB+PBc Value: <span id="grand-holdings-value" style="color:#4CAF50;font-weight:700;">-</span></div>
                             <div style="font-size:0.9rem;color:#aaa;">PB Price: <span id="grand-price" style="color:#F39004;font-weight:700;">-</span></div>
+                            <button onclick="event.stopPropagation();loadPortfolio()" id="portfolio-refresh-btn" title="Refresh portfolio" style="background:none;border:1px solid rgba(243,144,4,0.3);border-radius:50%;width:32px;height:32px;cursor:pointer;color:#F39004;font-size:1rem;display:flex;align-items:center;justify-content:center;padding:0;transition:transform 0.3s,border-color 0.2s;" onmouseenter="this.style.borderColor='#F39004'" onmouseleave="this.style.borderColor='rgba(243,144,4,0.3)'">↻</button>
                         </div>
                     </div>
                 </summary>
                 <div class="portfolio-table-wrap" style="overflow-x:auto;">
                     <table id="portfolio-table" style="width:100%;border-collapse:collapse;font-size:0.9rem;table-layout:fixed;">
                         <colgroup>
-                            <col style="width:130px;">
-                            <col style="width:105px;">
-                            <col style="width:105px;">
                             <col style="width:95px;">
+                            <col style="width:100px;">
+                            <col style="width:100px;">
+                            <col style="width:90px;">
+                            <col style="width:70px;">
+                            <col style="width:75px;">
+                            <col style="width:75px;">
                             <col style="width:95px;">
-                            <col style="width:110px;">
-                            <col style="width:50px;">
+                            <col style="width:135px;">
                             <col style="width:30px;">
                         </colgroup>
                         <thead>
@@ -594,8 +603,10 @@
                                 <th style="padding:10px 8px;text-align:left;color:#F39004;white-space:nowrap;cursor:pointer;user-select:none;" onclick="sortTable('addr')">Address <span id="sort-addr" style="font-size:0.7rem;"></span></th>
                                 <th style="padding:10px 8px;text-align:right;color:#F39004;white-space:nowrap;cursor:pointer;user-select:none;" onclick="sortTable('in')">$ IN <span id="sort-in" style="font-size:0.7rem;"></span></th>
                                 <th style="padding:10px 8px;text-align:right;color:#F39004;white-space:nowrap;cursor:pointer;user-select:none;" onclick="sortTable('paid')">$ Paid <span id="sort-paid" style="font-size:0.7rem;"></span></th>
+                                <th style="padding:10px 8px;text-align:right;color:#F39004;white-space:nowrap;cursor:pointer;user-select:none;" onclick="sortTable('avail')">$ Available <span id="sort-avail" style="font-size:0.7rem;"></span></th>
                                 <th style="padding:10px 8px;text-align:right;color:#F39004;white-space:nowrap;cursor:pointer;user-select:none;" onclick="sortTable('pb')">PB <span id="sort-pb" style="font-size:0.7rem;"></span></th>
                                 <th style="padding:10px 8px;text-align:right;color:#F39004;white-space:nowrap;cursor:pointer;user-select:none;" onclick="sortTable('pbc')">PBc <span id="sort-pbc" style="font-size:0.7rem;"></span></th>
+                                <th style="padding:10px 8px;text-align:right;color:#F39004;white-space:nowrap;cursor:pointer;user-select:none;" onclick="sortTable('sigma')" title="Total PB holdings (liquid PB + locked PBc)">ΣPB <span id="sort-sigma" style="font-size:0.7rem;"></span></th>
                                 <th style="padding:10px 8px;text-align:right;color:#F39004;white-space:nowrap;cursor:pointer;user-select:none;" onclick="sortTable('val')">Total $ <span id="sort-val" style="font-size:0.7rem;"></span></th>
                                 <th style="padding:10px 8px;text-align:center;color:#F39004;white-space:nowrap;cursor:pointer;user-select:none;" onclick="sortTable('t')"># T <span id="sort-t" style="font-size:0.7rem;"></span></th>
                                 <th style="padding:10px 4px;text-align:center;color:#F39004;"></th>
@@ -1911,21 +1922,25 @@
     async function loadWallet(addr, currentPrice, allEvents) {
         const checksumAddr = ethers.getAddress(addr);
 
-        // Parallel: PBt IDs + PB balance + PBc balance
-        const [pbtIds, pbBal, pbcBal] = await Promise.all([
+        // Parallel: PBt IDs + PB balance + PBc balance + USDL balance
+        const usdlToken = new ethers.Contract(TUSDL, TOKEN_ABI, provider);
+        const [pbtIds, pbBal, pbcBal, usdlBal] = await Promise.all([
             vaultViews.getUserPBtIds(checksumAddr),
             pbToken.balanceOf(checksumAddr),
             pbcToken.balanceOf(checksumAddr),
+            usdlToken.balanceOf(checksumAddr),
         ]);
 
         const pbLiquid = Number(ethers.formatEther(pbBal));
         const pbcBalance = Number(ethers.formatEther(pbcBal));
+        const usdlBalance = Number(ethers.formatEther(usdlBal));
 
         if (pbtIds.length === 0) {
             return {
                 address: checksumAddr,
                 pbLiquid,
                 pbcBalance,
+                usdlBalance,
                 positions: [],
                 totalUsdlIn: 0,
                 totalUsdlPaid: 0,
@@ -1996,6 +2011,7 @@
             address: checksumAddr,
             pbLiquid,
             pbcBalance,
+            usdlBalance,
             positions,
             totalUsdlIn,
             totalUsdlPaid,
@@ -2018,20 +2034,23 @@
             </td>
             <td style="padding:10px 8px;text-align:right;color:#ddd;white-space:nowrap;">$${fmt(wallet.totalUsdlIn)}</td>
             <td style="padding:10px 8px;text-align:right;color:#4CAF50;font-weight:600;white-space:nowrap;">$${fmt(wallet.totalUsdlPaid)}</td>
+            <td style="padding:10px 8px;text-align:right;color:#4CAF50;font-weight:600;white-space:nowrap;">$${fmt(wallet.usdlBalance)}</td>
             <td style="padding:10px 8px;text-align:right;color:#ddd;white-space:nowrap;">${fmtPB(wallet.pbLiquid)}</td>
             <td style="padding:10px 8px;text-align:right;color:#ff9800;white-space:nowrap;">${fmtPB(wallet.totalPBc)}</td>
+            <td style="padding:10px 8px;text-align:right;color:#F39004;font-weight:700;white-space:nowrap;">${fmtPB(wallet.pbLiquid + wallet.totalPBc)}</td>
             <td style="padding:10px 8px;text-align:right;color:#4CAF50;font-weight:600;white-space:nowrap;">$${fmt(totalValue)}</td>
             <td style="padding:10px 8px;text-align:center;color:${totalT > 0 ? '#4CAF50' : '#666'};font-weight:700;">${totalT}</td>
             <td style="padding:10px 4px;text-align:center;"><span style="cursor:pointer;color:#ff6b6b;font-size:0.9rem;" onclick="event.stopPropagation();removeAddress('${wallet.address}')" title="Remove">✕</span></td>
         </tr>
-        <tr id="${rowId}" style="display:none;"><td colspan="8" style="padding:0;"></td></tr>`;
+        <tr id="${rowId}" style="display:none;"><td colspan="10" style="padding:0;"></td></tr>`;
     }
 
     function computePortfolioTotals(wallets, currentPrice) {
-        let tIn = 0, tPaid = 0, tPB = 0, tPBc = 0, tT = 0;
+        let tIn = 0, tPaid = 0, tUsdlBal = 0, tPB = 0, tPBc = 0, tT = 0;
         for (const w of wallets) {
             tIn += w.totalUsdlIn;
             tPaid += w.totalUsdlPaid;
+            tUsdlBal += w.usdlBalance || 0;
             tPB += w.pbLiquid;
             tPBc += w.totalPBc;
             tT += w.positions.reduce((s, p) => s + p.nextUnlockIdx, 0);
@@ -2039,6 +2058,7 @@
         return {
             tIn,
             tPaid,
+            tUsdlBal,
             tPB,
             tPBc,
             tT,
@@ -2047,13 +2067,15 @@
     }
 
     function buildTotalsRow(wallets, currentPrice) {
-        const { tIn, tPaid, tPB, tPBc, tT, tVal } = computePortfolioTotals(wallets, currentPrice);
+        const { tIn, tPaid, tUsdlBal, tPB, tPBc, tT, tVal } = computePortfolioTotals(wallets, currentPrice);
         return `<tr style="font-weight:700;font-size:0.95rem;">
             <td style="padding:12px 8px;color:#F39004;">TOTAL</td>
             <td style="padding:12px 8px;text-align:right;color:#ddd;white-space:nowrap;">$${fmt(tIn)}</td>
             <td style="padding:12px 8px;text-align:right;color:#4CAF50;white-space:nowrap;">$${fmt(tPaid)}</td>
+            <td style="padding:12px 8px;text-align:right;color:#4CAF50;white-space:nowrap;">$${fmt(tUsdlBal)}</td>
             <td style="padding:12px 8px;text-align:right;color:#ddd;white-space:nowrap;">${fmtPB(tPB)}</td>
             <td style="padding:12px 8px;text-align:right;color:#ff9800;white-space:nowrap;">${fmtPB(tPBc)}</td>
+            <td style="padding:12px 8px;text-align:right;color:#F39004;font-weight:700;white-space:nowrap;">${fmtPB(tPB + tPBc)}</td>
             <td style="padding:12px 8px;text-align:right;color:#4CAF50;white-space:nowrap;">$${fmt(tVal)}</td>
             <td style="padding:12px 8px;text-align:center;color:#4CAF50;">${tT}</td>
             <td></td>
@@ -2061,7 +2083,7 @@
     }
 
     function buildMobileTotalsCard(wallets, currentPrice) {
-        const { tIn, tPaid, tPB, tPBc, tT, tVal } = computePortfolioTotals(wallets, currentPrice);
+        const { tIn, tPaid, tUsdlBal, tPB, tPBc, tT, tVal } = computePortfolioTotals(wallets, currentPrice);
         return `<div class="portfolio-mobile-card portfolio-mobile-card--totals">
             <div class="portfolio-mobile-card__header">
                 <div>
@@ -2072,6 +2094,7 @@
             <div class="portfolio-mobile-grid">
                 <div class="portfolio-mobile-metric"><span class="portfolio-mobile-metric__label">$ In</span><span class="portfolio-mobile-metric__value">$${fmt(tIn)}</span></div>
                 <div class="portfolio-mobile-metric"><span class="portfolio-mobile-metric__label">$ Paid</span><span class="portfolio-mobile-metric__value portfolio-mobile-metric__value--green">$${fmt(tPaid)}</span></div>
+                <div class="portfolio-mobile-metric"><span class="portfolio-mobile-metric__label">$ Available</span><span class="portfolio-mobile-metric__value portfolio-mobile-metric__value--green">$${fmt(tUsdlBal)}</span></div>
                 <div class="portfolio-mobile-metric"><span class="portfolio-mobile-metric__label">PB</span><span class="portfolio-mobile-metric__value">${fmtPB(tPB)}</span></div>
                 <div class="portfolio-mobile-metric"><span class="portfolio-mobile-metric__label">PBc</span><span class="portfolio-mobile-metric__value portfolio-mobile-metric__value--orange">${fmtPB(tPBc)}</span></div>
                 <div class="portfolio-mobile-metric"><span class="portfolio-mobile-metric__label">Total $</span><span class="portfolio-mobile-metric__value portfolio-mobile-metric__value--green">$${fmt(tVal)}</span></div>
@@ -2129,6 +2152,7 @@
             <div class="portfolio-mobile-grid">
                 <div class="portfolio-mobile-metric"><span class="portfolio-mobile-metric__label">$ In</span><span class="portfolio-mobile-metric__value">$${fmt(wallet.totalUsdlIn)}</span></div>
                 <div class="portfolio-mobile-metric"><span class="portfolio-mobile-metric__label">$ Paid</span><span class="portfolio-mobile-metric__value portfolio-mobile-metric__value--green">$${fmt(wallet.totalUsdlPaid)}</span></div>
+                <div class="portfolio-mobile-metric"><span class="portfolio-mobile-metric__label">$ Available</span><span class="portfolio-mobile-metric__value portfolio-mobile-metric__value--green">$${fmt(wallet.usdlBalance)}</span></div>
                 <div class="portfolio-mobile-metric"><span class="portfolio-mobile-metric__label">PB</span><span class="portfolio-mobile-metric__value">${fmtPB(wallet.pbLiquid)}</span></div>
                 <div class="portfolio-mobile-metric"><span class="portfolio-mobile-metric__label">PBc</span><span class="portfolio-mobile-metric__value portfolio-mobile-metric__value--orange">${fmtPB(wallet.totalPBc)}</span></div>
                 <div class="portfolio-mobile-metric"><span class="portfolio-mobile-metric__label">Total $</span><span class="portfolio-mobile-metric__value portfolio-mobile-metric__value--green">$${fmt(totalValue)}</span></div>
@@ -2162,8 +2186,10 @@
             case 'addr': return wallet.address.toLowerCase();
             case 'in':   return wallet.totalUsdlIn;
             case 'paid': return wallet.totalUsdlPaid;
+            case 'avail': return wallet.usdlBalance || 0;
             case 'pb':   return wallet.pbLiquid;
             case 'pbc':  return wallet.totalPBc;
+            case 'sigma': return wallet.pbLiquid + wallet.totalPBc;
             case 'val':  return totalValue;
             case 't':    return totalT;
             default:     return 0;
@@ -2171,7 +2197,7 @@
     }
 
     function clearSortArrows() {
-        for (const id of ['sort-addr','sort-in','sort-paid','sort-pb','sort-pbc','sort-val','sort-t']) {
+        for (const id of ['sort-addr','sort-in','sort-paid','sort-avail','sort-pb','sort-pbc','sort-sigma','sort-val','sort-t']) {
             document.getElementById(id).textContent = '';
         }
     }
@@ -2223,8 +2249,10 @@
         let rows = '';
         for (const pos of wallet.positions) {
             const badgeText = pos.eligible ? '<span style="color:#4CAF50;font-weight:700;">✅ READY</span>' : `<span style="display:inline-flex;align-items:center;gap:6px;"><span style="display:inline-block;width:100px;height:2px;background:rgba(255,255,255,0.12);border-radius:1px;overflow:hidden;"><span style="display:block;width:${Math.round(pos.progressPct)}%;height:100%;background:${pos.progressPct >= 50 ? '#4CAF50' : '#F39004'};border-radius:1px;"></span></span><span style="font-size:0.75rem;color:#aaa;">${Math.round(pos.progressPct)}%</span></span>`;
+            const posLiquidPB = pos.pbAmount - pos.initialLockedPBc;
+            const posSigmaPB = posLiquidPB + pos.pbcRemaining;
             const posValue = pos.pbcRemaining * currentPrice;
-            const totalSold = pos.pbAmount - pos.pbcRemaining;
+            const totalSold = pos.initialLockedPBc - pos.pbcRemaining;
             const soldValue = totalSold * currentPrice;
             const remainingValue = pos.pbcRemaining * currentPrice;
             // Position header row — PBt #
@@ -2232,8 +2260,10 @@
                 <td style="padding:8px 8px;color:#F39004;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">PBt #${pos.pbtId}</td>
                 <td style="padding:8px 8px;text-align:right;color:#aaa;white-space:nowrap;">$${fmt(pos.usdlIn)}</td>
                 <td style="padding:8px 8px;text-align:right;color:#4CAF50;font-weight:600;white-space:nowrap;">$${fmt(pos.usdlPaid)}</td>
-                <td style="padding:8px 8px;text-align:right;color:#aaa;white-space:nowrap;">${fmtPB(pos.pbAmount)}</td>
+                <td style="padding:8px 8px;text-align:right;font-size:0.85rem;"></td>
+                <td style="padding:8px 8px;text-align:right;color:#aaa;white-space:nowrap;">${fmtPB(posLiquidPB)}</td>
                 <td style="padding:8px 8px;text-align:right;color:#ff9800;white-space:nowrap;">${fmtPB(pos.pbcRemaining)}</td>
+                <td style="padding:8px 8px;text-align:right;color:#F39004;font-weight:700;white-space:nowrap;">${fmtPB(posSigmaPB)}</td>
                 <td style="padding:8px 8px;text-align:right;color:#4CAF50;white-space:nowrap;">$${fmt(posValue)}</td>
                 <td style="padding:8px 8px;text-align:center;">${badgeText}</td>
                 <td></td>
@@ -2244,7 +2274,9 @@
                 <td style="padding:4px 8px;text-align:right;font-size:0.85rem;"></td>
                 <td style="padding:4px 8px;text-align:right;color:#4CAF50;font-weight:600;font-size:0.85rem;">$${fmt(pos.usdlPaid)}</td>
                 <td style="padding:4px 8px;text-align:right;font-size:0.85rem;"></td>
+                <td style="padding:4px 8px;text-align:right;font-size:0.85rem;"></td>
                 <td style="padding:4px 8px;text-align:right;color:#4CAF50;font-size:0.85rem;">${fmtPB(totalSold)}</td>
+                <td style="padding:4px 8px;text-align:right;font-size:0.85rem;"></td>
                 <td style="padding:4px 8px;text-align:right;color:#4CAF50;font-size:0.85rem;">$${fmt(soldValue)}</td>
                 <td style="padding:4px 8px;text-align:center;color:#4CAF50;font-size:0.85rem;">${pos.nextUnlockIdx}</td>
                 <td></td>
@@ -2255,17 +2287,19 @@
                 <td style="padding:4px 8px;text-align:right;font-size:0.85rem;"></td>
                 <td style="padding:4px 8px;text-align:right;font-size:0.85rem;"></td>
                 <td style="padding:4px 8px;text-align:right;font-size:0.85rem;"></td>
+                <td style="padding:4px 8px;text-align:right;font-size:0.85rem;"></td>
                 <td style="padding:4px 8px;text-align:right;color:#ff9800;font-size:0.85rem;">${fmtPB(pos.pbcRemaining)}</td>
+                <td style="padding:4px 8px;text-align:right;font-size:0.85rem;"></td>
                 <td style="padding:4px 8px;text-align:right;color:#ff9800;font-size:0.85rem;">$${fmt(remainingValue)}</td>
                 <td></td>
                 <td></td>
             </tr>`;
         }
         if (wallet.positions.length === 0) {
-            rows += '<tr><td colspan="8" style="padding:8px;color:#888;font-size:0.85rem;">No positions.</td></tr>';
+            rows += '<tr><td colspan="10" style="padding:8px;color:#888;font-size:0.85rem;">No positions.</td></tr>';
         }
         tr.querySelector('td').innerHTML = `<table style="width:100%;border-collapse:collapse;font-size:0.9rem;table-layout:fixed;">
-            <colgroup><col style="width:130px;"><col style="width:105px;"><col style="width:105px;"><col style="width:95px;"><col style="width:95px;"><col style="width:110px;"><col style="width:50px;"><col style="width:30px;"></colgroup>
+            <colgroup><col style="width:95px;"><col style="width:100px;"><col style="width:100px;"><col style="width:90px;"><col style="width:70px;"><col style="width:75px;"><col style="width:75px;"><col style="width:95px;"><col style="width:135px;"><col style="width:30px;"></colgroup>
             <tbody>${rows}</tbody></table>`;
         tr.style.display = '';
     }
@@ -2274,6 +2308,8 @@
     // MAIN LOAD
     // ========================
     async function loadPortfolio() {
+        const refreshBtn = document.getElementById('portfolio-refresh-btn');
+        if (refreshBtn) refreshBtn.classList.add('spinning');
         const input = document.getElementById('address-input').value;
         const newAddrs = parseAddresses(input);
         const savedAddrs = loadSavedAddresses();
@@ -2322,17 +2358,13 @@
             currentSortCol = null;
             currentSortDir = 1;
 
-            // Build table rows
+            // Build table rows with default sort by $ Available desc
             cachedDetails = {};
-            let rowsHtml = '';
             for (const w of validWallets) {
                 cachedDetails[w.address] = { wallet: w, currentPrice };
-                rowsHtml += buildTableRow(w, currentPrice);
             }
-            document.getElementById('portfolio-tbody').innerHTML = rowsHtml;
             document.getElementById('portfolio-tfoot').innerHTML = buildTotalsRow(validWallets, currentPrice);
-            renderPortfolioMobile(validWallets, currentPrice);
-            clearSortArrows();
+            sortTable('avail');
             document.getElementById('wallet-results').innerHTML = '';
             refreshReportSection();
 
@@ -2341,6 +2373,8 @@
         } catch (err) {
             statusEl.innerHTML = `<span style="color:#ff6b6b;">Error: ${err.message}</span>`;
             console.error('Portfolio load error:', err);
+        } finally {
+            if (refreshBtn) refreshBtn.classList.remove('spinning');
         }
     }
 

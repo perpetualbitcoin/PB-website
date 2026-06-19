@@ -8,7 +8,7 @@
         ? ACTIVE_NETWORK
         : ((typeof NETWORKS !== 'undefined' && NETWORKS && NETWORKS.mainnet)
             ? NETWORKS.mainnet
-            : { rpc: 'https://rpc.pulsechain.com', chainId: 369 });
+            : { rpc: 'https://rpc.pulsechain.com', chainId: 369, apiBase: 'https://perpetualbitcoin.io/MN-api' });
     var TICKER_ADDRESSES = (typeof ADDRESSES !== 'undefined' && ADDRESSES)
         ? ADDRESSES
         : ((typeof ADDRESSES_MAINNET !== 'undefined' && ADDRESSES_MAINNET)
@@ -25,6 +25,8 @@
         { id: 'tick-lp',          label: 'LP',          color: '#FFD700', bold: false },
         { id: 'tick-mc',          label: 'Total MC',    color: '#FFD700', bold: false },
         { id: 'tick-mc-users',    label: 'MC Users',    color: '#4CAF50', bold: false },
+        { id: 'tick-flow-24h', label: 'Real $$ IN (24h)',      color: '#aaa', bold: false },
+        { id: 'tick-flow-all', label: 'Real $$ IN (All Time)',  color: '#aaa', bold: false },
     ];
 
     // ── Build HTML from ITEMS array ──
@@ -84,12 +86,42 @@
         if (p < 10)    return '$' + p.toFixed(4);
         return '$' + fmtNum(p, 2);
     }
+    function fmtUsd(n, d) {
+        if (isNaN(n)) return '$\u2014';
+        return '$' + fmtNum(n, d);
+    }
 
     // ── DOM helpers ──
     function set(id, txt)             { var el = document.getElementById(id); if (el) el.innerText = txt; }
     function setC(id, txt, color)     { var el = document.getElementById(id); if (el) { el.innerText = txt; el.style.color = color; } }
     function setAll(sel, txt)         { document.querySelectorAll(sel).forEach(function (el) { el.innerText = txt; }); }
     function setAllC(sel, txt, color) { document.querySelectorAll(sel).forEach(function (el) { el.innerText = txt; el.style.color = color; }); }
+
+    async function fetchNetFlowMetrics() {
+        var apiBase = (TICKER_NETWORK && TICKER_NETWORK.apiBase)
+            ? TICKER_NETWORK.apiBase
+            : 'https://perpetualbitcoin.io/MN-api';
+        var responses = await Promise.all([
+            fetch(apiBase + '/net-flow-24h', { method: 'GET', headers: { 'Accept': 'application/json' } }),
+            fetch(apiBase + '/net-flow-alltime', { method: 'GET', headers: { 'Accept': 'application/json' } })
+        ]);
+        var flow24h = NaN;
+        var flowAll = NaN;
+
+        if (responses[0].ok) {
+            var data24h = await responses[0].json();
+            flow24h = Number(data24h.usdlInFormatted || fmtEther(data24h.usdlIn || '0'));
+        }
+        if (responses[1].ok) {
+            var dataAll = await responses[1].json();
+            flowAll = Number(dataAll.usdlInFormatted || fmtEther(dataAll.usdlIn || '0'));
+        }
+
+        return {
+            flow24h: flow24h,
+            flowAll: flowAll,
+        };
+    }
 
     // ── Fetch on-chain data & update ticker ──
     async function updateTicker() {
@@ -98,6 +130,7 @@
             var rpc = makeProvider();
             var pairC  = new ethers.Contract(TICKER_ADDRESSES.PB_USDL_PAIR, PAIR_ABI, rpc);
             var vaultC = new ethers.Contract(TICKER_ADDRESSES.Vault, VAULT_ABI, rpc);
+            var launchPrice = 5555 / 100000;
 
             var results = await Promise.all([
                 pairC.getReserves(), pairC.token0(),
@@ -124,9 +157,19 @@
             var userPBc = Math.max(21000000 - vaultPBcNum, 0);
             var mcUsers   = (maxSellPB + userPBc) * price;
             var dist      = Number(fmtEther(totalUSDLDist));
-            var gainPct   = ((price - (90000 / 1620000)) / (90000 / 1620000)) * 100;
+            var gainPct   = ((price - launchPrice) / launchPrice) * 100;
             var gainStr   = (gainPct >= 0 ? '+' : '') + gainPct.toFixed(2) + '%';
             var gainColor = gainPct >= 0 ? '#4CAF50' : '#F44336';
+            var flow24h = NaN;
+            var flowAll = NaN;
+
+            try {
+                var flowMetrics = await fetchNetFlowMetrics();
+                flow24h = flowMetrics.flow24h;
+                flowAll = flowMetrics.flowAll;
+            } catch (flowErr) {
+                console.warn('Ticker net flow fetch failed:', flowErr.message);
+            }
 
             // Primary IDs
             set('tick-price', fmtPrice(price));
@@ -135,6 +178,8 @@
             set('tick-mc', '$' + fmtNum(mc, 0));
             set('tick-mc-users', '$' + fmtNum(mcUsers, 0));
             set('tick-distributed', '$' + fmtNum(dist, 2));
+            if (Number.isFinite(flow24h)) set('tick-flow-24h', fmtUsd(flow24h, 0));
+            if (Number.isFinite(flowAll)) set('tick-flow-all', fmtUsd(flowAll, 2));
             // Duplicate classes (seamless scroll loop)
             setAll('.tick-price-dup', fmtPrice(price));
             setAll('.tick-lp-dup', '$' + fmtNum(poolVal, 0));
@@ -142,6 +187,8 @@
             setAll('.tick-mc-dup', '$' + fmtNum(mc, 0));
             setAll('.tick-mc-users-dup', '$' + fmtNum(mcUsers, 0));
             setAll('.tick-distributed-dup', '$' + fmtNum(dist, 2));
+            if (Number.isFinite(flow24h)) setAll('.tick-flow-24h-dup', fmtUsd(flow24h, 0));
+            if (Number.isFinite(flowAll)) setAll('.tick-flow-all-dup', fmtUsd(flowAll, 2));
         } catch (err) {
             console.warn('Ticker update failed:', err.message);
         }
