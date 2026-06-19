@@ -114,8 +114,8 @@ const DEPLOY_BLOCKS = NETWORK === "mainnet" ? DEPLOY_BLOCKS_MAINNET : DEPLOY_BLO
 const VAULT_DEPLOY_BLOCK = (DEPLOY_BLOCKS && DEPLOY_BLOCKS.Vault) || 0;
 
 // ── Site distribution links ─────────────────
-const IPFS_CID = "QmSx7g8R4YugQ5Gg2NfeSwp3pp9Mfs3354dFmbEzQN1rUf";
-const IPFS_CID_V1 = "bafybeiceqsiqhaxii4dtr2q2qnvcp57wgkcfin3bib75hshla6gnuh64ta";
+const IPFS_CID = "Qmd6zAA3F4MuWBt7owdMzQwhdtHPMDcSq6nngodb2bUR92";
+const IPFS_CID_V1 = "bafybeihxvpxdl5pzxvjfldddrmwzvgdppz7cnrqvkwgnp7lbvgr4hvq5e";
 const GITHUB_DOWNLOAD = "https://github.com/perpetualbitcoin/PB-website/archive/refs/heads/main.zip";
 
 // ── Hints backup (GitHub Actions rebuild, independent of server) ─────────
