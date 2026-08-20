@@ -78,8 +78,8 @@
     <div class="dapp-hero">
         <h1><br>⚡ Perpetual Bitcoin ⚡ Dapp</h1>
         <p>Buy and/or Sell -|- View positions -|- View your perpetual unlocks -|-  Inspect execution routes directly on-chain (in our trust TERMINAL).....<br>
-            Add/remove LP positions -|- Lock your liquid $PB and earn LP rewards (Vlock) -|- Set/activate the Recovery/Inheritance option (PBr PBi). <br>
-            TRUST but VERIFY!!<br> <a href="TNDapp.html" target="_blank" rel="noopener noreferrer" style="color:#F39004;font-weight:700;text-decoration:underline;">Use TestnetV4 to test and verify</a> <br>ONE PROTOCOL. FOREVER.</p>
+            Add/remove LP positions -|- Lock your liquid $PB and earn LP rewards (Vlock) -|- Set/activate the Recovery/Inheritance option (PBr / PBi). <br>
+            TRUST, but VERIFY!!</p>
     </div>
 
     <div class="dapp-container">
@@ -116,21 +116,36 @@
         <!-- PRICE FEED - FULL WIDTH -->
         <section class="card" style="grid-column: 1/-1;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 12px;">
-                <div style="display: flex; align-items: center; gap: 20px;">
-                    <div>
-                        <div style="color: #aaa; font-size: 0.8rem; margin-bottom: 2px;">Price $ onPulseX</div>
-                        <div class="price-display" id="live-price" style="font-size: 1.8rem;">-</div>
+                <div style="display: flex; align-items: stretch; gap: 20px; flex-wrap: wrap;">
+                    <div style="display: flex; flex-direction: column; justify-content: flex-start; min-height: 64px;">
+                        <div style="color: #aaa; font-size: 0.8rem; margin-bottom: 4px; white-space: nowrap;">#PB Price $ on PulseX</div>
+                        <div class="price-display" id="live-price" style="font-size: 1.8rem; line-height: 1; white-space: nowrap; display: flex; align-items: flex-end; min-height: 34px;">-</div>
                     </div>
-                    <div style="border-left: 1px solid rgba(255, 165, 0, 0.2); padding-left: 20px;">
-                        <div style="color: #aaa; font-size: 0.8rem; margin-bottom: 4px;">Liquidity</div>
-                        <div style="font-size: 0.9rem; color: #4CAF50;">
-                            <span id="reserve-pb" style="font-weight: 600;">-</span> PB / 
-                            <span id="reserve-tusdl" style="font-weight: 600;">-</span> USDL
+                    <div style="border-left: 1px solid rgba(255, 165, 0, 0.2); padding-left: 20px; display: flex; flex-direction: column; justify-content: flex-start; min-height: 64px;">
+                        <div style="color: #aaa; font-size: 0.8rem; margin-bottom: 4px; white-space: nowrap;">$ Pool Value on PulseX</div>
+                        <div style="font-size: 1rem; line-height: 1; color: #FFD700; font-weight: 600; white-space: nowrap; display: flex; align-items: flex-end; min-height: 34px;" id="pool-value">$-</div>
+                    </div>
+                    <div style="border-left: 1px solid rgba(255, 165, 0, 0.2); padding-left: 20px; display: flex; flex-direction: column; justify-content: flex-start; min-height: 64px;">
+                        <div style="color: #aaa; font-size: 0.8rem; margin-bottom: 4px; white-space: nowrap;">Liquidity on PulseX</div>
+                        <div style="font-size: 1rem; line-height: 1; color: #4CAF50; white-space: nowrap; display: flex; align-items: flex-end; min-height: 34px;">
+                            <span id="reserve-pb" style="font-weight: 600;">-</span>  #PB / $<span id="reserve-tusdl" style="font-weight: 600;">-</span>
                         </div>
                     </div>
-                    <div style="border-left: 1px solid rgba(255, 165, 0, 0.2); padding-left: 20px;">
-                        <div style="color: #aaa; font-size: 0.8rem; margin-bottom: 4px;">Pool Value</div>
-                        <div style="font-size: 1rem; color: #FFD700; font-weight: 600;" id="pool-value">-</div>
+                    <div style="border-left: 1px solid rgba(255, 165, 0, 0.2); padding-left: 20px; display: flex; flex-direction: column; justify-content: flex-start; min-height: 64px;">
+                        <div style="color: #aaa; font-size: 0.8rem; margin-bottom: 4px; white-space: nowrap;">MC #PB+#PBc held by users</div>
+                        <div style="font-size: 1rem; line-height: 1; color: #4CAF50; font-weight: 600; white-space: nowrap; display: flex; align-items: flex-end; min-height: 34px;" id="chart-mc-users-total">$-</div>
+                    </div>
+                    <div style="border-left: 1px solid rgba(255, 165, 0, 0.2); padding-left: 20px; display: flex; flex-direction: column; justify-content: flex-start; min-height: 64px;">
+                        <div style="color: #aaa; font-size: 0.8rem; margin-bottom: 4px; white-space: nowrap;">MC #PB held by users</div>
+                        <div style="font-size: 1rem; line-height: 1; color: #4CAF50; font-weight: 600; white-space: nowrap; display: flex; align-items: flex-end; min-height: 34px;" id="chart-mc-users-liquid">$-</div>
+                    </div>
+                    <div style="border-left: 1px solid rgba(255, 165, 0, 0.2); padding-left: 20px; display: flex; flex-direction: column; justify-content: flex-start; min-height: 64px;">
+                        <div style="color: #aaa; font-size: 0.8rem; margin-bottom: 4px; white-space: nowrap;">MC #PB held by the PB Vault</div>
+                        <div style="font-size: 1rem; line-height: 1; color: #FFD700; font-weight: 600; white-space: nowrap; display: flex; align-items: flex-end; min-height: 34px;" id="chart-mc-vault">$-</div>
+                    </div>
+                    <div style="border-left: 1px solid rgba(255, 165, 0, 0.2); padding-left: 20px; display: flex; flex-direction: column; justify-content: flex-start; min-height: 64px;">
+                        <div style="color: #aaa; font-size: 0.8rem; margin-bottom: 4px; white-space: nowrap;">Total MC #PB</div>
+                        <div style="font-size: 1rem; line-height: 1; color: #FFD700; font-weight: 600; white-space: nowrap; display: flex; align-items: flex-end; min-height: 34px;" id="chart-mc-total">$-</div>
                     </div>
                 </div>
 </div>
@@ -622,6 +637,23 @@
 
         <!-- PROTOCOL STATE -->
         <style>
+            #live-price {
+                animation: pbPricePulse 1.8s ease-in-out infinite;
+                transform-origin: left bottom;
+            }
+            @keyframes pbPricePulse {
+                0%, 100% {
+                    transform: scale(1);
+                    text-shadow: 0 0 0 rgba(243, 144, 4, 0);
+                }
+                50% {
+                    transform: scale(1.06);
+                    text-shadow: 0 0 14px rgba(243, 144, 4, 0.45);
+                }
+            }
+            @media (prefers-reduced-motion: reduce) {
+                #live-price { animation: none; }
+            }
             @media (max-width: 768px) {
                 .proto-hero-grid { grid-template-columns: repeat(2, 1fr) !important; }
             }
@@ -695,6 +727,7 @@
                 <div style="padding: 10px; background: rgba(0,0,0,0.2); border-radius: 6px;"><span style="color: #aaa;">User held Breakdown:</span> <span id="diag-total-user-pb-breakdown" style="color: #888;">-</span></div>
                 <div style="padding: 10px; background: rgba(0,0,0,0.2); border-radius: 6px;"><span style="color: #aaa;">LP:</span> <span id="diag-pb-in-lp" style="color: #FF6B9D;">-</span></div>
                 <div style="padding: 10px; background: rgba(0,0,0,0.2); border-radius: 6px;"><span style="color: #aaa;">MC Held by Users:</span> <span id="diag-market-cap-users" style="color: #4CAF50; font-weight: 600;">-</span><div style="font-size: 0.8rem; color: #88dd88; margin-top: 4px;" id="diag-market-cap-users-calc"></div></div>
+                <div style="padding: 10px; background: rgba(0,0,0,0.2); border-radius: 6px;"><span style="color: #aaa;">MC Liquid PB Held by Users:</span> <span id="diag-market-cap-users-liquid" style="color: #4CAF50; font-weight: 600;">-</span><div style="font-size: 0.8rem; color: #88dd88; margin-top: 4px;" id="diag-market-cap-users-liquid-calc"></div></div>
             </div>
         </section>
         <section class="presale-section docs-intro-card" style="max-width: 1080px; margin: 2rem auto 0;">
@@ -1671,7 +1704,7 @@
                 const { reservePB, reserveUSDL, pbReserve, usdlReserve, price, poolValue } = await contractLayer.getPoolSnapshot();
 
                 document.getElementById('live-price').innerText = formatPrice(price);
-                document.getElementById('pool-value').innerText = formatNumber(poolValue, 0);
+                document.getElementById('pool-value').innerText = '$' + formatNumber(poolValue, 0);
                 document.getElementById('reserve-pb').innerText = formatNumber(pbReserve, 0);
                 document.getElementById('reserve-tusdl').innerText = formatNumber(usdlReserve, 0);
 
@@ -1701,8 +1734,12 @@
                     const maxSellPB = Number(ethers.formatEther(maxSellPBWei));
                     const userPBc = Number(ethers.formatEther(userPBcWei));
                     const totalUserPB = Number(ethers.formatEther(userHeldWei));
+                    const vaultPB = Number(ethers.formatEther(vaultPBWei));
+                    const vaultPBc = Number(ethers.formatEther(vaultPBcWei));
                     const supplyUsed = (totalUserPB / 21000000 * 100).toFixed(2);
                     const marketCapUsers = totalUserPB * price;
+                    const marketCapUsersLiquid = maxSellPB * price;
+                    const marketCapVault = vaultPB * price;
                     const maxSellUSDL = Number(ethers.formatEther(maxSellUSDLWei));
                     const maxSellAvgPrice = maxSellPB > 0 ? maxSellUSDL / maxSellPB : 0;
                     const postSellReservePB = reservePB + maxSellPBWei;
@@ -1740,6 +1777,12 @@
                     }
                     document.getElementById('diag-market-cap-users').innerText = '$' + formatNumber(marketCapUsers, 0);
                     document.getElementById('diag-market-cap-users-calc').innerText = `(${formatNumber(maxSellPB, 0)} PB + ${formatNumber(userPBc, 0)} PBc) × ${formatPrice(price)} = $${formatNumber(marketCapUsers, 2)}`;
+                    document.getElementById('diag-market-cap-users-liquid').innerText = '$' + formatNumber(marketCapUsersLiquid, 0);
+                    document.getElementById('diag-market-cap-users-liquid-calc').innerText = `(${formatNumber(maxSellPB, 0)} PB) × ${formatPrice(price)} = $${formatNumber(marketCapUsersLiquid, 2)}`;
+                    document.getElementById('chart-mc-users-total').innerText = '$' + formatNumber(marketCapUsers, 0);
+                    document.getElementById('chart-mc-users-liquid').innerText = '$' + formatNumber(marketCapUsersLiquid, 0);
+                    document.getElementById('chart-mc-vault').innerText = '$' + formatNumber(marketCapVault, 0);
+                    document.getElementById('chart-mc-total').innerText = '$' + formatNumber(marketCap, 0);
                     const glEl = document.getElementById('diag-gain-loss');
                     glEl.innerText = (gainLossPct >= 0 ? '+' : '') + gainLossPct.toFixed(2) + '%';
                     glEl.style.color = gainLossPct >= 0 ? '#4CAF50' : '#F44336';
@@ -1920,6 +1963,23 @@
             }
         }
 
+        function handleDeepLinkCollapse() {
+            const hash = (window.location.hash || '').replace('#', '').trim();
+            if (!hash) return;
+
+            const allowedTargets = new Set(['vlock-collapse', 'remove-lp-collapse', 'recovery-collapse']);
+            if (!allowedTargets.has(hash)) return;
+
+            const target = document.getElementById(hash);
+            if (!target) return;
+
+            if (target.tagName && target.tagName.toLowerCase() === 'details') {
+                target.open = true;
+            }
+
+            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
 
         // ================================================================
         // START
@@ -1928,7 +1988,10 @@
             init();
             initSwitchTestCard();
             loadNetFlowMetrics();
+            handleDeepLinkCollapse();
         });
+
+        window.addEventListener('hashchange', handleDeepLinkCollapse);
     </script>
     <script>window.gtranslateSettings = {"default_language":"en","native_language_names":true,"detect_browser_language":true,"languages":["en","zh-CN","fr","de","hi","es","pt","nl","el"],"wrapper_selector":".gtranslate_wrapper","flag_style":"3d","alt_flags":{"en":"usa"}}</script>
     <script src="https://cdn.gtranslate.net/widgets/latest/float.js" defer></script>
