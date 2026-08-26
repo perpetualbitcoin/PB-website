@@ -9,7 +9,18 @@ const NETWORKS = {
     mainnet: {
         chainId: 369,
         name: "PulseChain",
-        rpc: "https://rpc.pulsechain.com",
+        rpc: "https://rpc-pulsechain.g4mm4.io",
+        rpcFallbacks: [
+            "https://rpc-pulsechain.g4mm4.io",
+            "https://rpc.libertyswap.finance",
+            "https://pulsechain-rpc.publicnode.com",
+            "https://rpc.pulsechainstats.com",
+            "https://rpc.pulsechainrpc.com",
+            "https://rpc.degenprotocol.io",
+            "https://rpc.gigatheminter.com",
+            "https://rpc.pulsechain.com",
+
+        ],
         explorer: "https://scan.pulsechain.com",
         apiBase: "https://perpetualbitcoin.io/MN-api",
     },

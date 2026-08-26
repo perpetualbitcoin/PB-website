@@ -65,10 +65,33 @@
 
     // ── ethers v5/v6 compat ──
     function isV6() { return typeof ethers.JsonRpcProvider === 'function'; }
-    function makeProvider() {
+    function getRpcList() {
+        var list = (TICKER_NETWORK.rpcFallbacks && TICKER_NETWORK.rpcFallbacks.length)
+            ? TICKER_NETWORK.rpcFallbacks.slice()
+            : [TICKER_NETWORK.rpc];
+        return list.filter(Boolean);
+    }
+    async function probeRpc(url) {
+        try {
+            var resp = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                body: JSON.stringify({ jsonrpc: '2.0', method: 'eth_chainId', params: [], id: 1 })
+            });
+            if (!resp.ok) throw new Error('HTTP ' + resp.status);
+            var data = await resp.json();
+            if (data && data.error) throw new Error(data.error.message || 'RPC error');
+            return Boolean(data && data.result);
+        } catch (err) {
+            console.warn('Ticker RPC probe failed (' + url + '):', err.message || err);
+            return false;
+        }
+    }
+    function makeProvider(url) {
+        var rpcUrl = url || TICKER_NETWORK.rpc;
         return isV6()
-            ? new ethers.JsonRpcProvider(TICKER_NETWORK.rpc, TICKER_NETWORK.chainId)
-            : new ethers.providers.JsonRpcProvider(TICKER_NETWORK.rpc, TICKER_NETWORK.chainId);
+            ? new ethers.JsonRpcProvider(rpcUrl, TICKER_NETWORK.chainId)
+            : new ethers.providers.JsonRpcProvider(rpcUrl, TICKER_NETWORK.chainId);
     }
     function fmtEther(val) {
         return isV6() ? ethers.formatEther(val) : ethers.utils.formatEther(val);
@@ -127,17 +150,35 @@
     async function updateTicker() {
         try {
             if (typeof ethers === 'undefined') return;
-            var rpc = makeProvider();
-            var pairC  = new ethers.Contract(TICKER_ADDRESSES.PB_USDL_PAIR, PAIR_ABI, rpc);
-            var vaultC = new ethers.Contract(TICKER_ADDRESSES.Vault, VAULT_ABI, rpc);
+            var rpcs = getRpcList();
+            var results = null, token0 = null, reserves = null,
+                totalUSDLDist = null, vaultPB = null, vaultPBc = null;
+            for (var ri = 0; ri < rpcs.length; ri++) {
+                try {
+                    var rpcUrl = rpcs[ri];
+                    var probeOk = await probeRpc(rpcUrl);
+                    if (!probeOk) {
+                        console.warn('Ticker RPC probe failed (' + rpcUrl + '), trying next endpoint.');
+                        continue;
+                    }
+                    var rpc = makeProvider(rpcUrl);
+                    var pairC  = new ethers.Contract(TICKER_ADDRESSES.PB_USDL_PAIR, PAIR_ABI, rpc);
+                    var vaultC = new ethers.Contract(TICKER_ADDRESSES.Vault, VAULT_ABI, rpc);
+                    results = await Promise.all([
+                        pairC.getReserves(), pairC.token0(),
+                        vaultC.totalUSDLDistributed(), vaultC.vaultPBBalance(), vaultC.vaultPBcBalance()
+                    ]);
+                    break; // success — stop trying endpoints
+                } catch (rpcErr) {
+                    console.warn('Ticker RPC failed (' + rpcs[ri] + '):', rpcErr.message);
+                    results = null;
+                }
+            }
+            if (!results) return; // all endpoints failed this cycle
             var launchPrice = 5555 / 100000;
 
-            var results = await Promise.all([
-                pairC.getReserves(), pairC.token0(),
-                vaultC.totalUSDLDistributed(), vaultC.vaultPBBalance(), vaultC.vaultPBcBalance()
-            ]);
-            var reserves = results[0], token0 = results[1],
-                totalUSDLDist = results[2], vaultPB = results[3], vaultPBc = results[4];
+            reserves = results[0]; token0 = results[1];
+            totalUSDLDist = results[2]; vaultPB = results[3]; vaultPBc = results[4];
 
             var pbRes, usdlRes;
             if (token0.toLowerCase() === TICKER_ADDRESSES.PB.toLowerCase()) {

@@ -486,17 +486,11 @@
     </nav>
 
     <div class="dapp-hero">
-        <h1><br>📊 Portfolio Tracker</h1>
+        <h1><br>📊 Perpetual Bitcoin (PB) Portfolio Tracker</h1>
         <p>View all your Perpetual Bitcoin positions across multiple wallets.<br>
         <span style="font-weight: 600; color: #F39004;">No wallet connection required, read-only via RPC.</span></p>
-        <div style="margin-top:12px;display:inline-flex;align-items:center;gap:10px;background:rgba(0,0,0,0.3);padding:6px 16px;border-radius:20px;">
-            <span id="label-testnet" style="font-size:0.85rem;font-weight:700;color:#F39004;">Testnet 943</span>
-            <label style="position:relative;display:inline-block;width:48px;height:26px;cursor:pointer;">
-                <input type="checkbox" id="network-toggle" style="opacity:0;width:0;height:0;">
-                <span style="position:absolute;inset:0;background:#555;border-radius:26px;transition:0.3s;"></span>
-                <span id="toggle-knob" style="position:absolute;left:3px;top:3px;width:20px;height:20px;background:#fff;border-radius:50%;transition:0.3s;"></span>
-            </label>
-            <span id="label-mainnet" style="font-size:0.85rem;font-weight:700;color:#666;">Mainnet 369</span>
+        <div style="margin-top:12px;display:inline-flex;align-items:center;gap:10px;background:rgba(0,0,0,0.3);padding:6px 16px;border-radius:20px;display:none;">
+            <span style="font-size:0.85rem;font-weight:700;color:#F39004;"></span>
         </div>
     </div>
 
@@ -740,15 +734,48 @@
         'function token0() view returns (address)',
     ];
 
-    // ── Dynamic network state ──
-    let activeNet = NETWORK; // 'testnet' or 'mainnet'
+    // ── Network state ──
+    let activeNet = NETWORK || 'mainnet';
     let provider, vault, vaultViews, pbToken, pbcToken, pair, TVault, TPB, TPBc, TUSDL, PAIR;
+    let contractsReady = Promise.resolve();
 
-    function initContracts(net) {
+    async function probeRpcEndpoint(url) {
+        try {
+            const resp = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                body: JSON.stringify({ jsonrpc: '2.0', method: 'eth_chainId', params: [], id: 1 }),
+            });
+            if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+            const data = await resp.json();
+            if (data && data.error) throw new Error(data.error.message || 'RPC error');
+            return Boolean(data && data.result);
+        } catch (err) {
+            console.warn(`Portfolio RPC probe failed for ${url}:`, err.message || err);
+            return false;
+        }
+    }
+
+    async function createProviderWithFallback(netCfg) {
+        const candidates = [...new Set([...(netCfg && netCfg.rpcFallbacks ? netCfg.rpcFallbacks : []), netCfg && netCfg.rpc].filter(Boolean))];
+
+        for (const url of candidates) {
+            const isHealthy = await probeRpcEndpoint(url);
+            if (isHealthy) {
+                console.log(`Portfolio using RPC: ${url}`);
+                return new ethers.JsonRpcProvider(url, netCfg.chainId);
+            }
+        }
+
+        console.warn('Portfolio: no RPC endpoints were usable; using the first configured default.');
+        return new ethers.JsonRpcProvider(candidates[0] || netCfg.rpc, netCfg.chainId);
+    }
+
+    async function initContracts(net = 'mainnet') {
         activeNet = net;
         const netCfg = NETWORKS[net];
-        const addrs = net === 'mainnet' ? ADDRESSES_MAINNET : ADDRESSES_TESTNET;
-        provider = new ethers.JsonRpcProvider(netCfg.rpc, netCfg.chainId);
+        const addrs = ADDRESSES_MAINNET;
+        provider = await createProviderWithFallback(netCfg);
         TVault = addrs.Vault;  TPB = addrs.PB;  TPBc = addrs.PBc;
         TUSDL = addrs.USDL;   PAIR = addrs.PB_USDL_PAIR;
         vault    = new ethers.Contract(TVault, VAULT_ABI, provider);
@@ -756,25 +783,10 @@
         pbToken  = new ethers.Contract(TPB, TOKEN_ABI, provider);
         pbcToken = new ethers.Contract(TPBc, TOKEN_ABI, provider);
         pair     = new ethers.Contract(PAIR, PAIR_ABI, provider);
+        return { provider, vault, vaultViews, pbToken, pbcToken, pair };
     }
 
-    function syncNetworkToggleUi(net) {
-        const isMainnet = net === 'mainnet';
-        const toggle = document.getElementById('network-toggle');
-        const testnetLabel = document.getElementById('label-testnet');
-        const mainnetLabel = document.getElementById('label-mainnet');
-        const toggleKnob = document.getElementById('toggle-knob');
-        const toggleTrack = document.querySelector('#network-toggle + span');
-
-        if (toggle) toggle.checked = isMainnet;
-        if (testnetLabel) testnetLabel.style.color = isMainnet ? '#666' : '#F39004';
-        if (mainnetLabel) mainnetLabel.style.color = isMainnet ? '#F39004' : '#666';
-        if (toggleKnob) toggleKnob.style.left = isMainnet ? '25px' : '3px';
-        if (toggleTrack) toggleTrack.style.background = isMainnet ? '#F39004' : '#555';
-    }
-
-    initContracts(activeNet);
-    syncNetworkToggleUi(activeNet);
+    contractsReady = initContracts(activeNet);
 
     const STORAGE_KEY = 'pb_portfolio_addresses';
     const ALERT_EMAIL_KEY = 'pb_settlement_alert_email';
@@ -786,27 +798,6 @@
     let lastReportFilterSignature = '';
     let currentReportActivitySortCol = 'pbt';
     let currentReportActivitySortDir = 1;
-
-    // ── Network toggle ──
-    document.getElementById('network-toggle').addEventListener('change', function() {
-        const net = this.checked ? 'mainnet' : 'testnet';
-        const addrs = net === 'mainnet' ? ADDRESSES_MAINNET : ADDRESSES_TESTNET;
-        if (!addrs.Vault) {
-            this.checked = !this.checked;
-            document.getElementById('load-status').innerHTML = '<span style="color:#ff6b6b;">Mainnet not deployed yet.</span>';
-            return;
-        }
-        initContracts(net);
-        blockTimestampCache.clear();
-        syncNetworkToggleUi(net);
-        updateAlertWalletOptions(loadSavedAddresses());
-        syncPersistedShareCode(loadSavedAddresses());
-        if (loadAlertEmail()) {
-            loadSettlementAlertsForEmail(loadAlertEmail());
-        }
-        // Reload if addresses exist
-        if (loadSavedAddresses().length > 0) loadPortfolio();
-    });
 
     // ========================
     // HELPERS
@@ -914,7 +905,6 @@
     }
 
     function clearAllRememberedShareCodes() {
-        clearRememberedShareCode('testnet');
         clearRememberedShareCode('mainnet');
     }
 
@@ -1917,6 +1907,8 @@
     // CURRENT PRICE
     // ========================
     async function getCurrentPrice() {
+        await contractsReady;
+        if (!pair) throw new Error('RPC/provider not ready for current price lookup.');
         const [reserves, token0] = await Promise.all([
             pair.getReserves(),
             pair.token0(),
@@ -2324,6 +2316,10 @@
     // MAIN LOAD
     // ========================
     async function loadPortfolio() {
+        await contractsReady;
+        if (!provider || !vault || !vaultViews || !pair) {
+            throw new Error('RPC/provider is not ready yet. Please try again in a moment.');
+        }
         const refreshBtn = document.getElementById('portfolio-refresh-btn');
         if (refreshBtn) refreshBtn.classList.add('spinning');
         const input = document.getElementById('address-input').value;
@@ -2395,6 +2391,7 @@
     }
 
     async function fetchAllEvents() {
+        await contractsReady;
         const eventMap = {};
         try {
             const fromBlock = (typeof VAULT_DEPLOY_BLOCK !== 'undefined' && VAULT_DEPLOY_BLOCK) || 0;
